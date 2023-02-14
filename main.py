@@ -1,4 +1,4 @@
-from file import initialize_user_directories, create_file_object, create_file
+from file import initialize_user_directories, create_file
 from login import login
 
 
@@ -18,4 +18,4 @@ def command_prompt():
             print(f'The command "{input_command}" could not be found. \n')
 
         if input_command == 'create file':
-            create_file(user)
+            create_file(owner=user)

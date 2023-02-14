@@ -14,7 +14,13 @@ class File:
 def create_file(owner):
     file_object = create_file_object(owner)
     path = 'ChaOS_Users/' + file_object.owner + '/' + file_object.name + file_object.type
-    open(path, 'w')
+    f = open(path, 'w')
+    f.close()
+    # f.flush()
+    # os.fsync(f.fileno())
+    # f.close()
+    #f.flush()
+    #os.fsync(f.fileno())
 
 
 def create_file_object(owner):
