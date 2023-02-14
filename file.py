@@ -11,6 +11,12 @@ class File:
     owner: str
 
 
+def create_file(owner):
+    file_object = create_file_object(owner)
+    path = 'ChaOS_Users/' + file_object.owner + '/' + file_object.name + file_object.type
+    open(path, 'w')
+
+
 def create_file_object(owner):
     name = None
     name_invalid = True
@@ -25,12 +31,12 @@ def create_file_object(owner):
     type = None
     type_invalid = True
     while type_invalid:
-        input_type = input('Filename > ')
+        input_type = input('Filetype > ')
         if input_type not in ['.txt']:
-                print('Invalid filename, try again: ')
+                print('Invalid filetype, try again: ')
         else:
             type = input_type
-            name_invalid = False
+            type_invalid = False
 
     owner = owner.name
 
@@ -39,8 +45,7 @@ def create_file_object(owner):
     return new_file
 
 
-def create_file(file_object):
-    pass
+
 
 
 def initialize_user_directories():
