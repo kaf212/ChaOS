@@ -76,6 +76,7 @@ def initialize_users():
     with open('users.csv', 'w') as csv_file:
         attributes = ['username', 'password']
         csv_writer = csv.DictWriter(csv_file, fieldnames=attributes)
+        csv_writer.writeheader()
         csv_writer.writerow({'username': 'kaf212', 'password': '1234'})
         csv_writer.writerow({'username': 'NextToNothing', 'password': 'asdf'})
         csv_writer.writerow({'username': 'Custoomer31', 'password': 'svp'})
