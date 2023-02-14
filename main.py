@@ -1,2 +1,6 @@
+from login import login
+
+
 def main():
-    pass
+    user = login()
+    print(user)

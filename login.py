@@ -1,20 +1,20 @@
 import csv
 
+from user import create_user_object
+
 
 def login():
-    # print('test')
-    # with open('users.csv', 'a+') as csv_file:
-    #     attributes = ['name', 'password']
-    #     csv_writer = csv.DictWriter(csv_file, fieldnames=attributes)
-    #     csv_file.close()
-
+    """
+    I know the code be mad ugly.
+    :return User object:
+    """
     username = None
     while username is None:
         input_username = input('Username (type /register to create new account) > ')
         if input_username == '/register':
             name_taken = True
             while name_taken:
-                input_username = input('Enter your username > ')
+                input_username = input('Enter a username > ')
 
                 with open('users.csv', 'r') as csv_file:
                     attributes = ['name', 'password']
@@ -28,12 +28,20 @@ def login():
 
                     if name_taken:
                         input('This Username is already taken. ')
-                    else:
-                        pass #todo: implement create user()
 
+            password = None
+            password_invalid = True
+            while password_invalid:
+                input_password = input('Enter a password > ')
+                pw_connfirmation = input('Confirm your password > ')
+                if input_password == pw_connfirmation:
+                    password_invalid = False
+                    password = input_password
+                else:
+                    input("Your passwords don't match, try again: ")
 
-
-
+            input(f'User {input_username} was successfully created. ')
+            create_user(input_username, password)
 
         with open('users.csv', 'r') as csv_file:
             attributes = ['name', 'password']
@@ -48,7 +56,7 @@ def login():
             if username is None:
                 print('User not found, try again: ')
 
-    print(f'-- {username} --')
+    print(f'\n-- {username} --')
     tries = 3
     while tries > 0:
         input_password = input('Password > ')
@@ -62,6 +70,9 @@ def login():
         input('You haven entered too many wrong passwords. ')
         exit()
 
+    user_object = create_user_object(username, password)
+
+    return user_object
 
 
 def create_user(username, password):
@@ -69,10 +80,14 @@ def create_user(username, password):
         attributes = ['username', 'password']
         csv_writer = csv.DictWriter(csv_file, fieldnames=attributes)
         csv_writer.writerow({'username': username, 'password': password})
-
         csv_file.close()
 
-def initialize_users():
+
+def clean_user_csv():
+    """
+    Genocide tool for test users.
+    :return:
+    """
     with open('users.csv', 'w') as csv_file:
         attributes = ['username', 'password']
         csv_writer = csv.DictWriter(csv_file, fieldnames=attributes)
