@@ -1,5 +1,6 @@
 import csv
 
+from encryption import encrypt_str, decrypt_str
 from user import create_user_object
 
 
@@ -43,7 +44,7 @@ def login():
             input(f'User {input_username} was successfully created. ')
             create_user(input_username, password)
 
-        with open('users.csv', 'r') as csv_file:
+        with open('users.csv', 'r', encoding='utf-8') as csv_file:
             attributes = ['name', 'password']
             next(csv_file)  # skip attribute header
             csv_reader = csv.DictReader(csv_file, fieldnames=attributes)
@@ -58,9 +59,10 @@ def login():
 
     print(f'\n-- {username} --')
     tries = 3
+    input_password = None
     while tries > 0:
         input_password = input('Password > ')
-        if input_password != password:
+        if input_password != decrypt_str(password):
             tries -= 1
             print('Wrong password, try again: ')
         else:
@@ -76,10 +78,10 @@ def login():
 
 
 def create_user(username, password):
-    with open('users.csv', 'a+') as csv_file:
+    with open('users.csv', 'a+', encoding="utf-8") as csv_file:
         attributes = ['username', 'password']
         csv_writer = csv.DictWriter(csv_file, fieldnames=attributes)
-        csv_writer.writerow({'username': username, 'password': password})
+        csv_writer.writerow({'username': username, 'password': encrypt_str(password)})
         csv_file.close()
 
 
@@ -88,13 +90,13 @@ def clean_user_csv():
     Genocide tool for test users.
     :return:
     """
-    with open('users.csv', 'w') as csv_file:
+    with open('users.csv', 'w', encoding="utf-8") as csv_file:
         attributes = ['name', 'password']
         csv_writer = csv.DictWriter(csv_file, fieldnames=attributes)
         csv_writer.writeheader()
-        csv_writer.writerow({'name': 'kaf221122', 'password': '1234'})
-        csv_writer.writerow({'name': 'NextToNothing', 'password': 'asdf'})
-        csv_writer.writerow({'name': 'Custoomer31', 'password': 'svp'})
-        csv_writer.writerow({'name': 'Seve', 'password': 'minecraft'})
-        csv_writer.writerow({'name': 'Manu', 'password': 'st.lutzi'})
+        csv_writer.writerow({'name': 'kaf221122', 'password': encrypt_str('1234')})
+        csv_writer.writerow({'name': 'NextToNothing', 'password': encrypt_str('asdf')})
+        csv_writer.writerow({'name': 'Custoomer31', 'password': encrypt_str('svp')})
+        csv_writer.writerow({'name': 'Seve', 'password': encrypt_str('minecraft')})
+        csv_writer.writerow({'name': 'Manu', 'password': encrypt_str('st.lutzi')})
         csv_file.close()

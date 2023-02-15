@@ -2,7 +2,7 @@ import csv
 
 
 def return_user_names():
-    with open('users.csv', 'r') as csv_file:
+    with open('users.csv', 'r', encoding='utf-8') as csv_file:
         attributes = ['name', 'password']
         next(csv_file)  # skip attribute header
         csv_reader = csv.DictReader(csv_file, fieldnames=attributes)
