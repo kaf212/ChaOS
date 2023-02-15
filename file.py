@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 from csv_handling import return_user_names
 import os
+from datetime import datetime
 
 
 @dataclass
@@ -11,16 +12,39 @@ class File:
     owner: str
 
 
+def find_file(user):
+    while True:
+        input_filename = input('Filename + type > ')
+        directory = os.fsencode(f'ChaOS_Users/{user.name}')
+        found_file_name = None
+        for file in os.listdir(directory):
+            filename = os.fsdecode(file)
+            if filename == input_filename:
+                found_file_name = os.fsdecode(file)
+            else:
+                continue
+        if found_file_name:
+            return found_file_name
+        else:
+            input('File not found. ')
+
+
+def read_txt(filename, owner):
+    path = 'ChaOS_Users/' + owner.name + '/' + filename
+    with open(path, 'r') as f:
+        print(f'-- {filename} --\n')
+        print(f.read())
+    # exit(read_txt(filename, owner))  #TODO: try implementing that when calling stuff in main
+
+
 def create_file(owner):
     file_object = create_file_object(owner)
     path = 'ChaOS_Users/' + file_object.owner + '/' + file_object.name + file_object.type
-    f = open(path, 'w')
-    f.close()
+    f = open(path, 'a+', 1)
+    f.write(f'{file_object.name}{file_object.type} created on the {datetime.now()}')
     # f.flush()
     # os.fsync(f.fileno())
-    # f.close()
-    #f.flush()
-    #os.fsync(f.fileno())
+    f.close()
 
 
 def create_file_object(owner):
@@ -39,7 +63,7 @@ def create_file_object(owner):
     while type_invalid:
         input_type = input('Filetype > ')
         if input_type not in ['.txt']:
-                print('Invalid filetype, try again: ')
+            print('Invalid filetype, try again: ')
         else:
             type = input_type
             type_invalid = False
@@ -49,9 +73,6 @@ def create_file_object(owner):
     new_file = File(name, type, owner)
 
     return new_file
-
-
-
 
 
 def initialize_user_directories():
@@ -68,8 +89,3 @@ def initialize_user_directories():
             os.mkdir(path)
         except FileExistsError:
             pass
-
-
-
-
-
