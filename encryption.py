@@ -10,18 +10,55 @@ def encrypt_str(string):
     return string_enc
 
 
+def decrypt_str(string):
+    string_list = list(string)
+    string_list_decr = []
+
+    for char in string_list:
+        string_list_decr.append(decrypt_char(char))
+
+    string_enc = ''.join(string_list_decr)
+
+    return string_enc
+
+
 def encrypt_char(char):
-    string_unicode = str_unicode(char)
-    string_bin = dec_bin(string_unicode)
-    string_bin_inv = invert_bin(string_bin)
-    string_hex = hex(int(string_bin_inv, 2))
-    string_unicode_enc = chr(int(string_hex, 16))
+    char_unicode = str_unicode(char)
+    char_bin = dec_bin(char_unicode)
+    char_bin_inv = invert_bin(char_bin)
+    char_hex = hex(int(char_bin_inv, 2))
+    char_unicode_enc = chr(int(char_hex, 16))
 
-    return string_unicode_enc
+    return char_unicode_enc
 
 
-def decrypt(string):
-    pass
+def decrypt_char(char_unicode_enc):
+    char_hex = char_unicode_enc.encode('latin-1')
+    try:
+        char_hex.decode('utf-8')
+    except UnicodeDecodeError:
+        pass
+    # print(f'DEBUGGING: char_hex (decr) = {char_hex}')
+    char_bin_inv = hex_bin(char_hex)
+    # print(f'char_bin_inv = {char_bin_inv}')
+    char_bin = invert_bin(char_bin_inv)
+    # print(f'char_bin = {char_bin}')
+    char_dec = bin_dec(char_bin)
+    char_hex = hex(char_dec)
+
+    char_decrypted = chr(int(char_hex, 16))
+    return char_decrypted
+
+
+def hex_bin(hex):
+    dec_list = list(hex)
+    bin_list = []
+    for dec in dec_list:
+        bin_list.append(dec_bin(dec))
+
+    bin_str = ''.join(bin_list)
+
+    return bin_str
 
 
 def str_unicode(string):
@@ -82,3 +119,7 @@ def invert_bin(binary):
         bin_str += binary
 
     return bin_str
+
+def bin_dec(binary):
+    dec = int(binary, 2)
+    return dec
