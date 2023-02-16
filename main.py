@@ -1,5 +1,5 @@
 from file import initialize_user_directories, create_file, find_file, read_txt
-from login import login
+from login import login, create_user
 
 
 def main():
@@ -12,13 +12,34 @@ def main():
 def command_prompt():
     current_directory = f'A:/Users/{user.name}'
     while True:
-        input_command = input(f'{current_directory}>')
+        input_command = input(f'{current_directory}>').lower()
 
-        if input_command == 'create file':
-            create_file(owner=user)
+        interpret_command(input_command)
 
-        if input_command == 'read file':
-            filename = find_file(user)
-            read_txt(filename, user)
-        else:
-            print(f'The command "{input_command}" could not be found. \n')
+
+def interpret_command(cmd):
+    cmd_split = cmd.split()
+    if cmd_split[0] == 'create':
+        create_x(cmd_split)
+
+    elif cmd_split[0] == 'read':
+        read_x(cmd_split)
+
+    else:
+        print(f'The command "{cmd_split[0]}" does not exist. \n')
+
+
+def create_x(cmd_split):
+    if cmd_split[1] == 'file':
+        create_file(user)
+    elif cmd_split[1] == 'user':
+        pass
+    else:
+        print(f'"{cmd_split[1]}" is not a valid statement for command "{cmd_split[0]}"\n')
+
+
+def read_x(cmd_split):
+    if cmd_split[1] == 'file':
+        pass
+    else:
+        print(f'"{cmd_split[1]}" is not a valid statement for command "{cmd_split[0]}\n')
