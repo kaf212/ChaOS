@@ -10,9 +10,11 @@ def main():
 
 
 def command_prompt():
-    current_directory = f'A:/Users/{user.name}'
+    global cr_dir
+    cr_dir = f'ChaOS_Users/{user.name}'
+    cr_dir_ui = f'A:/Users/{user.name}'
     while True:
-        input_command = input(f'{current_directory}>').lower()
+        input_command = input(f'{cr_dir_ui}>').lower()
 
         interpret_command(input_command)
 
@@ -31,7 +33,11 @@ def interpret_command(cmd):
 
 def create_x(cmd_split):
     if cmd_split[1] == 'file':
-        create_file(user)
+        if not cmd_split[1].endswith('.txt'):
+            print(f'"{"." + cmd_split[2].partition(".")[2]}" is not a valid filetype\n')
+        else:
+            create_file(cr_dir, cmd_split[2])
+
     elif cmd_split[1] == 'user':
         pass
     else:
@@ -40,6 +46,9 @@ def create_x(cmd_split):
 
 def read_x(cmd_split):
     if cmd_split[1] == 'file':
-        pass
+        if cmd_split[2].endswith('.txt'):
+            read_txt(cr_dir, cmd_split[2])
+        else:
+            print(f'"{"." + cmd_split[2].partition(".")[2]}" is not a valid filetype\n')
     else:
         print(f'"{cmd_split[1]}" is not a valid statement for command "{cmd_split[0]}\n')

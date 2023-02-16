@@ -29,7 +29,7 @@ def find_file(user):
             input('File not found. ')
 
 
-def read_txt(filename, owner):
+def read_txt_old(filename, owner):
     path = 'ChaOS_Users/' + owner.name + '/' + filename
     with open(path, 'r') as f:
         print(f'-- {filename} --\n')
@@ -37,7 +37,7 @@ def read_txt(filename, owner):
     # exit(read_txt(filename, owner))  #TODO: try implementing that when calling stuff in main
 
 
-def create_file(owner):
+def create_file_old(owner):
     file_object = create_file_object(owner)
     path = 'ChaOS_Users/' + file_object.owner + '/' + file_object.name + file_object.type
     f = open(path, 'a+', 1)
@@ -45,6 +45,23 @@ def create_file(owner):
     # f.flush()
     # os.fsync(f.fileno())
     f.close()
+
+
+def create_file(dir, name):
+    path = dir + '/' + name
+    with open(path, 'w') as f:
+        f.write(f'{name} created on the {datetime.now()}')
+        # f.flush()
+        # os.fsync(f.fileno())
+        f.close()
+
+
+def read_txt(dir, name):
+    path = dir + '/' + name
+    with open(path, 'r') as f:
+        print(f'-- {name} --\n')
+        print(f.read())
+        f.close()
 
 
 def create_file_object(owner):
