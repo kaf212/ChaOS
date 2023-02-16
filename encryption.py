@@ -38,11 +38,8 @@ def decrypt_char(char_unicode_enc):
         char_hex.decode('utf-8')
     except UnicodeDecodeError:
         pass
-    # print(f'DEBUGGING: char_hex (decr) = {char_hex}')
     char_bin_inv = hex_bin(char_hex)
-    # print(f'char_bin_inv = {char_bin_inv}')
     char_bin = invert_bin(char_bin_inv)
-    # print(f'char_bin = {char_bin}')
     char_dec = bin_dec(char_bin)
     char_hex = hex(char_dec)
 
