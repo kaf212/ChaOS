@@ -106,3 +106,15 @@ def initialize_user_directories():
             os.mkdir(path)
         except FileExistsError:
             pass
+
+
+def validate_filetype(filename, valid_filetypes):
+    ft_valid = False
+    for filetype in valid_filetypes:
+        if filename.endswith(filetype):
+            ft_valid = True
+
+    if not ft_valid:
+        print(f'"{"." + filename.partition(".")[2]}" is not a valid filetype\n')
+
+    return ft_valid

@@ -1,4 +1,4 @@
-from file import initialize_user_directories, create_file, find_file, read_txt
+from file import initialize_user_directories, create_file, find_file, read_txt, validate_filetype
 from login import login, create_user
 
 
@@ -33,9 +33,7 @@ def interpret_command(cmd):
 
 def create_x(cmd_split):
     if cmd_split[1] == 'file':
-        if not cmd_split[1].endswith('.txt'):
-            print(f'"{"." + cmd_split[2].partition(".")[2]}" is not a valid filetype\n')
-        else:
+        if validate_filetype(cmd_split[2], ['.txt']):
             create_file(cr_dir, cmd_split[2])
 
     elif cmd_split[1] == 'user':
