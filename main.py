@@ -1,5 +1,5 @@
 from file import initialize_user_directories, create_file, find_file, read_txt, validate_filetype, check_file_existence, \
-    delete_file
+    delete_file, edit_txt
 from input import input_y_n
 from login import login
 
@@ -22,19 +22,35 @@ def command_prompt():
 
 
 def interpret_command(cmd):
-    cmd_split = cmd.split()
-    print(cmd_split)
-    if cmd_split[0] == 'create':
-        create_x(cmd_split)
+    cmd_invalid = False
+    cmd_split = None
+    if cmd:
+        try:
+            cmd_split = cmd.split()
+        except TypeError:
+            cmd_invalid = True
 
-    elif cmd_split[0] == 'read':
-        read_x(cmd_split)
+    if not cmd_invalid:
+        try:
+            if cmd_split[0] == 'create':
+                create_x(cmd_split)
 
-    elif cmd_split[0] == 'delete':
-        delete_x(cmd_split)
+            elif cmd_split[0] == 'read':
+                read_x(cmd_split)
+
+            elif cmd_split[0] == 'delete':
+                delete_x(cmd_split)
+
+            elif cmd_split[0] == 'edit':
+                edit_x(cmd_split)
+        except TypeError:
+            print('You must enter a valid command to proceed, type "help" for help. ')
+
+        else:
+            print(f'The command "{cmd_split[0]}" does not exist. \n')
 
     else:
-        print(f'The command "{cmd_split[0]}" does not exist. \n')
+        print('You must enter a valid command to proceed, type "help" for help. ')
 
 
 def create_x(cmd_split):
@@ -75,3 +91,12 @@ def delete_x(cmd_split):
         pass
     else:
         print(f'"{cmd_split[1]}" is not a valid statement for command "{cmd_split[0]}"\n')
+
+
+def edit_x(cmd_split):
+    if cmd_split[1] == 'file':
+        if check_file_existence(cr_dir + "/" + cmd_split[2]):
+            if validate_filetype(cmd_split[2], ['.txt']):
+                edit_txt(cr_dir + "/" + cmd_split[2])
+        else:
+            print(f'File "{cmd_split[2]}" does not exist. ')

@@ -49,7 +49,7 @@ def create_file_old(owner):
 
 def create_file(dir, name):
     path = dir + '/' + name
-    with open(path, 'w') as f:
+    with open(path, 'w', 1) as f:
         f.write(f'{name} created on the {datetime.now()}')
         # f.flush()
         # os.fsync(f.fileno())
@@ -61,6 +61,7 @@ def read_txt(dir, name):
     with open(path, 'r') as f:
         print(f'-- {name} --\n')
         print(f.read())
+        print(f'\n-- {name} --\n')
         f.close()
 
 
@@ -130,14 +131,11 @@ def delete_file(path):
         os.remove(path)
     else:
         print("File not found. ")
-        # path_split = path.partition("/")
-        # path_split = list(path_split)
-        # print(path_split)
-        # del path_split[0]
-        # del path_split[0]
-        # print(path_split)
-        # path_split = list(path_split)
-        # path_split = str(path_split)
 
-        # path_split = path_split.partition("/")
-        # print(f'The file "{path_split[len(path_split) - 1]}" does not exist')
+
+def edit_txt(path):
+    user_text = input('Write > ')
+    with open(path, 'a+') as f:
+        f.write('\n')
+        f.write(user_text)
+        f.close()
