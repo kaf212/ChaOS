@@ -123,3 +123,21 @@ def validate_filetype(filename, valid_filetypes):
 def check_file_existence(path):
     f_exists = os.path.isfile(path)
     return f_exists
+
+
+def delete_file(path):
+    if check_file_existence(path):
+        os.remove(path)
+    else:
+        print("File not found. ")
+        # path_split = path.partition("/")
+        # path_split = list(path_split)
+        # print(path_split)
+        # del path_split[0]
+        # del path_split[0]
+        # print(path_split)
+        # path_split = list(path_split)
+        # path_split = str(path_split)
+
+        # path_split = path_split.partition("/")
+        # print(f'The file "{path_split[len(path_split) - 1]}" does not exist')
