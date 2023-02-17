@@ -1,4 +1,6 @@
-from file import initialize_user_directories, create_file, find_file, read_txt, validate_filetype, check_file_existence, \
+import os
+
+from file import initialize_user_directories, create_file, read_txt, validate_filetype, check_file_existence, \
     delete_file, edit_txt
 from input import input_y_n
 from login import login
@@ -15,42 +17,45 @@ def command_prompt():
     global cr_dir
     cr_dir = f'ChaOS_Users/{user.name}'
     cr_dir_ui = f'A:/Users/{user.name}'
+    # TODO: implement cr_dir_ui and the translation from cmd prompt to real path
+    # without making the programm shit itself (tough one, so push first)
     while True:
-        input_command = input(f'{cr_dir_ui}>').lower()
+        cmd = input(f'{cr_dir}>').lower()
 
-        interpret_command(input_command)
+        cmd_invalid = False
+        cmd_split = None
+        if cmd:
+            try:
+                cmd_split = cmd.split()
+            except TypeError:
+                cmd_invalid = True
 
+        if not cmd_invalid:
+            try:
+                if cmd_split[0] == 'create':
+                    create_x(cmd_split)
 
-def interpret_command(cmd):
-    cmd_invalid = False
-    cmd_split = None
-    if cmd:
-        try:
-            cmd_split = cmd.split()
-        except TypeError:
-            cmd_invalid = True
+                elif cmd_split[0] == 'read':
+                    read_x(cmd_split)
 
-    if not cmd_invalid:
-        try:
-            if cmd_split[0] == 'create':
-                create_x(cmd_split)
+                elif cmd_split[0] == 'delete':
+                    delete_x(cmd_split)
 
-            elif cmd_split[0] == 'read':
-                read_x(cmd_split)
+                elif cmd_split[0] == 'edit':
+                    edit_x(cmd_split)
 
-            elif cmd_split[0] == 'delete':
-                delete_x(cmd_split)
+                elif cmd_split[0] == 'cd':
+                    cr_dir = change_dir(cmd_split[1])
+            except TypeError:
+                print('You must enter a valid command to proceed, type "help" for help. ')
 
-            elif cmd_split[0] == 'edit':
-                edit_x(cmd_split)
-        except TypeError:
-            print('You must enter a valid command to proceed, type "help" for help. ')
+            else:
+                print(f'The command "{cmd_split[0]}" does not exist. \n')
 
         else:
-            print(f'The command "{cmd_split[0]}" does not exist. \n')
+            print('You must enter a valid command to proceed, type "help" for help. ')
 
-    else:
-        print('You must enter a valid command to proceed, type "help" for help. ')
+
 
 
 def create_x(cmd_split):
@@ -100,3 +105,13 @@ def edit_x(cmd_split):
                 edit_txt(cr_dir + "/" + cmd_split[2])
         else:
             print(f'File "{cmd_split[2]}" does not exist. ')
+
+
+def change_dir(path):
+    if os.path.exists(path):
+        dir = path
+        return dir
+    else:
+        print(f'The directory "{path}" does not exist. ')
+
+

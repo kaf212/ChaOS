@@ -1,11 +1,12 @@
 def input_y_n(prompt):
     user_input = None
     while user_input not in ['y', 'n']:
-        user_input = input(prompt).lower()
+        user_input = input(prompt)
         if user_input not in ['y', 'n']:
             print(f'"{user_input} is not a valid input. Try "y" or "n". ')
 
     return user_input
+
 
 def input_selection(valid_selections, selection_names, prompt):
     """
@@ -23,7 +24,18 @@ def input_selection(valid_selections, selection_names, prompt):
         if user_input in valid_selections:
             break
         else:
-            print(f'Alte, das sind dini Optione: ')
+            print(f'"{user_input}" is not a valid input. Try ', end="")
+            i = 0
+            reached_end = False
+            for sel in valid_selections:
+                print(f'"{sel}"', end="")
+                if i == len(valid_selections) - 2:
+                    print(' or ', end="")
+                    reached_end = True
+                elif not reached_end:
+                    print(', ', end="")
+                i += 1
+            print('.\n')
 
     return user_input
 
@@ -33,7 +45,7 @@ def input_int(prompt):
         try:
             user_input = int(input(prompt))
         except ValueError:
-            print('Du musch e natürlichi Zahl igeh du Depp (weisch 1, 2, 3 etc. kännsch?). ')
+            print(f'Input is not an integer. ')
         else:
             break
 
@@ -45,7 +57,7 @@ def input_float(prompt):
         try:
             user_input = float(input(prompt))
         except ValueError:
-            print('Du musch e Rationali Zahl igeh du Depp (11.38, 42, 3.124 etc.). ')
+            print('Input is not a float. ')
         else:
             break
 
