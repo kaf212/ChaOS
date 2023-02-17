@@ -1,5 +1,5 @@
-from file import initialize_user_directories, create_file, find_file, read_txt, validate_filetype
-from login import login, create_user
+from file import initialize_user_directories, create_file, find_file, read_txt, validate_filetype, check_file_existence
+from login import login
 
 
 def main():
@@ -34,7 +34,10 @@ def interpret_command(cmd):
 def create_x(cmd_split):
     if cmd_split[1] == 'file':
         if validate_filetype(cmd_split[2], ['.txt']):
-            create_file(cr_dir, cmd_split[2])
+            if check_file_existence(cr_dir + cmd_split[2]):
+                create_file(cr_dir, cmd_split[2])
+            else:
+                print(f'The file "{cmd_split[2]}" already exists. ')
 
     elif cmd_split[1] == 'user':
         pass

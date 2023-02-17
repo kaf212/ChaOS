@@ -118,3 +118,8 @@ def validate_filetype(filename, valid_filetypes):
         print(f'"{"." + filename.partition(".")[2]}" is not a valid filetype\n')
 
     return ft_valid
+
+
+def check_file_existence(path):
+    f_exists = os.path.isfile(path)
+    return f_exists
