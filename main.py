@@ -15,12 +15,12 @@ def main():
 
 def command_prompt():
     global cr_dir
-    cr_dir = f'ChaOS_Users/{user.name}'
+    cr_dir = f'A/ChaOS_Users/{user.name}'
     cr_dir_ui = f'A:/Users/{user.name}'
     # TODO: implement cr_dir_ui and the translation from cmd prompt to real path
     # without making the programm shit itself (tough one, so push first)
     while True:
-        cmd = input(f'{cr_dir}>').lower()
+        cmd = input(f'{cr_dir}>')
 
         cmd_invalid = False
         cmd_split = None
@@ -45,7 +45,9 @@ def command_prompt():
                     edit_x(cmd_split)
 
                 elif cmd_split[0] == 'cd':
-                    cr_dir = change_dir(cmd_split[1])
+                    dir_cd = change_dir(cmd_split[1], cr_dir)
+                    if dir_cd is not None:  # if cd didn't fail
+                        cr_dir = dir_cd
 
                 else:
                     print(f'The command "{cmd_split[0]}" does not exist. \n')
@@ -105,8 +107,18 @@ def edit_x(cmd_split):
             print(f'File "{cmd_split[2]}" does not exist. ')
 
 
-def change_dir(path):
-    if os.path.exists(path):
+def change_dir(path, cr_dir):
+    if not cr_dir.endswith('/'):
+        full_path = cr_dir + '/' + path
+    else:
+        full_path = cr_dir + path
+
+    print(f'DEBUGGING: path = {path}')
+    print(f'DEBUGGING: full_path = {full_path}')
+    if os.path.exists(full_path):
+        dir = full_path
+        return dir
+    elif os.path.exists(path):
         dir = path
         return dir
     else:

@@ -15,7 +15,7 @@ class File:
 def find_file(user):
     while True:
         input_filename = input('Filename + type > ')
-        directory = os.fsencode(f'ChaOS_Users/{user.name}')
+        directory = os.fsencode(f'A/ChaOS_Users/{user.name}')
         found_file_name = None
         for file in os.listdir(directory):
             filename = os.fsdecode(file)
@@ -95,14 +95,14 @@ def create_file_object(owner):
 
 def initialize_user_directories():
     try:
-        os.mkdir('ChaOS_Users')
+        os.mkdir('A/ChaOS_Users')
     except FileExistsError:
         pass
 
     usernames = return_user_names()
 
     for username in usernames:
-        path = 'ChaOS_Users/' + username
+        path = 'A/ChaOS_Users/' + username
         try:
             os.mkdir(path)
         except FileExistsError:
