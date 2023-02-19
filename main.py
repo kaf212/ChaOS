@@ -46,16 +46,14 @@ def command_prompt():
 
                 elif cmd_split[0] == 'cd':
                     cr_dir = change_dir(cmd_split[1])
+
+                else:
+                    print(f'The command "{cmd_split[0]}" does not exist. \n')
+
             except TypeError:
                 print('You must enter a valid command to proceed, type "help" for help. ')
-
-            else:
-                print(f'The command "{cmd_split[0]}" does not exist. \n')
-
-        else:
-            print('You must enter a valid command to proceed, type "help" for help. ')
-
-
+            except IndexError:
+                print('You must enter a valid command to proceed, type "help" for help. ')
 
 
 def create_x(cmd_split):
