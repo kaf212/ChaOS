@@ -16,11 +16,11 @@ def main():
 def command_prompt():
     global cr_dir
     cr_dir = f'A/ChaOS_Users/{user.name}'
-    cr_dir_ui = f'A:/Users/{user.name}'
+    cr_dir_ui = translate_dir_2_ui(cr_dir)
     # TODO: implement cr_dir_ui and the translation from cmd prompt to real path
     # without making the programm shit itself (tough one, so push first)
     while True:
-        cmd = input(f'{cr_dir}>')
+        cmd = input(f'{cr_dir_ui}>')
 
         cmd_invalid = False
         cmd_split = None
@@ -45,9 +45,10 @@ def command_prompt():
                     edit_x(cmd_split)
 
                 elif cmd_split[0] == 'cd':
-                    dir_cd = change_dir(cmd_split[1], cr_dir)
+                    dir_cd = change_dir(translate_ui_2_dir(cmd_split[1]), cr_dir)
                     if dir_cd is not None:  # if cd didn't fail
                         cr_dir = dir_cd
+                        cr_dir_ui = translate_dir_2_ui(cr_dir)
 
                 else:
                     print(f'The command "{cmd_split[0]}" does not exist. \n')
@@ -113,8 +114,6 @@ def change_dir(path, cr_dir):
     else:
         full_path = cr_dir + path
 
-    print(f'DEBUGGING: path = {path}')
-    print(f'DEBUGGING: full_path = {full_path}')
     if os.path.exists(full_path):
         dir = full_path
         return dir
@@ -123,5 +122,58 @@ def change_dir(path, cr_dir):
         return dir
     else:
         print(f'The directory "{path}" does not exist. ')
+
+
+def translate_dir_2_ui(cr_dir):
+    equivalents = {'A': 'A:',
+                   'ChaOS_Users': 'Users',
+                   }
+
+    cr_dir_split = split_path(cr_dir)
+
+    ui_dir_list = []
+
+    for dir in cr_dir_split:
+        if dir in equivalents.keys():
+            dir = equivalents[dir]
+        ui_dir_list.append(dir)
+
+    ui_dir = ''.join(ui_dir_list)
+
+    return ui_dir
+
+
+def translate_ui_2_dir(ui_dir):
+    equivalents = {'A:': 'A',
+                   'Users': 'ChaOS_Users',
+                   }
+
+    ui_dir_split = split_path(ui_dir)
+
+    dir_list = []
+
+    for dir in ui_dir_split:
+        if dir in equivalents.keys():
+            dir = equivalents[dir]
+        dir_list.append(dir)
+
+    dir = ''.join(dir_list)
+
+    return dir
+
+
+def split_path(path):
+    path_split_total = []
+    while True:
+        path_split = path.partition('/')
+        path_split_total.append(path_split[0])
+        path_split_total.append(path_split[1])
+        path = path_split[2]
+        if '/' not in path_split[2]:
+            path_split_total.append(path_split[2])
+            break
+
+    return path_split_total
+
 
 
