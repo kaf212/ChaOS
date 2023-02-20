@@ -1,4 +1,6 @@
+import datetime
 import os
+import time
 
 from file import initialize_user_directories, create_file, read_txt, validate_filetype, check_file_existence, \
     delete_file, edit_txt
@@ -50,6 +52,9 @@ def command_prompt():
 
                 elif cmd_split[0] == 'dir':
                     list_dir(cr_dir)
+
+                elif cmd_split[0] == 'shutdown':
+                    shutdown(cmd_split)
 
                 else:
                     print(f'The command "{cmd_split[0]}" does not exist. \n')
@@ -146,7 +151,6 @@ def list_dir(cr_dir):
                 print(f'\t\t{dir}')
 
 
-
 def translate_dir_2_ui(cr_dir):
     equivalents = {'A': 'A:',
                    'ChaOS_Users': 'Users',
@@ -197,6 +201,21 @@ def split_path(path):
             break
 
     return path_split_total
+
+
+def shutdown(cmd_split):
+    try:
+        if 't-' in cmd_split[1]:
+            sd_cd = list(cmd_split[1])
+            sd_cd.remove('t')
+            sd_cd.remove('-')
+            sd_cd = ''.join(sd_cd)
+            time.sleep(int(sd_cd))
+            exit()
+    except IndexError:
+        exit()
+
+
 
 
 
