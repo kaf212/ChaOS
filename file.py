@@ -4,6 +4,8 @@ from csv_handling import return_user_names
 import os
 from datetime import datetime
 
+
+
 @dataclass
 class File:
     name: str
@@ -163,12 +165,37 @@ def create_dir(dir, name):
 
 
 def validate_dir_access(path, dir_owners, user):
-    path_test = 'A/ChaOS_Users/kaf221122'
-    if user.account_type == 'admin':
-        return True
-    elif dir_owners[path] == user.name:
-        return True
-    elif dir_owners[path] == 'all users':
-        return True
+    path_split = split_path(path)
+    parent_dir = ''
+    i = 0
+    for item in path_split:     # this ugly snippet takes the full path and reduces it to the user's personal dir
+        if i < 5:               # in order to validate it in dir_owners,
+            parent_dir += item  # for example: A/ChaOS_Users/kaf221122/subdir1/subdir2 ==> A/ChaOS_Users/kaf221122
+            i += 1
+
+    try:
+        if dir_owners[parent_dir] == user.name:
+            return True
+        elif dir_owners[parent_dir] == 'all users':
+            return True
+    except KeyError:
+        if user.account_type == 'admin':
+            return True
+        else:
+            return False
     else:
-        return False
+        return True
+
+
+def split_path(path):
+    path_split_total = []
+    while True:
+        path_split = path.partition('/')
+        path_split_total.append(path_split[0])
+        path_split_total.append(path_split[1])
+        path = path_split[2]
+        if '/' not in path_split[2]:
+            path_split_total.append(path_split[2])
+            break
+
+    return path_split_total

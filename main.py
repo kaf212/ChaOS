@@ -3,7 +3,7 @@ import os
 import time
 
 from file import initialize_user_directories, create_file, read_txt, validate_filetype, check_file_existence, \
-    delete_file, edit_txt, create_dir, validate_dir_access
+    delete_file, edit_txt, create_dir, validate_dir_access, split_path
 from input import input_y_n
 from login import login
 
@@ -17,14 +17,15 @@ def main():
     user = login()
 
     global dir_owners
-    dir_owners = {'A/ChaOS_Users/kaf221122': 'kaf221122',
-                  'A/ChaOS_Users/NexToNothing': 'NexToNothing',
-                  'A/ChaOS_Users/Custoomer31': 'Custoomer31',
-                  'A/ChaOS_Users/Seve': 'Seve',
-                  'A/ChaOS_Users/Manu': 'Manu',
-                  'A/ChaOS_Users': 'all users',
-                  'A/': 'all users',
-                  'A': 'all users',
+    dir_owners = {f'A/ChaOS_Users/{user.name}': f'{user.name}',
+                  # f'A/ChaOS_Users/kaf221122': 'kaf221122',
+                  # f'A/ChaOS_Users/NextToNothing': 'NexToNothing',
+                  # f'A/ChaOS_Users/Custoomer31': 'Custoomer31',
+                  # f'A/ChaOS_Users/Seve': 'Seve',
+                  # f'A/ChaOS_Users/Manu': 'Manu',
+                  f'A/ChaOS_Users': 'all users',
+                  f'A/': 'all users',
+                  f'A': 'all users',
                   }
 
     command_prompt()
@@ -134,11 +135,15 @@ def edit_x(cmd_split):
 
 def change_dir(path, cr_dir):
 
+    # print(f'DEBUGGING: path = {path}')
+
     path_valid = True
-    invalid_paths = ['...']
-    for i in invalid_paths:
-        if i in invalid_paths:
+    invalid_paths = ['test']
+    for pth in invalid_paths:
+        if path in invalid_paths:
             path_valid = False
+
+    # print(f'DEBUGGING: path_valid = {path_valid}')
 
     if path_valid:
         if not cr_dir.endswith('/'):
@@ -146,12 +151,15 @@ def change_dir(path, cr_dir):
         else:
             full_path = cr_dir + path
 
+        # print(f'DEBUGGING: path = {path}')
+        # print(f'DEBUGGING: full_path = {full_path}')
+
         if os.path.exists(full_path):
             dir = full_path
             if validate_dir_access(dir, dir_owners, user):
                 return dir
             else:
-                print(f"You don't have access permission to {dir}")
+                print(f"You don't have permission to access {dir}")
         elif os.path.exists(path):
             dir = path
             if validate_dir_access(dir, dir_owners, user):
@@ -222,20 +230,6 @@ def translate_ui_2_dir(ui_dir):
     dir = ''.join(dir_list)
 
     return dir
-
-
-def split_path(path):
-    path_split_total = []
-    while True:
-        path_split = path.partition('/')
-        path_split_total.append(path_split[0])
-        path_split_total.append(path_split[1])
-        path = path_split[2]
-        if '/' not in path_split[2]:
-            path_split_total.append(path_split[2])
-            break
-
-    return path_split_total
 
 
 def shutdown(cmd_split):
