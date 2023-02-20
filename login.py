@@ -1,4 +1,5 @@
 import csv
+import os
 
 from encryption import encrypt_str, decrypt_str
 from user import create_user_object
@@ -82,6 +83,11 @@ def create_user(username, password, account_type):
 
     if account_type not in ['admin', 'standard']:
         raise ValueError('Invalid user account type given. ')
+
+    if username in ['..', '...']:
+        raise Exception('Invalid username, stop doing the ... thing. ')
+
+    os.mkdir(f'A/ChaOS_Users/{username}')
 
     with open('users.csv', 'a+', encoding="utf-8") as csv_file:
         attributes = ['username', 'password', 'account type']
