@@ -3,7 +3,7 @@ import os
 import time
 
 from file import initialize_user_directories, create_file, read_txt, validate_filetype, check_file_existence, \
-    delete_file, edit_txt, create_dir
+    delete_file, edit_txt, create_dir, validate_dir_access
 from input import input_y_n
 from login import login
 
@@ -12,6 +12,18 @@ def main():
     initialize_user_directories()
     global user
     user = login()
+
+    global dir_owners
+    dir_owners = {'A/ChaOS_Users/kaf221122': 'kaf221122',
+                  'A/ChaOS_Users/NexToNothing': 'NexToNothing',
+                  'A/ChaOS_Users/Custoomer31': 'Custoomer31',
+                  'A/ChaOS_Users/Seve': 'Seve',
+                  'A/ChaOS_Users/Manu': 'Manu',
+                  'A/ChaOS_Users': 'all users',
+                  'A/': 'all users',
+                  'A': 'all users',
+                  }
+
     command_prompt()
 
 
@@ -67,13 +79,15 @@ def command_prompt():
 
 def create_x(cmd_split):
     if cmd_split[1] == 'file':
+        print(f" DEBUGGING: validate_filetype() = {validate_filetype(cmd_split[2], ['.txt'])}")
         if validate_filetype(cmd_split[2], ['.txt']):
+            print(f" DEBUGGING: check_file_existence() = {check_file_existence(cr_dir + cmd_split[2])}")
             if not check_file_existence(cr_dir + cmd_split[2]):
                 create_file(cr_dir, cmd_split[2])
             else:
                 print(f'The file "{cmd_split[2]}" already exists. ')
 
-    if cmd_split[1] == 'dir':
+    elif cmd_split[1] == 'dir':
         create_dir(cr_dir, cmd_split[2])
 
     elif cmd_split[1] == 'user':
@@ -123,18 +137,27 @@ def change_dir(path, cr_dir):
     else:
         full_path = cr_dir + path
 
+    print(f'DEBUGGING: full_path = {full_path}')
+    print(f'DEBUGGING: path = {path}')
+
     if os.path.exists(full_path):
         dir = full_path
-        return dir
+        if validate_dir_access(dir, dir_owners, user):
+            return dir
+        else:
+            print(f"You don't have access permission to {dir}")
     elif os.path.exists(path):
         dir = path
+        if validate_dir_access(dir, dir_owners, user):
+            return dir
+        else:
+            print(f"You don't have access permission to {dir}")
         return dir
     else:
         print(f'The directory "{path}" does not exist. ')
 
 
 def list_dir(cr_dir):
-
     equivalents = {'A': 'A:',
                    'ChaOS_Users': 'Users',
                    }
@@ -217,8 +240,3 @@ def shutdown(cmd_split):
             exit()
     except IndexError:
         exit()
-
-
-
-
-

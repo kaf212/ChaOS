@@ -17,8 +17,8 @@ def login():
             while name_taken:
                 input_username = input('Enter a username > ')
 
-                with open('users.csv', 'r') as csv_file:
-                    attributes = ['name', 'password']
+                with open('users.csv', 'r', encoding='utf-8') as csv_file:
+                    attributes = ['name']
                     next(csv_file)  # skip attribute header
                     csv_reader = csv.DictReader(csv_file, fieldnames=attributes)
 
@@ -45,7 +45,7 @@ def login():
             create_user(input_username, password)
 
         with open('users.csv', 'r', encoding='utf-8') as csv_file:
-            attributes = ['name', 'password']
+            attributes = ['name', 'password', 'account type']
             next(csv_file)  # skip attribute header
             csv_reader = csv.DictReader(csv_file, fieldnames=attributes)
 
@@ -53,6 +53,7 @@ def login():
                 if line['name'] == input_username:
                     username = line['name']
                     password = line['password']
+                    account_type = line['account type']
 
             if username is None:
                 print('User not found, try again: ')
@@ -72,31 +73,31 @@ def login():
         input('You haven entered too many wrong passwords. ')
         exit()
 
-    user_object = create_user_object(username, password)
+    user_object = create_user_object(username, password, account_type)
 
     return user_object
 
 
 def create_user(username, password):
     with open('users.csv', 'a+', encoding="utf-8") as csv_file:
-        attributes = ['username', 'password']
+        attributes = ['username', 'password', 'account type']
         csv_writer = csv.DictWriter(csv_file, fieldnames=attributes)
         csv_writer.writerow({'username': username, 'password': encrypt_str(password)})
         csv_file.close()
 
 
-def clean_user_csv():
+def reset_user_csv():
     """
     Genocide tool for test users.
     :return:
     """
     with open('users.csv', 'w', encoding="utf-8") as csv_file:
-        attributes = ['name', 'password']
+        attributes = ['name', 'password', 'account type']
         csv_writer = csv.DictWriter(csv_file, fieldnames=attributes)
         csv_writer.writeheader()
-        csv_writer.writerow({'name': 'kaf221122', 'password': encrypt_str('1234')})
-        csv_writer.writerow({'name': 'NextToNothing', 'password': encrypt_str('asdf')})
-        csv_writer.writerow({'name': 'Custoomer31', 'password': encrypt_str('svp')})
-        csv_writer.writerow({'name': 'Seve', 'password': encrypt_str('minecraft')})
-        csv_writer.writerow({'name': 'Manu', 'password': encrypt_str('st.lutzi')})
+        csv_writer.writerow({'name': 'kaf221122', 'password': encrypt_str('1234'), 'account type': 'admin'})
+        csv_writer.writerow({'name': 'NextToNothing', 'password': encrypt_str('asdf'), 'account type': 'standard'})
+        csv_writer.writerow({'name': 'Custoomer31', 'password': encrypt_str('svp'), 'account type': 'standard'})
+        csv_writer.writerow({'name': 'Seve', 'password': encrypt_str('minecraft'), 'account type': 'standard'})
+        csv_writer.writerow({'name': 'Manu', 'password': encrypt_str('st.lutzi'), 'account type': 'standard'})
         csv_file.close()

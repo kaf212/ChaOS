@@ -1,6 +1,7 @@
-name,password
-kaf221122,
-NextToNothing,ËÙÎÌ
-Custoomer31,ÙÜÚ
-Seve,ÇÃÄÏÉØËÌÞ
-Manu,ÙÞÆßÞÐÃ
+name,password,account type
+kaf221122,,admin
+NextToNothing,ËÙÎÌ,standard
+Custoomer31,ÙÜÚ,standard
+Seve,ÇÃÄÏÉØËÌÞ,standard
+Manu,ÙÞÆßÞÐÃ,standard
+test,ÞÏÙÞÞÏÙÞ,

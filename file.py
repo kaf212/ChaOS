@@ -4,7 +4,6 @@ from csv_handling import return_user_names
 import os
 from datetime import datetime
 
-
 @dataclass
 class File:
     name: str
@@ -152,3 +151,15 @@ def create_dir(dir, name):
         print(f'The directory "{name}" already exists. ')
     else:
         print(f'Directory "{name}" has been created in {dir}. ')
+
+
+def validate_dir_access(path, dir_owners, user):
+    path_test = 'A/ChaOS_Users/kaf221122'
+    if user.account_type == 'admin':
+        return True
+    elif dir_owners[path] == user.name:
+        return True
+    elif dir_owners[path] == 'all users':
+        return True
+    else:
+        return False
