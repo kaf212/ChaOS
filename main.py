@@ -69,6 +69,9 @@ def command_prompt():
                 elif cmd_split[0] == 'dir':
                     list_dir(cr_dir)
 
+                elif cmd_split[0] == 'help':
+                    help_cmd(cmd_split)
+
                 elif cmd_split[0] == 'shutdown':
                     shutdown(cmd_split)
 
@@ -79,6 +82,28 @@ def command_prompt():
                 print('You must enter a valid command to proceed, type "help" for help. ')
             except IndexError:
                 print('You must enter a valid command to proceed, type "help" for help. ')
+
+
+def help_cmd(cmd_split):
+    cmd_usage = {'create': 'create <object> <name>',
+                 'read': 'read <object> <name>',
+                 'delete': 'delete <object> <name>',
+                 'edit': 'edit  <object> <name>',
+                 'cd': 'cd <target dir>',
+                 'help': 'help <target cmd>',
+                 'shutdown': 'shutdown t- <seconds>'
+                 }
+    try:
+        if cmd_split[1] in cmd_usage.keys():
+            print(f'-- Help for command {cmd_split[1]} -- ')
+            print(f'{cmd_split[1]}: {cmd_usage[cmd_split[1]]}')
+    except KeyError:
+        print(f'The command "{cmd_split[1]}" does not exist. ')
+    except IndexError:
+        for cmd, usage in cmd_usage.items():
+            print(f'{cmd}: {usage}')
+
+
 
 
 def create_x(cmd_split):
