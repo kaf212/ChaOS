@@ -42,7 +42,7 @@ def login():
                     input("Your passwords don't match, try again: ")
 
             input(f'User {input_username} was successfully created. ')
-            create_user(input_username, password)
+            create_user(input_username, password, 'standard')
 
         with open('users.csv', 'r', encoding='utf-8') as csv_file:
             attributes = ['name', 'password', 'account type']
@@ -78,11 +78,15 @@ def login():
     return user_object
 
 
-def create_user(username, password):
+def create_user(username, password, account_type):
+
+    if account_type not in ['admin', 'standard']:
+        raise ValueError('Invalid user account type given. ')
+
     with open('users.csv', 'a+', encoding="utf-8") as csv_file:
         attributes = ['username', 'password', 'account type']
         csv_writer = csv.DictWriter(csv_file, fieldnames=attributes)
-        csv_writer.writerow({'username': username, 'password': encrypt_str(password)})
+        csv_writer.writerow({'username': username, 'password': encrypt_str(password), 'account type': account_type})
         csv_file.close()
 
 
