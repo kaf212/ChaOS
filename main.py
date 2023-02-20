@@ -133,27 +133,35 @@ def edit_x(cmd_split):
 
 
 def change_dir(path, cr_dir):
-    if not cr_dir.endswith('/'):
-        full_path = cr_dir + '/' + path
-    else:
-        full_path = cr_dir + path
 
-    print(f'DEBUGGING: full_path = {full_path}')
-    print(f'DEBUGGING: path = {path}')
+    path_valid = True
+    invalid_paths = ['...']
+    for i in invalid_paths:
+        if i in invalid_paths:
+            path_valid = False
 
-    if os.path.exists(full_path):
-        dir = full_path
-        if validate_dir_access(dir, dir_owners, user):
+    if path_valid:
+        if not cr_dir.endswith('/'):
+            full_path = cr_dir + '/' + path
+        else:
+            full_path = cr_dir + path
+
+        if os.path.exists(full_path):
+            dir = full_path
+            if validate_dir_access(dir, dir_owners, user):
+                return dir
+            else:
+                print(f"You don't have access permission to {dir}")
+        elif os.path.exists(path):
+            dir = path
+            if validate_dir_access(dir, dir_owners, user):
+                return dir
+            else:
+                print(f"You don't have access permission to {dir}")
             return dir
         else:
-            print(f"You don't have access permission to {dir}")
-    elif os.path.exists(path):
-        dir = path
-        if validate_dir_access(dir, dir_owners, user):
-            return dir
-        else:
-            print(f"You don't have access permission to {dir}")
-        return dir
+            print(f'The directory "{path}" does not exist. ')
+
     else:
         print(f'The directory "{path}" does not exist. ')
 
