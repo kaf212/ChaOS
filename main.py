@@ -17,8 +17,6 @@ def command_prompt():
     global cr_dir
     cr_dir = f'A/ChaOS_Users/{user.name}'
     cr_dir_ui = translate_dir_2_ui(cr_dir)
-    # TODO: implement cr_dir_ui and the translation from cmd prompt to real path
-    # without making the programm shit itself (tough one, so push first)
     while True:
         cmd = input(f'{cr_dir_ui}>')
 
@@ -49,6 +47,9 @@ def command_prompt():
                     if dir_cd is not None:  # if cd didn't fail
                         cr_dir = dir_cd
                         cr_dir_ui = translate_dir_2_ui(cr_dir)
+
+                elif cmd_split[0] == 'dir':
+                    list_dir(cr_dir)
 
                 else:
                     print(f'The command "{cmd_split[0]}" does not exist. \n')
@@ -122,6 +123,28 @@ def change_dir(path, cr_dir):
         return dir
     else:
         print(f'The directory "{path}" does not exist. ')
+
+
+def list_dir(cr_dir):
+
+    equivalents = {'A': 'A:',
+                   'ChaOS_Users': 'Users',
+                   }
+
+    dirs = os.listdir(cr_dir)
+    for dir in dirs:
+        if '.' not in dir:
+            if dir in equivalents:
+                print(f'<DIR>\t{equivalents[dir]}')
+            else:
+                print(f'<DIR>\t{dir}')
+
+        else:
+            if dir in equivalents:
+                print(f'\t\t{equivalents[dir]}')
+            else:
+                print(f'\t\t{dir}')
+
 
 
 def translate_dir_2_ui(cr_dir):
