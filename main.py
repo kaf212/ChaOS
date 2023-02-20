@@ -9,6 +9,9 @@ from login import login
 
 
 def main():
+    global ChaOS_version
+    ChaOS_version = '1.0.0 Beta'
+
     initialize_user_directories()
     global user
     user = login()
@@ -79,11 +82,9 @@ def command_prompt():
 
 def create_x(cmd_split):
     if cmd_split[1] == 'file':
-        print(f" DEBUGGING: validate_filetype() = {validate_filetype(cmd_split[2], ['.txt'])}")
         if validate_filetype(cmd_split[2], ['.txt']):
-            print(f" DEBUGGING: check_file_existence() = {check_file_existence(cr_dir + cmd_split[2])}")
             if not check_file_existence(cr_dir + cmd_split[2]):
-                create_file(cr_dir, cmd_split[2])
+                create_file(cr_dir, cmd_split[2], user, ChaOS_version)
             else:
                 print(f'The file "{cmd_split[2]}" already exists. ')
 
@@ -240,3 +241,7 @@ def shutdown(cmd_split):
             exit()
     except IndexError:
         exit()
+
+
+if __name__ == '__main__':
+    main()

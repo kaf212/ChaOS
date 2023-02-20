@@ -46,12 +46,21 @@ def create_file_old(owner):
     f.close()
 
 
-def create_file(dir, name):
+def create_file(dir, name, user, version):
     path = dir + '/' + name
+    now = datetime.now()
+    now = datetime.strftime(now, '%d.%m.%Y %H:%M')
+
+    header = f'{name} created on the {now} by {user.name} with ChaOS {version}'
+    header_line = ''
+    for i in range(len(list(header))):
+        header_line += '-'
+
     with open(path, 'w', 1) as f:
-        f.write(f'{name} created on the {datetime.now()}')
-        # f.flush()
-        # os.fsync(f.fileno())
+        f.write(header_line + '\n')
+        f.write(header + '\n')
+        f.write(header_line + '\n')
+        f.write('\n')
         f.close()
 
 
