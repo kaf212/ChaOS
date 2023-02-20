@@ -139,3 +139,16 @@ def edit_txt(path):
         f.write('\n')
         f.write(user_text)
         f.close()
+
+
+def create_dir(dir, name):
+    if not dir.endswith('/'):
+        path = dir + '/' + name
+    else:
+        path = dir + name
+    try:
+        os.mkdir(path)
+    except FileExistsError:
+        print(f'The directory "{name}" already exists. ')
+    else:
+        print(f'Directory "{name}" has been created in {dir}. ')
