@@ -16,7 +16,15 @@ def login():
         if input_username == '/register':
             name_taken = True
             while name_taken:
+                invalid_chars = [' ', '/', '.', '(', ')', '|', '"', "'"]
                 input_username = input('Enter a username > ')
+                name_valid = True
+                for char in invalid_chars:
+                    if char in input_username:
+                        name_valid = False
+                if not name_valid or input_username == '':
+                    print('This username contains illegal characters. ')
+                    continue
 
                 with open('users.csv', 'r', encoding='utf-8') as csv_file:
                     attributes = ['name']
