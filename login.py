@@ -1,8 +1,10 @@
 import csv
 import os
 
+import ChaOS_constants
 from encryption import encrypt_str, decrypt_str
 from user import create_user_object
+from input import list_selection_options
 
 
 def login():
@@ -51,11 +53,11 @@ def login():
 
 
 def create_user(username: str, password: str, account_type: str):
-    if account_type not in ['admin', 'standard']:
+    if account_type not in ChaOS_constants.VALID_ACCOUNT_TYPES:
         raise ValueError('Invalid user account type given. ')
 
     if username in ['..', '...']:
-        raise Exception('Invalid username, stop doing the ... thing. ')
+        raise Exception('Invalid username, stop doing the "..." thing. ')
 
     os.mkdir(f'A/ChaOS_Users/{username}')
 
@@ -107,14 +109,21 @@ def create_user_ui(user=None):
         create_user(input_username, input_password, 'standard')
         input(f'User {input_username} was successfully created. ')
     else:
-        input_account_type = input('Enter an account type (admin or standard) > ').lower()
-        if input_account_type not in ['admin', 'standard']:
-            print(f'"{input_account_type}" is not a valid account type, try "admin" or "standard". ')
-        elif user.account_type != 'admin' and input_account_type == 'admin':
-            print('You need administrator privileges to create a new admin. ')
-        else:
-            create_user(input_username, input_password, input_account_type)
-            input(f'User {input_username} was successfully created. ')
+        while True:
+            input_account_type = input('Enter an account type > ').lower()
+            if input_account_type not in ChaOS_constants.VALID_ACCOUNT_TYPES:
+                list_selection_options(input_account_type, ChaOS_constants.VALID_ACCOUNT_TYPES)
+                continue
+            elif user.account_type not in ['admin', 'dev'] and input_account_type == 'admin':
+                print('You need administrator privileges to create a new admin. ')
+                continue
+            elif user.account_type != 'dev' and input_account_type == 'dev':
+                print('You need developer privileges to create a new dev. ')
+            else:
+                create_user(input_username, input_password, input_account_type)
+                input(f'User {input_username} was successfully created. ')
+                break
+
 
 def reset_user_csv():
     """

@@ -7,11 +7,10 @@ from file import initialize_user_directories, create_file, read_txt, validate_fi
 from input import input_y_n
 from login import login, create_user, create_user_ui
 from user import create_user_object
+import ChaOS_constants
 
 
 def main():
-    global ChaOS_version
-    ChaOS_version = '1.0.0 Beta'
 
     initialize_user_directories()
     global user
@@ -19,11 +18,6 @@ def main():
 
     global dir_owners
     dir_owners = {f'A/ChaOS_Users/{user.name}': f'{user.name}',
-                  # f'A/ChaOS_Users/kaf221122': 'kaf221122',
-                  # f'A/ChaOS_Users/NextToNothing': 'NexToNothing',
-                  # f'A/ChaOS_Users/Custoomer31': 'Custoomer31',
-                  # f'A/ChaOS_Users/Seve': 'Seve',
-                  # f'A/ChaOS_Users/Manu': 'Manu',
                   f'A/ChaOS_Users': 'all users',
                   f'A/': 'all users',
                   f'A': 'all users',
@@ -97,6 +91,7 @@ def help_cmd(cmd_split):
                  'delete': 'delete <object> <name>',
                  'edit': 'edit  <object> <name>',
                  'cd': 'cd <target dir>',
+                 'echo': 'echo <string>',
                  'help': 'help <target cmd>',
                  'shutdown': 'shutdown t- <seconds>'
                  }
@@ -115,7 +110,7 @@ def create_x(cmd_split):
     if cmd_split[1] == 'file':
         if validate_filetype(cmd_split[2], ['.txt']):
             if not check_file_existence(cr_dir + cmd_split[2]):
-                create_file(cr_dir, cmd_split[2], user, ChaOS_version)
+                create_file(cr_dir, cmd_split[2], user)
             else:
                 print(f'The file "{cmd_split[2]}" already exists. ')
 

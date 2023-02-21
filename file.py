@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from csv_handling import return_user_names
 import os
 from datetime import datetime
+import ChaOS_constants
 
 
 
@@ -48,12 +49,12 @@ def create_file_old(owner):
     f.close()
 
 
-def create_file(dir, name, user, version):
+def create_file(dir, name, user):
     path = dir + '/' + name
     now = datetime.now()
     now = datetime.strftime(now, '%d.%m.%Y %H:%M')
 
-    header = f'{name} created on the {now} by {user.name} with ChaOS {version}'
+    header = f'{name} created on the {now} by {user.name} with ChaOS {ChaOS_constants.CHAOS_VERSION}'
     header_line = ''
     for i in range(len(list(header))):
         header_line += '-'
@@ -179,7 +180,7 @@ def validate_dir_access(path, dir_owners, user):
         elif dir_owners[parent_dir] == 'all users':
             return True
     except KeyError:
-        if user.account_type == 'admin':
+        if user.account_type in ['admin', 'dev']:
             return True
         else:
             return False

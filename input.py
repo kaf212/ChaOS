@@ -24,21 +24,24 @@ def input_selection(valid_selections, selection_names, prompt):
         if user_input in valid_selections:
             break
         else:
-            print(f'"{user_input}" is not a valid input. Try ', end="")
-            i = 0
-            reached_end = False
-            for sel in valid_selections:
-                print(f'"{sel}"', end="")
-                if i == len(valid_selections) - 2:
-                    print(' or ', end="")
-                    reached_end = True
-                elif not reached_end:
-                    print(', ', end="")
-                i += 1
-            print('.\n')
+            list_selection_options(user_input, valid_selections)
 
     return user_input
 
+
+def list_selection_options(false_user_input: str, valid_selections: list):
+    print(f'"{false_user_input}" is not a valid input. Try ', end="")
+    i = 0
+    reached_end = False
+    for sel in valid_selections:
+        print(f'"{sel}"', end="")
+        if i == len(valid_selections) - 2:
+            print(' or ', end="")
+            reached_end = True
+        elif not reached_end:
+            print(', ', end="")
+        i += 1
+    print('.\n')
 
 def input_int(prompt):
     while True:
