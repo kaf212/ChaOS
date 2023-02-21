@@ -5,7 +5,8 @@ import time
 from file import initialize_user_directories, create_file, read_txt, validate_filetype, check_file_existence, \
     delete_file, edit_txt, create_dir, validate_dir_access, split_path
 from input import input_y_n
-from login import login
+from login import login, create_user, create_user_ui
+from user import create_user_object
 
 
 def main():
@@ -69,11 +70,11 @@ def command_prompt():
                 elif cmd_split[0] == 'dir':
                     list_dir(cr_dir)
                     
-                elif cmd_split[0] == 'echo'
+                elif cmd_split[0] == 'echo':
                     try:
                         print(cmd_split[1])
                     except IndexError:
-                        print('You must enter a valid statement to echo. 'h
+                        print('You must enter a valid statement to echo. ')
 
                 elif cmd_split[0] == 'help':
                     help_cmd(cmd_split)
@@ -110,8 +111,6 @@ def help_cmd(cmd_split):
             print(f'{cmd}: {usage}')
 
 
-
-
 def create_x(cmd_split):
     if cmd_split[1] == 'file':
         if validate_filetype(cmd_split[2], ['.txt']):
@@ -124,7 +123,7 @@ def create_x(cmd_split):
         create_dir(cr_dir, cmd_split[2])
 
     elif cmd_split[1] == 'user':
-        pass
+        create_user_ui(user)
     else:
         print(f'"{cmd_split[1]}" is not a valid statement for command "{cmd_split[0]}"\n')
 
