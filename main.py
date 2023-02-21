@@ -68,6 +68,12 @@ def command_prompt():
 
                 elif cmd_split[0] == 'dir':
                     list_dir(cr_dir)
+                    
+                elif cmd_split[0] == 'echo'
+                    try:
+                        print(cmd_split[1])
+                    except IndexError:
+                        print('You must enter a valid statement to echo. 'h
 
                 elif cmd_split[0] == 'help':
                     help_cmd(cmd_split)
