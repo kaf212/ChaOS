@@ -105,7 +105,7 @@ def create_file_object(owner):
 
 def initialize_user_directories():
     try:
-        os.mkdir('A/ChaOS_Users')
+        os.makedirs('A/ChaOS_Users')
     except FileExistsError:
         pass
 
