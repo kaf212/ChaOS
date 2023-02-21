@@ -160,10 +160,15 @@ def edit_x(cmd_split):
 
 def change_dir(path, cr_dir):
 
-    # print(f'DEBUGGING: path = {path}')
+    if path == '..':
+        pth_spl = split_path(cr_dir)
+        pth_spl.pop()
+        pth_spl.pop()
+        dir = ''.join(pth_spl)
+        return dir
 
     path_valid = True
-    invalid_paths = ['test']
+    invalid_paths = ['...']
     for pth in invalid_paths:
         if path in invalid_paths:
             path_valid = False
