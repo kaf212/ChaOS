@@ -1,28 +1,23 @@
-import datetime
-import os
 import time
 
-from file import initialize_user_directories, create_file, read_txt, validate_filetype, check_file_existence, \
-    delete_file, edit_txt, create_dir, validate_dir_access, split_path
-from input import input_y_n
-from login import login, create_user, create_user_ui
-from user import create_user_object
 import ChaOS_constants
+from file import *
+from input import input_y_n
+from login import login, create_user_ui
+from ChaOS_DevTools import *
+from ChaOS_constants import *
 
 
 def main():
-
-    initialize_user_directories()
     global user
-    user = login()
-
     global dir_owners
+    initialize_user_directories()
+    user = login()
     dir_owners = {f'A/ChaOS_Users/{user.name}': f'{user.name}',
                   f'A/ChaOS_Users': 'all users',
                   f'A/': 'all users',
                   f'A': 'all users',
                   }
-
     command_prompt()
 
 
@@ -75,6 +70,11 @@ def command_prompt():
 
                 elif cmd_split[0] == 'shutdown':
                     shutdown(cmd_split)
+                elif cmd_split[0] == 'dev':
+                    if user.account_type == 'dev':
+                        access_dev_tools(cmd_split)
+                    else:
+                        print('You need developer privileges to access the DevTools. ')
 
                 else:
                     print(f'The command "{cmd_split[0]}" does not exist. \n')
@@ -173,16 +173,11 @@ def change_dir(path, cr_dir):
         if path in invalid_paths:
             path_valid = False
 
-    # print(f'DEBUGGING: path_valid = {path_valid}')
-
     if path_valid:
         if not cr_dir.endswith('/'):
             full_path = cr_dir + '/' + path
         else:
             full_path = cr_dir + path
-
-        # print(f'DEBUGGING: path = {path}')
-        # print(f'DEBUGGING: full_path = {full_path}')
 
         if os.path.exists(full_path):
             dir = full_path
@@ -205,9 +200,7 @@ def change_dir(path, cr_dir):
 
 
 def list_dir(cr_dir):
-    equivalents = {'A': 'A:',
-                   'ChaOS_Users': 'Users',
-                   }
+    equivalents = ChaOS_constants.UI_2_PATH_TRANSLATIONS
 
     dirs = os.listdir(cr_dir)
     for dir in dirs:
@@ -225,9 +218,7 @@ def list_dir(cr_dir):
 
 
 def translate_dir_2_ui(cr_dir):
-    equivalents = {'A': 'A:',
-                   'ChaOS_Users': 'Users',
-                   }
+    equivalents = ChaOS_constants.PATH_2_UI_TRANSLATIONS
 
     cr_dir_split = split_path(cr_dir)
 
@@ -244,9 +235,7 @@ def translate_dir_2_ui(cr_dir):
 
 
 def translate_ui_2_dir(ui_dir):
-    equivalents = {'A:': 'A',
-                   'Users': 'ChaOS_Users',
-                   }
+    equivalents = ChaOS_constants.UI_2_PATH_TRANSLATIONS
 
     ui_dir_split = split_path(ui_dir)
 
@@ -273,6 +262,22 @@ def shutdown(cmd_split):
             exit()
     except IndexError:
         exit()
+
+
+def access_dev_tools(cmd_split):
+
+    def print_dev(output: str):
+        print(f'[DEVTOOL]: {output}')
+
+    if cmd_split[1] == 'reset':
+        if cmd_split[2] == 'user_csv' or cmd_split[2] == 'users_csv':
+            reset_user_csv()
+            print_dev('User CSV was reset successfully. ')
+        else:
+            print(f'"{cmd_split[2]}" is not a valid statement for command "reset". ')
+
+    else:
+        print(f'"{cmd_split[1]}" is not a valid dev command. ')
 
 
 if __name__ == '__main__':
