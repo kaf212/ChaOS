@@ -1,7 +1,8 @@
 import os
 from dataclasses import dataclass
+import ChaOS_constants
 from input import input_selection, list_selection_options
-from encryption import encrypt_str, decrypt_str
+from encryption import encrypt_str
 import csv
 import time
 
@@ -45,8 +46,8 @@ def edit_user(cmd_split):
             elif edit_selection == 'a':
                 while True:
                     input_acc_type = input('Enter the new account type: ')
-                    if input_acc_type not in ['standard', 'admin', 'dev']:
-                        list_selection_options(input_acc_type, ['standard', 'admin', 'dev'])
+                    if input_acc_type not in ChaOS_constants.VALID_ACCOUNT_TYPES:
+                        list_selection_options(input_acc_type, ChaOS_constants.VALID_ACCOUNT_TYPES)
                     else:
                         break
                 new_value = input_acc_type
@@ -70,15 +71,15 @@ def edit_user(cmd_split):
 
 
 def alter_user_csv(username, attribute, old_value, new_value):
-    if old_value in ['name', 'password', 'account type'] or new_value in ['name', 'password', 'account type']:
+    if old_value in ChaOS_constants.USER_CSV_ATTRIBUTES or new_value in ChaOS_constants.USER_CSV_ATTRIBUTES:
         raise Exception('Tried overwriting attribute header in users.csv. ')
-    if attribute not in ['name', 'password', 'account type']:
+    if attribute not in ChaOS_constants.USER_CSV_ATTRIBUTES:
         raise ValueError(f'Invalid attribute "{attribute}" given. ')
     old_value_invalid = False
     new_value_invalid = False
-    if attribute == 'account type' and (old_value not in ['standard', 'admin', 'dev']):
+    if attribute == 'account type' and (old_value not in ChaOS_constants.VALID_ACCOUNT_TYPES):
         old_value_invalid = True
-    if attribute == 'account type' and (new_value not in ['standard', 'admin', 'dev']):
+    if attribute == 'account type' and (new_value not in ChaOS_constants.VALID_ACCOUNT_TYPES):
         new_value_invalid = True
 
     if old_value_invalid and new_value_invalid:
@@ -87,7 +88,7 @@ def alter_user_csv(username, attribute, old_value, new_value):
     if attribute == 'name':
         os.rename(f'A/ChaOS_Users/{old_value}', f'A/ChaOS_Users/{new_value}')
         with open('users.csv', 'r', encoding='utf-8') as csv_file:
-            attributes = ['name', 'password', 'account type']
+            attributes = ChaOS_constants.USER_CSV_ATTRIBUTES
             next(csv_file)
             csv_reader = csv.DictReader(csv_file, fieldnames=attributes)
             csv_iter = ''.join([i for i in csv_file])
@@ -107,12 +108,12 @@ def alter_user_csv(username, attribute, old_value, new_value):
 
 
 def alter_user_account_type(username: str, new_account_type: str):
-    if new_account_type not in ['standard', 'admin', 'dev']:
+    if new_account_type not in ChaOS_constants.VALID_ACCOUNT_TYPES:
         raise ValueError(f'Invalid account type "{new_account_type}" given.')
 
     temp_dict_list = []
     with open('users.csv', 'r', encoding='utf-8') as csv_file:
-        attributes = ['name', 'password', 'account type']
+        attributes = ChaOS_constants.USER_CSV_ATTRIBUTES
         csv_reader = csv.DictReader(csv_file, fieldnames=attributes)
         next(csv_reader)
         for line in csv_reader:
@@ -121,7 +122,7 @@ def alter_user_account_type(username: str, new_account_type: str):
             temp_dict_list.append(line)
 
     with open('users.csv', 'w', encoding='utf-8') as csv_file:
-        attributes = ['name', 'password', 'account type']
+        attributes = ChaOS_constants.USER_CSV_ATTRIBUTES
         csv_writer = csv.DictWriter(csv_file, fieldnames=attributes)
         csv_writer.writeheader()
         for line in temp_dict_list:
@@ -136,7 +137,7 @@ def alter_user_password(username: str, new_password: str):
     """
     temp_dict_list = []
     with open('users.csv', 'r', encoding='utf-8') as csv_file:
-        attributes = ['name', 'password', 'account type']
+        attributes = ChaOS_constants.USER_CSV_ATTRIBUTES
         csv_reader = csv.DictReader(csv_file, fieldnames=attributes)
         next(csv_reader)
         for line in csv_reader:
@@ -145,7 +146,7 @@ def alter_user_password(username: str, new_password: str):
             temp_dict_list.append(line)
 
     with open('users.csv', 'w', encoding='utf-8') as csv_file:
-        attributes = ['name', 'password', 'account type']
+        attributes = ChaOS_constants.USER_CSV_ATTRIBUTES
         csv_writer = csv.DictWriter(csv_file, fieldnames=attributes)
         csv_writer.writeheader()
         for line in temp_dict_list:

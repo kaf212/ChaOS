@@ -19,7 +19,7 @@ def login():
             create_user_ui()
 
         with open('users.csv', 'r', encoding='utf-8') as csv_file:
-            attributes = ['name', 'password', 'account type']
+            attributes = ChaOS_constants.USER_CSV_ATTRIBUTES
             next(csv_file)  # skip attribute header
             csv_reader = csv.DictReader(csv_file, fieldnames=attributes)
 

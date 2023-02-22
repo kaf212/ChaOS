@@ -1,4 +1,5 @@
 import csv
+import ChaOS_constants
 from encryption import *
 
 
@@ -8,7 +9,7 @@ def reset_user_csv():
     :return:
     """
     with open('users.csv', 'w', encoding="utf-8") as csv_file:
-        attributes = ['name', 'password', 'account type']
+        attributes = ChaOS_constants.USER_CSV_ATTRIBUTES
         csv_writer = csv.DictWriter(csv_file, fieldnames=attributes)
         csv_writer.writeheader()
         csv_writer.writerow(
