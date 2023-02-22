@@ -159,7 +159,10 @@ def edit_x(cmd_split):
             print(f'File "{cmd_split[2]}" does not exist. ')
 
     elif cmd_split[1] == 'user':
-        edit_user(cmd_split)
+        if cmd_split[2] != user.name and user.account_type not in ['admin', 'dev']:
+            print('You need administrator privileges to edit another user. ')
+        else:
+            edit_user(cmd_split)
 
 
 def change_dir(path, cr_dir):

@@ -26,15 +26,20 @@ def edit_user(cmd_split):
                                              'What do you want to edit? ')
             if edit_selection == 'n':
                 input_username = enter_username()
-                write_user_csv('name', cmd_split[2], input_username)
-            else:
+                alter_user_csv('name', cmd_split[2], input_username)
+            elif edit_selection == 'p':
                 print("You can't edit passwords or account types yet, the function does not differentiate "
                       "between users!!!")
                 break
+            elif edit_selection == 'a':
+                print("You can't edit passwords or account types yet, the function does not differentiate "
+                      "between users!!!")
+                break
+
             # TODO: make edit_user() work for passwords and account types without always changing it for every user.
 
 
-def write_user_csv(attribute, old_value, new_value):
+def alter_user_csv(attribute, old_value, new_value):
     if attribute in ['password', 'account type']:
         raise Exception('WRITE USER_CSV IS NOT READY FOR PW OR ACCOUNT TYPE CHANGES!!! ')
 
@@ -59,6 +64,46 @@ def write_user_csv(attribute, old_value, new_value):
         f = open('users.csv', 'w', encoding='utf-8')
         f.writelines(csv_iter)
         f.close()
+
+
+def alter_user_csv_pw(username, new_password):
+    """
+    DOESN'T WORK, DON'T WANT TO DELETE IT, WASTED TOO MUCH TIME ON IT.
+    :param username:
+    :param new_password:
+    :return:
+    """
+    with open('users.csv', 'r', encoding='utf-8') as csv_file:
+        attributes = ['name', 'password', 'account type']
+        csv_reader = csv.DictReader(csv_file, fieldnames=attributes)
+
+        with open('users.csv', 'r+', encoding='utf-8') as f:
+            attributes = ['name', 'password', 'account type']
+            csv_reader = csv.DictReader(csv_file, fieldnames=attributes)
+
+            for line in csv_reader:
+                if line['name'] == username:
+                    csv_iter = ''.join([i for i in f])
+
+                    # print((str(line), str({'name': line['name'], 'password': new_password, 'account type': line['account type']})))
+                    # csv_iter.replace(str(line), str({'name': line['name'], 'password': new_password, 'account type': line['account type']}))
+
+                    csv_iter.replace('Seve,ÇÃÄÏÉØËÌÞ,standard', 'Seve, new password, standard')
+
+                    f_w = open('users.csv', 'w', encoding='utf-8')
+                    print(csv_iter)
+                    f_w.writelines(csv_iter)
+                    f_w.close()
+
+        # for line in csv_reader:
+        #     if line['name'] == username:
+        #         print(line['name'])
+        #         with open('users.csv', 'a+', encoding='utf-8') as f:
+        #             csv_writer = csv.DictWriter(f, fieldnames=attributes)
+        #             print({'name': line['name'], 'password': new_password, 'account type': line['account type']})
+        #             csv_writer.writerow({'name': line['name'], 'password': new_password, 'account type': line['account type']})
+        #             break
+
 
 
 def check_user_existence(username: str):
