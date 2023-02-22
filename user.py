@@ -1,7 +1,9 @@
+import os
 from dataclasses import dataclass
 from input import input_selection, list_selection_options
 from encryption import encrypt_str, decrypt_str
 import csv
+import time
 
 
 @dataclass
@@ -22,7 +24,7 @@ def edit_user(cmd_split):
         print(f'The user "{cmd_split[2]}" does not exist. ')
     else:
         while True:
-            edit_selection = input_selection(['n', 'p', 'a'], ['name', 'password', 'account type'],
+            edit_selection = input_selection(['n', 'p', 'a', 'x'], ['name', 'password', 'account type', 'done editing'],
                                              'What do you want to edit? ')
             new_value = None
             old_value = None
@@ -50,7 +52,21 @@ def edit_user(cmd_split):
                 new_value = input_acc_type
                 edit_selection = 'account type'
 
-            alter_user_csv(username=cmd_split[2], attribute=edit_selection, old_value=old_value, new_value=new_value)
+            elif edit_selection == 'x':
+                break
+
+            if edit_selection != 'x':
+                alter_user_csv(username=cmd_split[2], attribute=edit_selection, old_value=old_value, new_value=new_value)
+
+            if edit_selection == 'name':
+                print(f'Successfully renamed "{old_value}" to "{new_value}". ')
+                time.sleep(1.5)
+            if edit_selection == 'password':
+                print(f'Successfully changed password of "{cmd_split[2]}". ')
+                time.sleep(1.5)
+            if edit_selection == 'account type':
+                print(f'Succcessfully chnanged account type of "{cmd_split[2]}". ')
+                time.sleep(1.5)
 
 
 def alter_user_csv(username, attribute, old_value, new_value):
@@ -69,6 +85,7 @@ def alter_user_csv(username, attribute, old_value, new_value):
         raise ValueError('Invalid account type given. ')
 
     if attribute == 'name':
+        os.rename(f'A/ChaOS_Users/{old_value}', f'A/ChaOS_Users/{new_value}')
         with open('users.csv', 'r', encoding='utf-8') as csv_file:
             attributes = ['name', 'password', 'account type']
             next(csv_file)
