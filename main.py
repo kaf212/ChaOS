@@ -71,6 +71,7 @@ def command_prompt():
 
                 elif cmd_split[0] == 'shutdown':
                     shutdown(cmd_split)
+
                 elif cmd_split[0] == 'dev':
                     if user.account_type == 'dev':
                         access_dev_tools(cmd_split)
@@ -278,8 +279,12 @@ def access_dev_tools(cmd_split):
 
     if cmd_split[1] == 'reset':
         if cmd_split[2] == 'user_csv' or cmd_split[2] == 'users_csv':
-            reset_user_csv()
-            print_dev('User CSV was reset successfully. ')
+            reset_user_csv(cmd_split)
+            try:
+                if cmd_split[3] == '-hard':
+                    print_dev('User CSV was reset HARD successfully. ')
+            except IndexError:
+                print_dev('User CSV was reset successfully. ')
         else:
             print(f'"{cmd_split[2]}" is not a valid statement for command "reset". ')
 
