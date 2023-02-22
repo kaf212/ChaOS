@@ -71,12 +71,15 @@ def alter_user_csv(username, attribute, old_value, new_value):
     if attribute == 'name':
         with open('users.csv', 'r', encoding='utf-8') as csv_file:
             attributes = ['name', 'password', 'account type']
+            next(csv_file)
             csv_reader = csv.DictReader(csv_file, fieldnames=attributes)
             csv_iter = ''.join([i for i in csv_file])
 
             csv_iter = csv_iter.replace(old_value, new_value)
 
             with open('users.csv', 'w', encoding='utf-8') as f:
+                csv_writer = csv.DictWriter(f, fieldnames=attributes)
+                csv_writer.writeheader()
                 f.writelines(csv_iter)
                 f.close()
 
