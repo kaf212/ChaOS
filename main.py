@@ -6,6 +6,7 @@ from input import input_y_n
 from login import login, create_user_ui
 from ChaOS_DevTools import *
 from ChaOS_constants import *
+from user import edit_user
 
 
 def main():
@@ -156,6 +157,9 @@ def edit_x(cmd_split):
                 edit_txt(cr_dir + "/" + cmd_split[2])
         else:
             print(f'File "{cmd_split[2]}" does not exist. ')
+
+    elif cmd_split[1] == 'user':
+        edit_user(cmd_split)
 
 
 def change_dir(path, cr_dir):

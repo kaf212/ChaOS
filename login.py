@@ -3,7 +3,7 @@ import os
 
 import ChaOS_constants
 from encryption import encrypt_str, decrypt_str
-from user import create_user_object
+from user import create_user_object, check_user_existence, enter_username
 from input import list_selection_options
 
 
@@ -69,31 +69,8 @@ def create_user(username: str, password: str, account_type: str):
 
 
 def create_user_ui(user=None):
-    name_taken = True
-    input_username = None
-    while name_taken:
-        invalid_chars = [' ', '/', '.', '(', ')', '|', '"', "'"]
-        input_username = input('Enter a username > ')
-        name_valid = True
-        for char in invalid_chars:
-            if char in input_username:
-                name_valid = False
-        if not name_valid or input_username == '':
-            print('This username contains illegal characters. ')
-            continue
 
-        with open('users.csv', 'r', encoding='utf-8') as csv_file:
-            attributes = ['name']
-            next(csv_file)  # skip attribute header
-            csv_reader = csv.DictReader(csv_file, fieldnames=attributes)
-
-            name_taken = False
-            for line in csv_reader:
-                if line['name'] == input_username:
-                    name_taken = True
-
-            if name_taken:
-                input('This Username is already taken. ')
+    input_username = enter_username()
 
     input_password = None
     password_invalid = True
