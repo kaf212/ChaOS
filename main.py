@@ -24,8 +24,8 @@ def main():
 
 def command_prompt():
     global cr_dir
-    cr_dir = f'A/ChaOS_Users/{user.name}'
-    cr_dir_ui = translate_dir_2_ui(cr_dir)
+    cr_dir = f'A/ChaOS_Users/{user.name}'  # cr_dir = the actual current directory: A/ChaOS_Users
+    cr_dir_ui = translate_path_2_ui(cr_dir)  # cr_dir_ui = the simulated directory seen by the user = A:/Users
     while True:
         cmd = input(f'{cr_dir_ui}>')
 
@@ -33,7 +33,7 @@ def command_prompt():
         cmd_split = None
         if cmd:
             try:
-                cmd_split = cmd.split()
+                cmd_split = cmd.split()  # splits the input command string into a list, the delimiter is a whitespace.
             except TypeError:
                 cmd_invalid = True
 
@@ -52,14 +52,15 @@ def command_prompt():
                     edit_x(cmd_split)
 
                 elif cmd_split[0] == 'cd':
-                    dir_cd = change_dir(translate_ui_2_dir(cmd_split[1]), cr_dir)
+                    dir_cd = change_dir(translate_ui_2_path(cmd_split[1]),
+                                        cr_dir)  # before a dir change, the user input dir needs to be translated from ui_dir to actual dir.
                     if dir_cd is not None:  # if cd didn't fail
                         cr_dir = dir_cd
-                        cr_dir_ui = translate_dir_2_ui(cr_dir)
+                        cr_dir_ui = translate_path_2_ui(cr_dir)
 
                 elif cmd_split[0] == 'dir':
                     list_dir(cr_dir)
-                    
+
                 elif cmd_split[0] == 'echo':
                     try:
                         print(cmd_split[1])
@@ -87,7 +88,14 @@ def command_prompt():
                 print('You must enter a valid command to proceed, type "help" for help. ')
 
 
-def help_cmd(cmd_split):
+def help_cmd(cmd_split: list):
+    """
+    I think this is self-explanatory:
+    takes cmd_split as an argument and goes through the dictionary beneath and lists
+    the command usage.
+    :param cmd_split:
+    :return None:
+    """
     cmd_usage = {'create': 'create <object> <name>',
                  'read': 'read <object> <name>',
                  'delete': 'delete <object> <name>',
@@ -108,10 +116,15 @@ def help_cmd(cmd_split):
             print(f'{cmd}: {usage}')
 
 
-def create_x(cmd_split):
+def create_x(cmd_split: list):
+    """
+    The top-level command interpreter for anything starting with "create".
+    :param cmd_split:
+    :return None:
+    """
     if cmd_split[1] == 'file':
-        if validate_filetype(cmd_split[2], ['.txt']):
-            if not check_file_existence(cr_dir + cmd_split[2]):
+        if validate_filetype(cmd_split[2], ['.txt']):   # if the file is a txt:
+            if not check_file_existence(cr_dir + cmd_split[2]):   # if the file doesn't exist yet:
                 create_file(cr_dir, cmd_split[2], user)
             else:
                 print(f'The file "{cmd_split[2]}" already exists. ')
@@ -121,21 +134,36 @@ def create_x(cmd_split):
 
     elif cmd_split[1] == 'user':
         create_user_ui(user)
+        # the difference between create_user() and create_user_ui() is,
+        # that the latter prompts for user info in the console.
     else:
         print(f'"{cmd_split[1]}" is not a valid statement for command "{cmd_split[0]}"\n')
 
 
 def read_x(cmd_split):
+    """
+    The top-level command interpreter for anything starting with "read".
+    Currently only works for txts.
+    :param cmd_split:
+    :return None:
+    """
     if cmd_split[1] == 'file':
         if cmd_split[2].endswith('.txt'):
             read_txt(cr_dir, cmd_split[2])
         else:
             print(f'"{"." + cmd_split[2].partition(".")[2]}" is not a valid filetype\n')
+            # extracts the filetype from the file with the .partition method and "." as delimiter.
     else:
         print(f'"{cmd_split[1]}" is not a valid statement for command "{cmd_split[0]}\n')
 
 
 def delete_x(cmd_split):
+    """
+    The top-level command interpreter for anything starting with "delete".
+    Currently only works for txts.
+    :param cmd_split:
+    :return None:
+    """
     if cmd_split[1] == 'file':
         if check_file_existence(cr_dir + "/" + cmd_split[2]):
             confirmation = input_y_n(f'Delete {cr_dir + "/" + cmd_split[2]}? > ')
@@ -152,6 +180,12 @@ def delete_x(cmd_split):
 
 
 def edit_x(cmd_split):
+    """
+    The top-level command interpreter dor anything starting with "edit".
+    Supports both txts and users.
+    :param cmd_split:
+    :return None:
+    """
     if cmd_split[1] == 'file':
         if check_file_existence(cr_dir + "/" + cmd_split[2]):
             if validate_filetype(cmd_split[2], ['.txt']):
@@ -167,19 +201,17 @@ def edit_x(cmd_split):
 
 
 def change_dir(path, cr_dir):
-
     if path == '..':
-        pth_spl = split_path(cr_dir)
-        pth_spl.pop()
-        pth_spl.pop()
-        dir = ''.join(pth_spl)
+        pth_spl = split_path(cr_dir)  # split the current directory into a list
+        pth_spl.pop()    # remove the last directory
+        pth_spl.pop()    # remove the "/"
+        dir = ''.join(pth_spl)  # reconvert it into a string
         return dir
 
     path_valid = True
-    invalid_paths = ['...']
-    for pth in invalid_paths:
-        if path in invalid_paths:
-            path_valid = False
+    invalid_paths = ['...', '/', '.']
+    if path in invalid_paths:
+        path_valid = False
 
     if path_valid:
         if not cr_dir.endswith('/'):
@@ -208,15 +240,21 @@ def change_dir(path, cr_dir):
 
 
 def list_dir(cr_dir):
-    equivalents = ChaOS_constants.UI_2_PATH_TRANSLATIONS
+    """
+    Is called when cmd "dir" is executed.
+    Lists every file and subdirectory in a given directory.
+    :param cr_dir:
+    :return None:
+    """
+    equivalents = ChaOS_constants.UI_2_PATH_TRANSLATIONS  # the equivalents are the ui_path to actual path translations
 
     dirs = os.listdir(cr_dir)
     for dir in dirs:
-        if '.' not in dir:
+        if '.' not in dir:  # if there's no "." in the name, it can only be a directory.
             if dir in equivalents:
-                print(f'<DIR>\t{equivalents[dir]}')
+                print(f'<DIR>\t{equivalents[dir]}')   # if there is a translation for the dir (A, ChaOS_Users)
             else:
-                print(f'<DIR>\t{dir}')
+                print(f'<DIR>\t{dir}')  # if there's no translations --> user directory, so just print the real name
 
         else:
             if dir in equivalents:
@@ -225,46 +263,65 @@ def list_dir(cr_dir):
                 print(f'\t\t{dir}')
 
 
-def translate_dir_2_ui(cr_dir):
+def translate_path_2_ui(path):
+    """
+    The user sees and enters directories as "A:/Users", but the actual directory would be "A/CHaOS_Users",
+    because you obviously can't just create a folder named like a drive.
+    This function translates an actual path to a simulated one.
+    :param path:
+    :return ui_path:
+    """
     equivalents = ChaOS_constants.PATH_2_UI_TRANSLATIONS
 
-    cr_dir_split = split_path(cr_dir)
+    cr_path_split = split_path(path)
 
-    ui_dir_list = []
+    ui_path_list = []
 
-    for dir in cr_dir_split:
-        if dir in equivalents.keys():
-            dir = equivalents[dir]
-        ui_dir_list.append(dir)
+    for path in cr_path_split:
+        if path in equivalents.keys():  # if there's a translation present:
+            path = equivalents[path]   # translate it
+        ui_path_list.append(path)   # either way, add it to the translated list
 
-    ui_dir = ''.join(ui_dir_list)
+    ui_path = ''.join(ui_path_list)  # reconvert the list to a string
 
-    return ui_dir
+    return ui_path
 
 
-def translate_ui_2_dir(ui_dir):
+def translate_ui_2_path(ui_path):
+    """
+    The user sees and enters directories as "A:/Users", but the actual directory would be "A/CHaOS_Users",
+    because you obviously can't just create a folder named like a drive.
+    This function translates user inputs to an actual path, so it can be processed.
+    :param ui_path:
+    :return path:
+    """
     equivalents = ChaOS_constants.UI_2_PATH_TRANSLATIONS
 
-    ui_dir_split = split_path(ui_dir)
+    ui_path_split = split_path(ui_path)
 
-    dir_list = []
+    path_list = []
 
-    for dir in ui_dir_split:
-        if dir in equivalents.keys():
-            dir = equivalents[dir]
-        dir_list.append(dir)
+    for path in ui_path_split:
+        if path in equivalents.keys():
+            path = equivalents[path]
+        path_list.append(path)
 
-    dir = ''.join(dir_list)
+    path = ''.join(path_list)
 
-    return dir
+    return path
 
 
 def shutdown(cmd_split):
+    """
+    No explanation needed.
+    :param cmd_split:
+    :return:
+    """
     try:
-        if 't-' in cmd_split[1]:
+        if 't-' in cmd_split[1]:  # if the user has specified a countdown with "t-"_
             sd_cd = list(cmd_split[1])
             sd_cd.remove('t')
-            sd_cd.remove('-')
+            sd_cd.remove('-')  # remove "t-"
             sd_cd = ''.join(sd_cd)
             time.sleep(int(sd_cd))
             exit()
@@ -273,8 +330,12 @@ def shutdown(cmd_split):
 
 
 def access_dev_tools(cmd_split):
-
-    def print_dev(output: str):
+    """
+    The gateway to the land of dangerous and user-unfriendly operations.
+    :param cmd_split:
+    :return:
+    """
+    def print_dev(output: str):   # every output related to the devtools should be recognized as one
         print(f'[DEVTOOL]: {output}')
 
     if cmd_split[1] == 'reset':

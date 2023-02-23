@@ -119,6 +119,10 @@ def initialize_user_directories():
         except FileExistsError:
             pass
 
+    # for user_dir in os.listdir('A/ChaOS_Users'):
+    #     if user_dir not in return_user_names():
+    #         os.remove(f'A/ChaOS_Users/{user_dir}')   # causes PermissionError for some reason.
+
 
 def validate_filetype(filename, valid_filetypes):
     ft_valid = False
