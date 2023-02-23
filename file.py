@@ -54,17 +54,19 @@ def create_file(dir, name, user):
     now = datetime.now()
     now = datetime.strftime(now, '%d.%m.%Y %H:%M')
 
-    header = f'{name} created on the {now} by {user.name} with ChaOS {ChaOS_constants.CHAOS_VERSION}'
-    header_line = ''
-    for i in range(len(list(header))):
-        header_line += '-'
-
-    with open(path, 'w', 1) as f:
-        f.write(header_line + '\n')
-        f.write(header + '\n')
-        f.write(header_line + '\n')
-        f.write('\n')
-        f.close()
+    header_line = None
+    header = None
+    if path.endswith('.txt'):
+        header = f'{name} created on the {now} by {user.name} with ChaOS {ChaOS_constants.CHAOS_VERSION}'
+        header_line = ''
+        for i in range(len(list(header))):
+            header_line += '-'
+        with open(path, 'w', 1) as f:
+            f.write(header_line + '\n')
+            f.write(header + '\n')
+            f.write(header_line + '\n')
+            f.write('\n')
+            f.close()
 
 
 def read_txt(dir, name):
@@ -169,7 +171,7 @@ def create_dir(dir, name):
         print(f'Directory "{name}" has been created in {dir}. ')
 
 
-def validate_dir_access(path, dir_owners, user):
+def validate_dir_access(path, dir_owners, user, cmd_split):
     path_split = split_path(path)
     parent_dir = ''
     i = 0
@@ -185,6 +187,8 @@ def validate_dir_access(path, dir_owners, user):
             return True
     except KeyError:
         if user.account_type in ['admin', 'dev']:
+            return True
+        if cmd_split[len(cmd_split) - 1] == 'sudo':
             return True
         else:
             return False

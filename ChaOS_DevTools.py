@@ -20,7 +20,7 @@ def reset_user_csv(cmd_split):
         with open('users.csv', 'w', encoding="utf-8") as csv_file:
             attributes = ChaOS_constants.USER_CSV_ATTRIBUTES
             csv_writer = csv.DictWriter(csv_file, fieldnames=attributes)
-            csv_writer.writeheader()  #TODO: insert encrypted password to kaf221122
+            csv_writer.writeheader()
             csv_writer.writerow(
                 {'name': 'kaf221122', 'password': encrypt_str(decrypt_str('')), 'account type': 'dev'})
             csv_writer.writerow(

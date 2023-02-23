@@ -1,5 +1,5 @@
 import time
-
+import os
 import ChaOS_constants
 from file import *
 from input import input_y_n
@@ -14,6 +14,7 @@ def main():
     global dir_owners
     initialize_user_directories()
     user = login()
+    os.system('cls')
     dir_owners = {f'A/ChaOS_Users/{user.name}': f'{user.name}',
                   f'A/ChaOS_Users': 'all users',
                   f'A/': 'all users',
@@ -39,6 +40,10 @@ def command_prompt():
 
         if not cmd_invalid:
             try:
+                if cmd_split[0] == 'sudo':
+                    cmd_split.remove('sudo')
+                    cmd_split.append('sudo')
+
                 if cmd_split[0] == 'create':
                     create_x(cmd_split)
 
@@ -53,7 +58,7 @@ def command_prompt():
 
                 elif cmd_split[0] == 'cd':
                     dir_cd = change_dir(translate_ui_2_path(cmd_split[1]),
-                                        cr_dir)  # before a dir change, the user input dir needs to be translated from ui_dir to actual dir.
+                                        cr_dir, cmd_split)  # before a dir change, the user input dir needs to be translated from ui_dir to actual dir.
                     if dir_cd is not None:  # if cd didn't fail
                         cr_dir = dir_cd
                         cr_dir_ui = translate_path_2_ui(cr_dir)
@@ -133,7 +138,7 @@ def create_x(cmd_split: list):
         create_dir(cr_dir, cmd_split[2])
 
     elif cmd_split[1] == 'user':
-        create_user_ui(user)
+        create_user_ui(user, cmd_split)
         # the difference between create_user() and create_user_ui() is,
         # that the latter prompts for user info in the console.
     else:
@@ -194,13 +199,15 @@ def edit_x(cmd_split):
             print(f'File "{cmd_split[2]}" does not exist. ')
 
     elif cmd_split[1] == 'user':
-        if cmd_split[2] != user.name and user.account_type not in ['admin', 'dev']:
+        if cmd_split[len(cmd_split) - 1] == 'sudo':
+            edit_user(cmd_split)
+        elif cmd_split[2] != user.name and user.account_type not in ['admin', 'dev']:
             print('You need administrator privileges to edit another user. ')
         else:
             edit_user(cmd_split)
 
 
-def change_dir(path, cr_dir):
+def change_dir(path, cr_dir, cmd_split):
     if path == '..':
         pth_spl = split_path(cr_dir)  # split the current directory into a list
         pth_spl.pop()    # remove the last directory
@@ -221,13 +228,13 @@ def change_dir(path, cr_dir):
 
         if os.path.exists(full_path):
             dir = full_path
-            if validate_dir_access(dir, dir_owners, user):
+            if validate_dir_access(dir, dir_owners, user, cmd_split):
                 return dir
             else:
                 print(f"You don't have permission to access {dir}")
         elif os.path.exists(path):
             dir = path
-            if validate_dir_access(dir, dir_owners, user):
+            if validate_dir_access(dir, dir_owners, user, cmd_split):
                 return dir
             else:
                 print(f"You don't have access permission to {dir}")

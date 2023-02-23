@@ -68,7 +68,7 @@ def create_user(username: str, password: str, account_type: str):
         csv_file.close()
 
 
-def create_user_ui(user=None):
+def create_user_ui(user=None, cmd_split=None):
 
     input_username = enter_username()
 
@@ -91,11 +91,18 @@ def create_user_ui(user=None):
             if input_account_type not in ChaOS_constants.VALID_ACCOUNT_TYPES:
                 list_selection_options(input_account_type, ChaOS_constants.VALID_ACCOUNT_TYPES)
                 continue
+            if input_account_type == 'admin' and cmd_split[len(cmd_split) - 1] == 'sudo':
+                create_user(input_username, input_password, input_account_type)
+                input(f'User {input_username} was successfully created. ')
+                break
+
             elif user.account_type not in ['admin', 'dev'] and input_account_type == 'admin':
                 print('You need administrator privileges to create a new admin. ')
                 continue
+
             elif user.account_type != 'dev' and input_account_type == 'dev':
                 print('You need developer privileges to create a new dev. ')
+
             else:
                 create_user(input_username, input_password, input_account_type)
                 input(f'User {input_username} was successfully created. ')
