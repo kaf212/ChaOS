@@ -3,18 +3,13 @@ import ChaOS_constants
 from encryption import *
 
 
-def reset_user_csv(cmd_split):
+def reset_user_csv(reset_flag):
     """
     Genocide tool for test users.
     normal reset: only deletes users with "test" in their name.
     hard reset: deletes all non default users.
     :return:
     """
-    reset_flag = None
-    try:
-        reset_flag = cmd_split[3]   # if a flag is present
-    except IndexError:
-        pass
 
     if reset_flag == '-hard':
         with open('users.csv', 'w', encoding="utf-8") as csv_file:

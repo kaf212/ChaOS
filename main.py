@@ -275,7 +275,6 @@ def list_dir(cr_dir):
 
         else:
             total_files += 1
-            filesize = os.path.getsize(f'{cr_dir}/{dir}')
             total_files_size += os.path.getsize(f'{cr_dir}/{dir}')
             if dir in equivalents:
                 print(f'{last_modified}\t\t\t{equivalents[dir]}')
@@ -363,7 +362,10 @@ def access_dev_tools(cmd_split):
 
     if cmd_split[1] == 'reset':
         if cmd_split[2] == 'user_csv' or cmd_split[2] == 'users_csv':
-            reset_user_csv(cmd_split)
+            if cmd_split[3] == '-hard':
+                reset_user_csv('-hard')
+            else:
+                reset_user_csv(None)
             try:
                 if cmd_split[3] == '-hard':
                     print_dev('User CSV was reset HARD successfully. ')
