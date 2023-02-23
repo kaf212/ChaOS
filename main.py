@@ -179,7 +179,8 @@ def delete_x(cmd_split):
                 pass
 
     elif cmd_split[1] == 'user':
-        pass
+        print('this feature doesnt exist yet. ')
+        # TODO: cmd "delete user"
     else:
         print(f'"{cmd_split[1]}" is not a valid statement for command "{cmd_split[0]}"\n')
 
@@ -256,18 +257,33 @@ def list_dir(cr_dir):
     equivalents = ChaOS_constants.UI_2_PATH_TRANSLATIONS  # the equivalents are the ui_path to actual path translations
 
     dirs = os.listdir(cr_dir)
+    total_dirs = 0
+    total_files = 0
+    total_files_size = 0
     for dir in dirs:
+        ti_c = os.path.getctime(f'{cr_dir}/{dir}')
+        ti_c = time.ctime(ti_c)
+        last_modified = os.path.getmtime(f'{cr_dir}/{dir}')
+        last_modified = time.ctime(last_modified)
+
         if '.' not in dir:  # if there's no "." in the name, it can only be a directory.
+            total_dirs += 1
             if dir in equivalents:
-                print(f'<DIR>\t{equivalents[dir]}')   # if there is a translation for the dir (A, ChaOS_Users)
+                print(f'{last_modified}\t<DIR>\t{equivalents[dir]}')   # if there is a translation for the dir (A, ChaOS_Users)
             else:
-                print(f'<DIR>\t{dir}')  # if there's no translations --> user directory, so just print the real name
+                print(f'{last_modified}\t<DIR>\t{dir}')  # if there's no translations --> user directory, so just print the real name
 
         else:
+            total_files += 1
+            filesize = os.path.getsize(f'{cr_dir}/{dir}')
+            total_files_size += os.path.getsize(f'{cr_dir}/{dir}')
             if dir in equivalents:
-                print(f'\t\t{equivalents[dir]}')
+                print(f'{last_modified}\t\t\t{equivalents[dir]}')
             else:
-                print(f'\t\t{dir}')
+                print(f'{last_modified}\t\t\t{dir}')
+
+    print(f'\t\t{total_files} files\t\ttotal: {total_files_size} bytes')
+    print(f'\t\t{total_dirs} directories')
 
 
 def translate_path_2_ui(path):

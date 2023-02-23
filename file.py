@@ -1,10 +1,10 @@
+import shutil
 from dataclasses import dataclass
 
 from csv_handling import return_user_names
 import os
 from datetime import datetime
 import ChaOS_constants
-
 
 
 @dataclass
@@ -108,7 +108,7 @@ def create_file_object(owner):
 
 def initialize_user_directories():
     try:
-        os.makedirs('A/ChaOS_Users')
+        os.makedirs('A/ChaOS_Users', 0o777)
     except FileExistsError:
         pass
 
@@ -121,9 +121,9 @@ def initialize_user_directories():
         except FileExistsError:
             pass
 
-    # for user_dir in os.listdir('A/ChaOS_Users'):
-    #     if user_dir not in return_user_names():
-    #         os.remove(f'A/ChaOS_Users/{user_dir}')   # causes PermissionError for some reason.
+    for user_dir in os.listdir('A/ChaOS_Users'):  # delete directories of non existent users
+        if user_dir not in return_user_names():
+            shutil.rmtree(f'A/ChaOS_Users/{user_dir}')
 
 
 def validate_filetype(filename, valid_filetypes):
@@ -164,7 +164,7 @@ def create_dir(dir, name):
     else:
         path = dir + name
     try:
-        os.mkdir(path)
+        os.mkdir(path, 0o777)
     except FileExistsError:
         print(f'The directory "{name}" already exists. ')
     else:
@@ -175,8 +175,8 @@ def validate_dir_access(path, dir_owners, user, cmd_split):
     path_split = split_path(path)
     parent_dir = ''
     i = 0
-    for item in path_split:     # this ugly snippet takes the full path and reduces it to the user's personal dir
-        if i < 5:               # in order to validate it in dir_owners,
+    for item in path_split:  # this ugly snippet takes the full path and reduces it to the user's personal dir
+        if i < 5:  # in order to validate it in dir_owners,
             parent_dir += item  # for example: A/ChaOS_Users/kaf221122/subdir1/subdir2 ==> A/ChaOS_Users/kaf221122
             i += 1
 
