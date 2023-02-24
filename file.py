@@ -1,5 +1,4 @@
 import shutil
-from dataclasses import dataclass
 
 from csv_handling import return_user_names, return_users
 import os
@@ -80,7 +79,10 @@ def initialize_user_directories():
 
     for user_dir in os.listdir('A/ChaOS_Users'):  # delete directories of non existent users
         if user_dir not in return_user_names():
-            shutil.rmtree(f'A/ChaOS_Users/{user_dir}')
+            try:
+                shutil.rmtree(f'A/ChaOS_Users/{user_dir}')
+            except NotADirectoryError:
+                os.remove(f'A/ChaOS_Users/{user_dir}')
 
 
 def validate_filetype(filename, valid_filetypes):
