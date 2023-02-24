@@ -7,13 +7,6 @@ from datetime import datetime
 import ChaOS_constants
 
 
-@dataclass
-class File:
-    name: str
-    type: str
-    owner: str
-
-
 def find_file(user):
     while True:
         input_filename = input('Filename + type > ')
@@ -29,14 +22,6 @@ def find_file(user):
             return found_file_name
         else:
             input('File not found. ')
-
-
-def read_txt_old(filename, owner):
-    path = 'ChaOS_Users/' + owner.name + '/' + filename
-    with open(path, 'r') as f:
-        print(f'-- {filename} --\n')
-        print(f.read())
-    # exit(read_txt(filename, owner))  #TODO: try implementing that when calling stuff in main
 
 
 def create_file(dir, name, user):
@@ -76,34 +61,6 @@ def read_txt(dir, name):
         print(f.read())
         print(f'\n-- {name} --\n')
         f.close()
-
-
-def create_file_object(owner):
-    name = None
-    name_invalid = True
-    while name_invalid:
-        input_name = input('Filename > ')
-        if ' ' in input_name or "'" in input_name:
-            print('Invalid filename, try again: ')
-        else:
-            name = input_name
-            name_invalid = False
-
-    type = None
-    type_invalid = True
-    while type_invalid:
-        input_type = input('Filetype > ')
-        if input_type not in ['.txt']:
-            print('Invalid filetype, try again: ')
-        else:
-            type = input_type
-            type_invalid = False
-
-    owner = owner.name
-
-    new_file = File(name, type, owner)
-
-    return new_file
 
 
 def initialize_user_directories():

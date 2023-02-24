@@ -304,12 +304,19 @@ def list_dir(cr_dir):
             total_files += 1
             total_files_size += os.path.getsize(f'{cr_dir}/{dir}')
             if dir in equivalents:
-                print(f'{last_modified}\t\t\t{equivalents[dir]}')
+                print(f'{last_modified}\t\t{equivalents[dir]}')
             else:
-                print(f'{last_modified}\t\t\t{dir}')
+                print(f'{last_modified}\t\t{dir}')
 
-    print(f'\t\t{total_files} files\t\ttotal: {total_files_size} bytes')
-    print(f'\t\t{total_dirs} directories')
+    if total_files == 1:
+        print(f'\t{total_files} file\t\ttotal: {total_files_size} bytes')
+    else:
+        print(f'\t{total_files} files\t\ttotal: {total_files_size} bytes')
+
+    if total_dirs == 1:
+        print(f'\t{total_dirs} directory')
+    else:
+        print(f'\t{total_dirs} directories')
 
 
 def translate_path_2_ui(path):
