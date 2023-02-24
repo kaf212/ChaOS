@@ -7,6 +7,8 @@ from login import login, create_user_ui
 from ChaOS_DevTools import *
 from ChaOS_constants import *
 from user import edit_user
+import socket
+import platform
 
 
 def main():
@@ -394,9 +396,12 @@ def shutdown(cmd_split):
     except IndexError:
         exit()
 
+
 def display_usr(cmd_split):
-    if cmd_split[len(cmd_split) - 1] == 'sudo': print("ChaOS/bootleg_administrator")
-    else :print(user)
+    if cmd_split[len(cmd_split) - 1] == 'sudo':
+        print(f"{platform.uname()[1]}/bootleg_administrator")
+    else:
+        print(f'{platform.uname()[1]}/{user.name}')
 
 
 def access_dev_tools(cmd_split):
