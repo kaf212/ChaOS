@@ -38,12 +38,19 @@ def command_prompt():
             except TypeError:
                 cmd_invalid = True
 
-        if not cmd_invalid:
             try:
                 if cmd_split[0] == 'sudo':
                     cmd_split.remove('sudo')
+                    cmd_split.append('')
+                    cmd_split.append('')   # yes, this is part 1 of the fix for issue #13
+                    cmd_split.append('')
                     cmd_split.append('sudo')
+            except IndexError:
+                pass
 
+        if not cmd_invalid:
+
+            try:
                 if cmd_split[0] == 'create':
                     create_x(cmd_split)
 
@@ -88,9 +95,9 @@ def command_prompt():
                     print(f'The command "{cmd_split[0]}" does not exist. \n')
 
             except TypeError:
-                print('You must enter a valid command to proceed, type "help" for help. ')
+                print('TypeError: You must enter a valid command to proceed, type "help" for help. ')
             except IndexError:
-                print('You must enter a valid command to proceed, type "help" for help. ')
+                print('IndexError: You must enter a valid command to proceed, type "help" for help. ')
 
 
 def help_cmd(cmd_split: list):
@@ -127,22 +134,29 @@ def create_x(cmd_split: list):
     :param cmd_split:
     :return None:
     """
-    if cmd_split[1] == 'file':
-        if validate_filetype(cmd_split[2], ['.txt']):   # if the file is a txt:
-            if not check_file_existence(cr_dir + cmd_split[2]):   # if the file doesn't exist yet:
-                create_file(cr_dir, cmd_split[2], user)
-            else:
-                print(f'The file "{cmd_split[2]}" already exists. ')
 
-    elif cmd_split[1] == 'dir':
-        create_dir(cr_dir, cmd_split[2])
+    if cmd_split[2] == 'sudo':
+        print(f'You must enter a valid {cmd_split[1]}name to proceed. ')
+    # check if the user didn't forget the name and "sudo" is misinterpreted as the name.
 
-    elif cmd_split[1] == 'user':
-        create_user_ui(user, cmd_split)
-        # the difference between create_user() and create_user_ui() is,
-        # that the latter prompts for user info in the console.
     else:
-        print(f'"{cmd_split[1]}" is not a valid statement for command "{cmd_split[0]}"\n')
+
+        if cmd_split[1] == 'file':
+            if validate_filetype(cmd_split[2], ['.txt']):   # if the file is a txt:
+                if not check_file_existence(cr_dir + cmd_split[2]):   # if the file doesn't exist yet:
+                    create_file(cr_dir, cmd_split[2], user)
+                else:
+                    print(f'The file "{cmd_split[2]}" already exists. ')
+
+        elif cmd_split[1] == 'dir':
+            create_dir(cr_dir, cmd_split[2])
+
+        elif cmd_split[1] == 'user':
+            create_user_ui(user, cmd_split)
+            # the difference between create_user() and create_user_ui() is,
+            # that the latter prompts for user info in the console.
+        else:
+            print(f'"{cmd_split[1]}" is not a valid statement for command "{cmd_split[0]}"\n')
 
 
 def read_x(cmd_split):
@@ -169,20 +183,26 @@ def delete_x(cmd_split):
     :param cmd_split:
     :return None:
     """
-    if cmd_split[1] == 'file':
-        if check_file_existence(cr_dir + "/" + cmd_split[2]):
-            confirmation = input_y_n(f'Delete {cr_dir + "/" + cmd_split[2]}? > ')
-            if confirmation == 'y':
-                delete_file(cr_dir + "/" + cmd_split[2])
-                print(f'Deleted {cmd_split[2]}')
-            else:
-                pass
+    if cmd_split[2] == 'sudo':
+        print(f'You must enter a valid {cmd_split[1]}name to proceed. ')
+    # check if the user didn't forget the name and "sudo" is misinterpreted as the name.
 
-    elif cmd_split[1] == 'user':
-        print('this feature doesnt exist yet. ')
-        # TODO: cmd "delete user"
     else:
-        print(f'"{cmd_split[1]}" is not a valid statement for command "{cmd_split[0]}"\n')
+
+        if cmd_split[1] == 'file':
+            if check_file_existence(cr_dir + "/" + cmd_split[2]):
+                confirmation = input_y_n(f'Delete {cr_dir + "/" + cmd_split[2]}? > ')
+                if confirmation == 'y':
+                    delete_file(cr_dir + "/" + cmd_split[2])
+                    print(f'Deleted {cmd_split[2]}')
+                else:
+                    pass
+
+        elif cmd_split[1] == 'user':
+            print('this feature doesnt exist yet. ')
+            # TODO: cmd "delete user"
+        else:
+            print(f'"{cmd_split[1]}" is not a valid statement for command "{cmd_split[0]}"\n')
 
 
 def edit_x(cmd_split):
@@ -192,20 +212,27 @@ def edit_x(cmd_split):
     :param cmd_split:
     :return None:
     """
-    if cmd_split[1] == 'file':
-        if check_file_existence(cr_dir + "/" + cmd_split[2]):
-            if validate_filetype(cmd_split[2], ['.txt']):
-                edit_txt(cr_dir + "/" + cmd_split[2])
-        else:
-            print(f'File "{cmd_split[2]}" does not exist. ')
 
-    elif cmd_split[1] == 'user':
-        if cmd_split[len(cmd_split) - 1] == 'sudo':
-            edit_user(cmd_split)
-        elif cmd_split[2] != user.name and user.account_type not in ['admin', 'dev']:
-            print('You need administrator privileges to edit another user. ')
-        else:
-            edit_user(cmd_split)
+    if cmd_split[2] == 'sudo':
+        print(f'You must enter a valid {cmd_split[1]}name to proceed. ')
+    # check if the user didn't forget the name and "sudo" is misinterpreted as the name.
+
+    else:
+
+        if cmd_split[1] == 'file':
+            if check_file_existence(cr_dir + "/" + cmd_split[2]):
+                if validate_filetype(cmd_split[2], ['.txt']):
+                    edit_txt(cr_dir + "/" + cmd_split[2])
+            else:
+                print(f'File "{cmd_split[2]}" does not exist. ')
+
+        elif cmd_split[1] == 'user':
+            if cmd_split[len(cmd_split) - 1] == 'sudo':
+                edit_user(cmd_split)
+            elif cmd_split[2] != user.name and user.account_type not in ['admin', 'dev']:
+                print('You need administrator privileges to edit another user. ')
+            else:
+                edit_user(cmd_split)
 
 
 def change_dir(path, cr_dir, cmd_split):
@@ -362,9 +389,10 @@ def access_dev_tools(cmd_split):
 
     if cmd_split[1] == 'reset':
         if cmd_split[2] == 'user_csv' or cmd_split[2] == 'users_csv':
-            if cmd_split[3] == '-hard':
-                reset_user_csv('-hard')
-            else:
+            try:
+                if cmd_split[3] == '-hard':
+                    reset_user_csv('-hard')
+            except IndexError:
                 reset_user_csv(None)
             try:
                 if cmd_split[3] == '-hard':

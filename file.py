@@ -39,34 +39,34 @@ def read_txt_old(filename, owner):
     # exit(read_txt(filename, owner))  #TODO: try implementing that when calling stuff in main
 
 
-def create_file_old(owner):
-    file_object = create_file_object(owner)
-    path = 'ChaOS_Users/' + file_object.owner + '/' + file_object.name + file_object.type
-    f = open(path, 'a+', 1)
-    f.write(f'{file_object.name}{file_object.type} created on the {datetime.now()}')
-    # f.flush()
-    # os.fsync(f.fileno())
-    f.close()
-
-
 def create_file(dir, name, user):
-    path = dir + '/' + name
-    now = datetime.now()
-    now = datetime.strftime(now, '%d.%m.%Y %H:%M')
+    name_valid = True
+    for char in [' ', '..', '...', '/', "'", '"']:
+        if char in name:
+            name_valid = False
 
-    header_line = None
-    header = None
-    if path.endswith('.txt'):
-        header = f'{name} created on the {now} by {user.name} with ChaOS {ChaOS_constants.CHAOS_VERSION}'
-        header_line = ''
-        for i in range(len(list(header))):
-            header_line += '-'
-        with open(path, 'w', 1) as f:
-            f.write(header_line + '\n')
-            f.write(header + '\n')
-            f.write(header_line + '\n')
-            f.write('\n')
-            f.close()
+    if name_valid:
+        path = dir + '/' + name
+        now = datetime.now()
+        now = datetime.strftime(now, '%d.%m.%Y %H:%M')
+        if not check_file_existence(path):
+            header_line = None
+            header = None
+            if path.endswith('.txt'):
+                header = f'{name} created on the {now} by {user.name} with ChaOS {ChaOS_constants.CHAOS_VERSION}'
+                header_line = ''
+                for i in range(len(list(header))):
+                    header_line += '-'
+                with open(path, 'w', 1) as f:
+                    f.write(header_line + '\n')
+                    f.write(header + '\n')
+                    f.write(header_line + '\n')
+                    f.write('\n')
+                    f.close()
+        else:
+            print(f'{name} already exists in {dir}. ')
+    else:
+        print(f'{name} contains illegal characters. ')
 
 
 def read_txt(dir, name):
@@ -159,16 +159,24 @@ def edit_txt(path):
 
 
 def create_dir(dir, name):
-    if not dir.endswith('/'):
-        path = dir + '/' + name
+    name_valid = True
+    for char in [' ', '..', '.', '...', '/', "'", '"']:
+        if char in name:
+            name_valid = False
+
+    if name_valid:
+        if not dir.endswith('/'):
+            path = dir + '/' + name
+        else:
+            path = dir + name
+        try:
+            os.mkdir(path, 0o777)
+        except FileExistsError:
+            print(f'The directory "{name}" already exists. ')
+        else:
+            print(f'Directory "{name}" has been created in {dir}. ')
     else:
-        path = dir + name
-    try:
-        os.mkdir(path, 0o777)
-    except FileExistsError:
-        print(f'The directory "{name}" already exists. ')
-    else:
-        print(f'Directory "{name}" has been created in {dir}. ')
+        print(f'"{name}" contains illegal characters. ')
 
 
 def validate_dir_access(path, dir_owners, user, cmd_split):
