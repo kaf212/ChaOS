@@ -88,6 +88,9 @@ def command_prompt():
                 elif cmd_split[0] == 'shutdown':
                     shutdown(cmd_split)
 
+                elif cmd_split[0] == 'whoami':
+                    display_usr(cmd_split)
+
                 elif cmd_split[0] == 'dev':
                     if user.account_type == 'dev':
                         access_dev_tools(cmd_split)
@@ -390,6 +393,10 @@ def shutdown(cmd_split):
             exit()
     except IndexError:
         exit()
+
+def display_usr(cmd_split):
+    if cmd_split[len(cmd_split) - 1] == 'sudo': print("ChaOS/bootleg_administrator")
+    else :print(user)
 
 
 def access_dev_tools(cmd_split):
