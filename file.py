@@ -111,8 +111,12 @@ def delete_file(path):
 
 def delete_dir(directory, dir_name, dir_owners):
     path = directory + '/' + dir_name
-    shutil.rmtree(path)
-    print(f'"{path}" was deleted successfully. ')
+    try:
+        shutil.rmtree(path)
+    except FileNotFoundError:
+        print(f'The directory "{path}" does not exist')
+    else:
+        print(f'"{path}" was deleted successfully. ')
 
 
 def edit_txt(path):

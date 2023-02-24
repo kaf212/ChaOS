@@ -79,6 +79,9 @@ def command_prompt():
                     except IndexError:
                         print('You must enter a valid statement to echo. ')
 
+                elif cmd_split[0] == 'clear':
+                    os.system('cls')
+
                 elif cmd_split[0] == 'help':
                     help_cmd(cmd_split)
 
@@ -283,17 +286,19 @@ def list_dir(cr_dir):
     :param cr_dir:
     :return None:
     """
-    equivalents = ChaOS_constants.UI_2_PATH_TRANSLATIONS  # the equivalents are the ui_path to actual path translations
+    equivalents = ChaOS_constants.PATH_2_UI_TRANSLATIONS  # the equivalents are the ui_path to actual path translations
 
     dirs = os.listdir(cr_dir)
     total_dirs = 0
     total_files = 0
     total_files_size = 0
     for dir in dirs:
+
         ti_c = os.path.getctime(f'{cr_dir}/{dir}')
         ti_c = time.ctime(ti_c)
         last_modified = os.path.getmtime(f'{cr_dir}/{dir}')
         last_modified = time.ctime(last_modified)
+
 
         if '.' not in dir:  # if there's no "." in the name, it can only be a directory.
             total_dirs += 1
@@ -408,6 +413,10 @@ def access_dev_tools(cmd_split):
                     print_dev('User CSV was reset HARD successfully. ')
             except IndexError:
                 print_dev('User CSV was reset successfully. ')
+
+        elif cmd_split[2] == 'user_dirs':
+            initialize_user_directories()
+            print_dev('User directories were reset successfully. ')
         else:
             print(f'"{cmd_split[2]}" is not a valid statement for command "reset". ')
 
