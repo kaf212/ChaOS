@@ -201,6 +201,11 @@ def delete_x(cmd_split):
         elif cmd_split[1] == 'user':
             print('this feature doesnt exist yet. ')
             # TODO: cmd "delete user"
+
+        elif cmd_split[1] == 'dir':
+            if validate_dir_access(cmd_split=cmd_split, dir_owners=dir_owners, user=user, path=cr_dir + '/' + cmd_split[2]):
+                delete_dir(cr_dir, cmd_split[2],  dir_owners)
+
         else:
             print(f'"{cmd_split[1]}" is not a valid statement for command "{cmd_split[0]}"\n')
 
@@ -258,14 +263,11 @@ def change_dir(path, cr_dir, cmd_split):
             dir = full_path
             if validate_dir_access(dir, dir_owners, user, cmd_split):
                 return dir
-            else:
-                print(f"You don't have permission to access {dir}")
+
         elif os.path.exists(path):
             dir = path
             if validate_dir_access(dir, dir_owners, user, cmd_split):
                 return dir
-            else:
-                print(f"You don't have access permission to {dir}")
             return dir
         else:
             print(f'The directory "{path}" does not exist. ')

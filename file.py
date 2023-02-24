@@ -1,7 +1,7 @@
 import shutil
 from dataclasses import dataclass
 
-from csv_handling import return_user_names
+from csv_handling import return_user_names, return_users
 import os
 from datetime import datetime
 import ChaOS_constants
@@ -107,6 +107,14 @@ def delete_file(path):
         print("File not found. ")
 
 
+# delete dir kaf221122 "" "" "" sudo
+
+def delete_dir(directory, dir_name, dir_owners):
+    path = directory + '/' + dir_name
+    shutil.rmtree(path)
+    print(f'"{path}" was deleted successfully. ')
+
+
 def edit_txt(path):
     user_text = input('Write > ')
     with open(path, 'a+') as f:
@@ -145,6 +153,21 @@ def validate_dir_access(path, dir_owners, user, cmd_split):
             parent_dir += item  # for example: A/ChaOS_Users/kaf221122/subdir1/subdir2 ==> A/ChaOS_Users/kaf221122
             i += 1
 
+    all_users = return_users()
+    dev_users = []
+    for i_user in all_users:
+        if i_user['account type'] == 'dev':
+            dev_users.append(i_user['name'])
+
+    target_dir_belongs_dev = False
+    for username in dev_users:
+        if username in path:
+            target_dir_belongs_dev = True
+
+    if target_dir_belongs_dev and user.account_type != 'dev':
+        print("You need developer privileges to access a dev's directory. ")
+        return False
+
     try:
         if dir_owners[parent_dir] == user.name:
             return True
@@ -156,7 +179,9 @@ def validate_dir_access(path, dir_owners, user, cmd_split):
         if cmd_split[len(cmd_split) - 1] == 'sudo':
             return True
         else:
+            print("You need administrator privileges to access another user's directory. ")
             return False
+
     else:
         return True
 
