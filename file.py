@@ -1,5 +1,5 @@
 import shutil
-
+import csv
 from csv_handling import return_user_names, return_users
 import os
 from datetime import datetime
@@ -51,6 +51,44 @@ def create_file(dir, name, user):
             print(f'{name} already exists in {dir}. ')
     else:
         print(f'{name} contains illegal characters. ')
+
+
+def log_dir_metadata(user, dirname, access_permission, path):
+    if access_permission not in [user.name, 'all_users', 'admins', 'devs']:
+        raise ValueError(f'Invalid access permission "{access_permission}" given. ')
+
+    if not os.path.isdir(path):
+        raise NotADirectoryError(f'{path} is not a directory. ')
+
+    md_path = f'{path}/metadata.csv'
+    if not os.path.exists(md_path):
+        with open(md_path, 'w') as md_csv:
+            attributes = ['dirname', 'owner', 'owner account type', 'access permission']
+            csv_writer = csv.DictWriter(md_csv, fieldnames=attributes)
+            csv_writer.writeheader()
+            md_csv.close()
+
+    if not check_metadata_existence(user, dirname, access_permission, path):
+        with open(md_path, 'a+') as md_csv:
+            attributes = ['dirname', 'owner', 'owner_account_type', 'access_permission']
+            csv_writer = csv.DictWriter(md_csv, fieldnames=attributes)
+            csv_writer.writerow({'dirname': dirname, 'owner': user.name, 'owner_account_type': user.account_type,
+                                 'access_permission': access_permission})
+            md_csv.close()
+
+
+def check_metadata_existence(user, dirname, access_permission, path):
+    md_path = f'{path}/metadata.csv'
+    with open(md_path, 'r') as md_csv:
+        attributes = ['dirname', 'owner', 'owner_account_type', 'access_permission']
+        next(md_csv)
+        csv_reader = csv.DictReader(md_csv, fieldnames=attributes)
+        for line in csv_reader:
+            if line == {'dirname': dirname, 'owner': user.name, 'owner_account_type': user.account_type,
+                        'access_permission': access_permission}:
+                md_csv.close()
+                return True
+        return False
 
 
 def read_txt(dir, name):
@@ -129,19 +167,27 @@ def edit_txt(path):
         f.close()
 
 
-def create_dir(dir, name):
+def create_dir(user, dir, name, cmd_split=None):
     name_valid = True
     for char in [' ', '..', '.', '...', '/', "'", '"']:
         if char in name:
             name_valid = False
 
     if name_valid:
+        access_permission = user.name # the default access permission is creator only
+        if cmd_split:
+            try:
+                access_permission = cmd_split[3]
+            except IndexError:
+                pass
+
         if not dir.endswith('/'):
             path = dir + '/' + name
         else:
             path = dir + name
         try:
             os.mkdir(path, 0o777)
+            log_dir_metadata(user, name, access_permission, path)
         except FileExistsError:
             print(f'The directory "{name}" already exists. ')
         else:

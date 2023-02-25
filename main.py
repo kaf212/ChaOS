@@ -157,7 +157,7 @@ def create_x(cmd_split: list):
                     print(f'The file "{cmd_split[2]}" already exists. ')
 
         elif cmd_split[1] == 'dir':
-            create_dir(cr_dir, cmd_split[2])
+            create_dir(user, cr_dir, cmd_split[2], cmd_split)
 
         elif cmd_split[1] == 'user':
             create_user_ui(user, cmd_split)

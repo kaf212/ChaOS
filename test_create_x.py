@@ -33,11 +33,15 @@ def test_create_file():
 
 
 def test_create_directory():
+
+    if not os.path.exists('A/unit_testing'):
+        os.mkdir('A/unit_testing')
+
     try:
-        create_dir('A/unit_testing', 'test_create_dir')
+        create_dir(user, 'A/unit_testing', 'test_create_dir')
     except FileExistsError:
         os.remove('A/unit_testing/test_create_dir')
-        create_dir('A/unit_testing', 'test_create_dir')
+        create_dir(user, 'A/unit_testing', 'test_create_dir')
     dirnames = []
     for file in os.listdir('A/unit_testing'):
         dirnames.append(file)
