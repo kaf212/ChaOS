@@ -15,3 +15,5 @@ UI_2_PATH_TRANSLATIONS = {'A:': 'A',
 PATH_2_UI_TRANSLATIONS = {'A': 'A:',
                           'ChaOS_Users': 'Users'
                           }
+
+LOGGING_FORMAT = '[%(levelname)s] %(message)s'

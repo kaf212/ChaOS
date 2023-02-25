@@ -211,7 +211,7 @@ def delete_x(cmd_split):
             # TODO: cmd "delete user"
 
         elif cmd_split[1] == 'dir':
-            if validate_dir_access(cmd_split=cmd_split, dir_owners=dir_owners, user=user, path=cr_dir + '/' + cmd_split[2]):
+            if validate_dir_access(cmd_split=cmd_split, user=user, dirname=cmd_split[2], parent_dir=cr_dir):
                 delete_dir(cr_dir, cmd_split[2],  dir_owners)
 
         else:
@@ -269,12 +269,12 @@ def change_dir(path, cr_dir, cmd_split):
 
         if os.path.exists(full_path):
             dir = full_path
-            if validate_dir_access(dir, dir_owners, user, cmd_split):
+            if validate_dir_access(parent_dir=cr_dir, user=user, cmd_split=cmd_split, dirname=path):
                 return dir
 
         elif os.path.exists(path):
             dir = path
-            if validate_dir_access(dir, dir_owners, user, cmd_split):
+            if validate_dir_access(parent_dir=cr_dir, user=user, cmd_split=cmd_split, dirname=path):  #TODO if something's broken, check these arguments for corectness
                 return dir
             return dir
         else:

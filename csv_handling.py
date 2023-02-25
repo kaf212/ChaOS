@@ -21,8 +21,8 @@ def return_users():
         next(csv_file)  # skip attribute header
         csv_reader = csv.DictReader(csv_file, fieldnames=attributes)
 
-        usernames = []
+        users = []
         for line in csv_reader:
-            usernames.append(line)
+            users.append(line)
 
-    return usernames
+    return users

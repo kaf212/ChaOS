@@ -1,9 +1,12 @@
+import logging
 import shutil
 import csv
 from csv_handling import return_user_names, return_users
 import os
 from datetime import datetime
 import ChaOS_constants
+from user import create_user_object, User
+import logging
 
 
 def find_file(user):
@@ -53,14 +56,19 @@ def create_file(dir, name, user):
         print(f'{name} contains illegal characters. ')
 
 
-def log_dir_metadata(user, dirname, access_permission, path):
+def log_dir_metadata(user, dirname, access_permission, parent_dir):
+    logging_format = '[%(levelname)s] %(message)s'
+    logging.basicConfig(level=logging.DEBUG, format=logging_format)
+    """
+    Path for metadata always is: parent_dir/metadata.csv, for example the metadata for A/ChaOS_Users/kaf221122 is in A/ChaOS_Users/metadata.csv
+    """
     if access_permission not in [user.name, 'all_users', 'admins', 'devs']:
         raise ValueError(f'Invalid access permission "{access_permission}" given. ')
 
-    if not os.path.isdir(path):
-        raise NotADirectoryError(f'{path} is not a directory. ')
+    if not os.path.isdir(parent_dir):
+        raise NotADirectoryError(f'{parent_dir} is not a directory. ')
 
-    md_path = f'{path}/metadata.csv'
+    md_path = f'{parent_dir}/metadata.csv'
     if not os.path.exists(md_path):
         with open(md_path, 'w') as md_csv:
             attributes = ['dirname', 'owner', 'owner account type', 'access permission']
@@ -68,7 +76,7 @@ def log_dir_metadata(user, dirname, access_permission, path):
             csv_writer.writeheader()
             md_csv.close()
 
-    if not check_metadata_existence(user, dirname, access_permission, path):
+    if not check_metadata_existence(user, dirname, access_permission, parent_dir):
         with open(md_path, 'a+') as md_csv:
             attributes = ['dirname', 'owner', 'owner_account_type', 'access_permission']
             csv_writer = csv.DictWriter(md_csv, fieldnames=attributes)
@@ -77,7 +85,30 @@ def log_dir_metadata(user, dirname, access_permission, path):
             md_csv.close()
 
 
-def check_metadata_existence(user, dirname, access_permission, path):
+def read_dir_metadata(dirname: str, parent_dir: str) -> tuple:
+    if not os.path.isdir(parent_dir):
+        raise NotADirectoryError(f'{parent_dir} is not a directory. ')
+
+    md_path = f'{parent_dir}/metadata.csv'
+    if os.path.exists(md_path):
+        with open(md_path, 'r') as md_csv:
+            attributes = ['dirname', 'owner', 'owner_account_type', 'access_permission']
+            csv_reader = csv.DictReader(md_csv, fieldnames=attributes)
+            for line in csv_reader:
+                if line['dirname']  == dirname:
+                    dir_metadata = line
+
+            if not dir_metadata:
+                raise Exception(f'No metadata found for ')
+
+            md_csv.close()
+
+            return line['owner'], line['owner_account_type'], line['access_permission']
+    else:
+        raise FileNotFoundError(f'metadata.csv not found in {md_path}. ')
+
+
+def check_metadata_existence(user, dirname: str, access_permission: str, path: str) -> bool:
     md_path = f'{path}/metadata.csv'
     with open(md_path, 'r') as md_csv:
         attributes = ['dirname', 'owner', 'owner_account_type', 'access_permission']
@@ -101,6 +132,8 @@ def read_txt(dir, name):
 
 
 def initialize_user_directories():
+    logging_format = '[%(levelname)s] %(message)s'
+    logging.basicConfig(level=logging.DEBUG, format=logging_format)
     try:
         os.makedirs('A/ChaOS_Users', 0o777)
     except FileExistsError:
@@ -110,17 +143,52 @@ def initialize_user_directories():
 
     for username in usernames:
         path = 'A/ChaOS_Users/' + username
-        try:
+        if not os.path.exists(path):
             os.mkdir(path)
-        except FileExistsError:
-            pass
 
-    for user_dir in os.listdir('A/ChaOS_Users'):  # delete directories of non existent users
-        if user_dir not in return_user_names():
-            try:
-                shutil.rmtree(f'A/ChaOS_Users/{user_dir}')
-            except NotADirectoryError:
-                os.remove(f'A/ChaOS_Users/{user_dir}')
+    # for user_dir in os.listdir('A/ChaOS_Users'):  # delete directories of non existent users
+    #     if user_dir not in return_user_names():
+    #         try:
+    #             shutil.rmtree(f'A/ChaOS_Users/{user_dir}')  #TODO: make the programm delete deleted user's dirs, but not active user's non-personal dirs
+    #         except NotADirectoryError:
+    #             os.remove(f'A/ChaOS_Users/{user_dir}')
+
+    for username in usernames:
+        initialize_user_dir_metadata(username)
+
+
+def initialize_user_dir_metadata(username):
+    logging_format = '[%(levelname)s] %(message)s'
+    logging.basicConfig(level=logging.DEBUG, format=logging_format)
+
+    all_users = return_users()
+
+    for line in all_users:
+        if line['name'] == username:
+            temp_user_obj = create_user_object(username=line['name'], password='None', account_type=line['account type'])
+            log_dir_metadata(user=temp_user_obj, dirname=temp_user_obj.name, parent_dir='A/ChaOS_Users',
+                             access_permission=temp_user_obj.name)
+
+
+def delete_metadata(dirname, parent_dir):
+    md_path = f'{parent_dir}/metadata.csv'
+    with open(md_path, 'r') as md_csv:
+        attributes = ['dirname', 'owner', 'owner_account_type', 'access_permission']
+        next(md_csv)
+        csv_reader = csv.DictReader(md_csv, fieldnames=attributes)
+        temp_dict_list = []
+        for line in csv_reader:
+            if not line['dirname'] == dirname:
+                temp_dict_list.append(line)
+        md_csv.close()
+
+    with open(md_path, 'w') as md_csv:
+        attributes = ['dirname', 'owner', 'owner_account_type', 'access_permission']
+        csv_writer = csv.DictWriter(md_csv, fieldnames=attributes)
+        csv_writer.writeheader()
+        for line in temp_dict_list:
+            csv_writer.writerow(line)
+        md_csv.close()
 
 
 def validate_filetype(filename, valid_filetypes):
@@ -153,6 +221,7 @@ def delete_dir(directory, dir_name, dir_owners):
     path = directory + '/' + dir_name
     try:
         shutil.rmtree(path)
+        delete_metadata(dir_name, directory)
     except FileNotFoundError:
         print(f'The directory "{path}" does not exist')
     else:
@@ -187,7 +256,7 @@ def create_dir(user, dir, name, cmd_split=None):
             path = dir + name
         try:
             os.mkdir(path, 0o777)
-            log_dir_metadata(user, name, access_permission, path)
+            log_dir_metadata(user, name, access_permission, dir)
         except FileExistsError:
             print(f'The directory "{name}" already exists. ')
         else:
@@ -196,46 +265,71 @@ def create_dir(user, dir, name, cmd_split=None):
         print(f'"{name}" contains illegal characters. ')
 
 
-def validate_dir_access(path, dir_owners, user, cmd_split):
-    path_split = split_path(path)
-    parent_dir = ''
-    i = 0
-    for item in path_split:  # this ugly snippet takes the full path and reduces it to the user's personal dir
-        if i < 5:  # in order to validate it in dir_owners,
-            parent_dir += item  # for example: A/ChaOS_Users/kaf221122/subdir1/subdir2 ==> A/ChaOS_Users/kaf221122
-            i += 1
+#def validate_dir_access(path, dir_owners, user, cmd_split):
+#    path_split = split_path(path)
+#   parent_dir = ''
+#   i = 0
+#   for item in path_split:  # this ugly snippet takes the full path and reduces it to the user's personal dir
+#       if i < 5:  # in order to validate it in dir_owners,
+#           parent_dir += item  # for example: A/ChaOS_Users/kaf221122/subdir1/subdir2 ==> A/ChaOS_Users/kaf221122
+#           i += 1
 
-    all_users = return_users()
-    dev_users = []
-    for i_user in all_users:
-        if i_user['account type'] == 'dev':
-            dev_users.append(i_user['name'])
+#   all_users = return_users()
+#   dev_users = []
+#   for i_user in all_users:
+#       if i_user['account type'] == 'dev':
+#           dev_users.append(i_user['name'])
 
-    target_dir_belongs_dev = False
-    for username in dev_users:
-        if username in path:
-            target_dir_belongs_dev = True
+#   target_dir_belongs_dev = False
+#   for username in dev_users:
+#       if username in path:
+#           target_dir_belongs_dev = True
 
-    if target_dir_belongs_dev and user.account_type != 'dev':
-        print("You need developer privileges to access a dev's directory. ")
+#   if target_dir_belongs_dev and user.account_type != 'dev':
+ #      print("You need developer privileges to access a dev's directory. ")
+ #      return False
+
+ #  try:
+ #      if dir_owners[parent_dir] == user.name:
+ #          return True
+ #      elif dir_owners[parent_dir] == 'all users':
+ #          return True
+ #  except KeyError:
+ #      if user.account_type in ['admin', 'dev']:
+ #          return True
+ #      if cmd_split[len(cmd_split) - 1] == 'sudo':
+ #          return True
+ #      else:
+ #          print("You need administrator privileges to access another user's directory. ")
+ #          return False
+
+ #  else:
+ #      return True
+
+
+def validate_dir_access(parent_dir: str, dirname: str, user, cmd_split: list) -> bool:
+
+    if f'{parent_dir}/{dirname}' in ['A/','A', 'A/ChaOS_Users']:
+        return True
+
+    owner, owner_account_type, access_permission = read_dir_metadata(dirname, parent_dir)
+    if access_permission == 'all_users':
+        return True
+    if access_permission == user.account_type:
+        return True
+
+    if user.account_type == 'dev':
+        return True
+
+    if cmd_split[len(cmd_split) - 1] == 'sudo' and owner_account_type != 'dev':
+        return True
+
+    if user.account_type != 'dev' and owner_account_type == 'dev':
+        print("You need developer privileges to access another dev's directory. ")
         return False
 
-    try:
-        if dir_owners[parent_dir] == user.name:
-            return True
-        elif dir_owners[parent_dir] == 'all users':
-            return True
-    except KeyError:
-        if user.account_type in ['admin', 'dev']:
-            return True
-        if cmd_split[len(cmd_split) - 1] == 'sudo':
-            return True
-        else:
-            print("You need administrator privileges to access another user's directory. ")
-            return False
-
-    else:
-        return True
+    if user.account_type not in ['admin', 'dev'] and owner != user.name:
+        print("You need administrator privileges to access anotger user's directory. ")
 
 
 def split_path(path):
