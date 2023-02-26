@@ -199,21 +199,26 @@ def delete_x(cmd_split):
 
         if cmd_split[1] == 'file':
             if check_file_existence(cr_dir + "/" + cmd_split[2]):
-                confirmation = input_y_n(f'Delete {cr_dir + "/" + cmd_split[2]}? > ')
-                if confirmation == 'y':
-                    delete_file(cr_dir + "/" + cmd_split[2])
-                    print(f'Deleted {cmd_split[2]}')
-                else:
-                    pass
+                if validate_file_alteration(cmd_split[2], user):   # make sure the user isn't deleting any system files
+                    confirmation = input_y_n(f'Delete {cr_dir + "/" + cmd_split[2]}? > ')
+                    if confirmation == 'y':
+                        delete_file(cr_dir + "/" + cmd_split[2])
+                        print(f'Deleted {cmd_split[2]}')
+                    else:
+                        pass
 
         elif cmd_split[1] == 'user':
             print('this feature doesnt exist yet. ')
             # TODO: cmd "delete user"
 
         elif cmd_split[1] == 'dir':
-            if validate_dir_access(cmd_split=cmd_split, user=user, dirname=cmd_split[2], parent_dir=cr_dir):
-                delete_dir(cr_dir, cmd_split[2],  dir_owners)
-
+            target_dir = translate_ui_2_path(cmd_split[2])
+            if os.path.isdir(cr_dir + '/' + target_dir):
+                if validate_dir_access(cmd_split=cmd_split, user=user, dirname=target_dir, parent_dir=cr_dir):  # make sure he has access permission
+                    if validate_dir_alteration(target_dir, user):   # make sure he's not deleting a system directory
+                        delete_dir(cr_dir, target_dir,  dir_owners)
+            else:
+                print(f'The directory "{cmd_split[2]}" does not exist. ')
         else:
             print(f'"{cmd_split[1]}" is not a valid statement for command "{cmd_split[0]}"\n')
 

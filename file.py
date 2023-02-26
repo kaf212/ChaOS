@@ -95,8 +95,9 @@ def read_dir_metadata(dirname: str, parent_dir: str) -> tuple:
         with open(md_path, 'r') as md_csv:
             attributes = ['dirname', 'owner', 'owner_account_type', 'access_permission']
             csv_reader = csv.DictReader(md_csv, fieldnames=attributes)
+            dir_metadata = None
             for line in csv_reader:
-                if line['dirname']  == dirname:
+                if line['dirname'] == dirname:
                     dir_metadata = line
             if not dir_metadata:
                 raise Exception(f'No metadata found for ')
@@ -291,6 +292,27 @@ def validate_dir_access(parent_dir: str, dirname: str, user, cmd_split: list) ->
     if user.account_type not in ['admin', 'dev'] and owner != user.name:
         print("You need administrator privileges to access another user's directory. ")
         return False
+
+
+def validate_file_access(directory, filename, user):
+    if filename in ChaOS_constants.SYSTEN_FILE_NAMES and user.account_type != 'dev':
+        print('You need developer privileges to access a system file or directory. ')
+        return False
+    else:
+        return True
+
+
+def validate_file_alteration(filename, user):
+    if filename in ChaOS_constants.SYSTEN_FILE_NAMES and user.account_type != 'dev':
+        print('You need developer privileges to alter a system file. ')
+
+
+def validate_dir_alteration(dirname, user):
+    if dirname in ChaOS_constants.SYSTEM_DIR_NAMES and user.account_type != 'dev':
+        print('You need developer privileges to alter a system directory. ')
+        return False
+    else:
+        return True
 
 
 def split_path(path):
