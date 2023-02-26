@@ -86,6 +86,7 @@ def log_dir_metadata(user, dirname, access_permission, parent_dir):
 
 
 def read_dir_metadata(dirname: str, parent_dir: str) -> tuple:
+    logging.basicConfig(level=logging.DEBUG, format=ChaOS_constants.LOGGING_FORMAT)
     if not os.path.isdir(parent_dir):
         raise NotADirectoryError(f'{parent_dir} is not a directory. ')
 
@@ -97,13 +98,12 @@ def read_dir_metadata(dirname: str, parent_dir: str) -> tuple:
             for line in csv_reader:
                 if line['dirname']  == dirname:
                     dir_metadata = line
-
             if not dir_metadata:
                 raise Exception(f'No metadata found for ')
 
             md_csv.close()
 
-            return line['owner'], line['owner_account_type'], line['access_permission']
+            return dir_metadata['owner'], dir_metadata['owner_account_type'], dir_metadata['access_permission']
     else:
         raise FileNotFoundError(f'metadata.csv not found in {md_path}. ')
 
@@ -265,51 +265,11 @@ def create_dir(user, dir, name, cmd_split=None):
         print(f'"{name}" contains illegal characters. ')
 
 
-#def validate_dir_access(path, dir_owners, user, cmd_split):
-#    path_split = split_path(path)
-#   parent_dir = ''
-#   i = 0
-#   for item in path_split:  # this ugly snippet takes the full path and reduces it to the user's personal dir
-#       if i < 5:  # in order to validate it in dir_owners,
-#           parent_dir += item  # for example: A/ChaOS_Users/kaf221122/subdir1/subdir2 ==> A/ChaOS_Users/kaf221122
-#           i += 1
-
-#   all_users = return_users()
-#   dev_users = []
-#   for i_user in all_users:
-#       if i_user['account type'] == 'dev':
-#           dev_users.append(i_user['name'])
-
-#   target_dir_belongs_dev = False
-#   for username in dev_users:
-#       if username in path:
-#           target_dir_belongs_dev = True
-
-#   if target_dir_belongs_dev and user.account_type != 'dev':
- #      print("You need developer privileges to access a dev's directory. ")
- #      return False
-
- #  try:
- #      if dir_owners[parent_dir] == user.name:
- #          return True
- #      elif dir_owners[parent_dir] == 'all users':
- #          return True
- #  except KeyError:
- #      if user.account_type in ['admin', 'dev']:
- #          return True
- #      if cmd_split[len(cmd_split) - 1] == 'sudo':
- #          return True
- #      else:
- #          print("You need administrator privileges to access another user's directory. ")
- #          return False
-
- #  else:
- #      return True
-
-
 def validate_dir_access(parent_dir: str, dirname: str, user, cmd_split: list) -> bool:
+    fmt = ChaOS_constants.LOGGING_FORMAT
+    logging.basicConfig(level=logging.DEBUG, format=fmt)
 
-    if f'{parent_dir}/{dirname}' in ['A/','A', 'A/ChaOS_Users']:
+    if f'{parent_dir}/{dirname}' in ['A/','A', 'A/ChaOS_Users']:  # TODO: this looks dumb, check if it's not
         return True
 
     owner, owner_account_type, access_permission = read_dir_metadata(dirname, parent_dir)
@@ -329,7 +289,8 @@ def validate_dir_access(parent_dir: str, dirname: str, user, cmd_split: list) ->
         return False
 
     if user.account_type not in ['admin', 'dev'] and owner != user.name:
-        print("You need administrator privileges to access anotger user's directory. ")
+        print("You need administrator privileges to access another user's directory. ")
+        return False
 
 
 def split_path(path):

@@ -16,4 +16,6 @@ PATH_2_UI_TRANSLATIONS = {'A': 'A:',
                           'ChaOS_Users': 'Users'
                           }
 
+SYSTEN_FILE_AND_DIR_NAMES = ['A', 'ChaOS_Users', 'metadata.csv']
+
 LOGGING_FORMAT = '[%(levelname)s] %(message)s'
