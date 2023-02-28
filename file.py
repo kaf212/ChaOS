@@ -5,6 +5,7 @@ from csv_handling import return_user_names, return_users
 import os
 from datetime import datetime
 import ChaOS_constants
+from input import input_y_n
 from user import create_user_object, User
 import logging
 
@@ -303,9 +304,20 @@ def validate_file_access(directory, filename, user):
 
 
 def validate_file_alteration(filename, user):
-    if filename in ChaOS_constants.SYSTEN_FILE_NAMES and user.account_type != 'dev':
-        print('You need developer privileges to alter a system file. ')
-
+    logging.basicConfig(level=logging.DEBUG, format=ChaOS_constants.LOGGING_FORMAT)
+    if filename in ChaOS_constants.SYSTEN_FILE_NAMES:
+        if user.account_type == 'dev':
+            conf = input('You are about to delete a system file, type "iknowwhatimdoing" to proceed. ')
+            if conf == 'iknowwhatimdoing':
+                return True
+            else:
+                print('File deletion was aborted. ')
+                return False
+        else:
+            print('You need developer privileges to alter a system file. ')
+            return False
+    else:
+        return True
 
 def validate_dir_alteration(dirname, user):
     if dirname in ChaOS_constants.SYSTEM_DIR_NAMES and user.account_type != 'dev':

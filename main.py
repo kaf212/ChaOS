@@ -34,7 +34,7 @@ def command_prompt():
     cr_dir_ui = translate_path_2_ui(cr_dir)  # cr_dir_ui = the simulated directory seen by the user = A:/Users
     while True:
         logging_format = '[%(levelname)s]   %(message)s'
-        logging.basicConfig(level='debug', )
+        logging.basicConfig(level='debug', format=ChaOS_constants.LOGGING_FORMAT)
         cmd = input(f'{cr_dir_ui}>')
 
         cmd_invalid = False
@@ -192,6 +192,7 @@ def read_x(cmd_split):
 
 
 def delete_x(cmd_split):
+    logging.basicConfig(level=logging.DEBUG, format=ChaOS_constants.LOGGING_FORMAT)
     """
     The top-level command interpreter for anything starting with "delete".
     Currently only works for txts.
