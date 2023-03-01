@@ -10,6 +10,7 @@ SYSLOG_CATEGORIES = ['command', 'creation', 'deletion', 'alteration']
 UI_2_PATH_TRANSLATIONS = {'A:': 'A',
                           'Users': 'ChaOS_Users'
                           }
+STANDARD_USER_SUBDIRS = ['Documents', 'Desktop']
 
 PATH_2_UI_TRANSLATIONS = {'A': 'A:',
                           'ChaOS_Users': 'Users'

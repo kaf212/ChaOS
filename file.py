@@ -4,9 +4,9 @@ from csv_handling import return_user_names, return_users
 import os
 from datetime import datetime
 import ChaOS_constants
-from main import syslog
 from user import create_user_object
 import logging
+from system import syslog
 
 
 def find_file(user):
@@ -142,10 +142,20 @@ def initialize_user_directories():
 
     usernames = return_user_names()
 
+    all_users = return_users()
+
     for username in usernames:
         path = 'A/ChaOS_Users/' + username
         if not os.path.exists(path):
             os.mkdir(path)
+            temp_user_obj = None
+            for line in all_users:
+                if line['name'] == username:
+                    temp_user_obj = create_user_object(username=line['name'], password='None',
+                                                       account_type=line['account type'])
+            for subdir in ChaOS_constants.STANDARD_USER_SUBDIRS:
+                os.mkdir(path + '/' + subdir)
+                log_dir_metadata(temp_user_obj, subdir, username, path)
 
     for username in usernames:
         initialize_user_dir_metadata(username)

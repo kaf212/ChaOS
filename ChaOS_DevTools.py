@@ -17,15 +17,17 @@ def reset_user_csv(reset_flag):
             csv_writer = csv.DictWriter(csv_file, fieldnames=attributes)
             csv_writer.writeheader()
             csv_writer.writerow(
-                {'name': 'kaf221122', 'password': encrypt_str(decrypt_str('')), 'account type': 'dev'})
+                {'name': 'kaf221122', 'password': '', 'account type': 'dev'})
             csv_writer.writerow(
-                {'name': 'NextToNothing', 'password': encrypt_str(decrypt_str('ËÙÎÌ')), 'account type': 'dev'})
+                {'name': 'NextToNothing', 'password': 'ËÙÎÌ', 'account type': 'dev'})
             csv_writer.writerow(
-                {'name': 'Custoomer31', 'password': encrypt_str(decrypt_str('ÙÜÚ')), 'account type': 'admin'})
+                {'name': 'the_razors_edge', 'password': 'ËÇÅÍßÙ', 'account type': 'admin'})
             csv_writer.writerow(
-                {'name': 'Seve', 'password': encrypt_str(decrypt_str('ÇÃÄÏÉØËÌÞ')), 'account type': 'standard'})
+                {'name': 'Custoomer31', 'password': 'ÙÜÚ', 'account type': 'standard'})
             csv_writer.writerow(
-                {'name': 'Manu', 'password': encrypt_str(decrypt_str('ÙÞÆßÞÐÃ')), 'account type': 'standard'})
+                {'name': 'Seve', 'password': 'ÇÃÄÏÉØËÌÞ', 'account type': 'standard'})
+            csv_writer.writerow(
+                {'name': 'Manu', 'password': 'ÙÞÆßÞÐÃ', 'account type': 'standard'})
             csv_file.close()
     else:
         temp_dict_list = []
