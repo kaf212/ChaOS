@@ -3,6 +3,7 @@ import os
 
 import ChaOS_constants
 from encryption import encrypt_str, decrypt_str
+from file import create_dir
 from user import create_user_object, enter_username
 from input import list_selection_options
 
@@ -59,6 +60,9 @@ def create_user(username: str, password: str, account_type: str):
         raise Exception('Invalid username, stop doing the "..." thing. ')
 
     os.mkdir(f'A/ChaOS_Users/{username}')
+    temp_user_obj = create_user_object(username, password, account_type)
+    for subdir in ChaOS_constants.STANDARD_USER_SUBDIRS:
+        create_dir(user=temp_user_obj, name=subdir, dir=f'A/ChaOS_Users/{username}')
 
     with open('users.csv', 'a+', encoding="utf-8") as csv_file:
         attributes = ['username', 'password', 'account type']
