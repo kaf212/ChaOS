@@ -68,8 +68,3 @@ def test_create_user():
     assert user_present_in_csv and user_dir_created
     shutil.rmtree(f'A/ChaOS_Users/{user.name}')  # delete the test directory
     reset_user_csv('-hard')
-
-
-
-
-

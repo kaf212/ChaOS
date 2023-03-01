@@ -1,13 +1,11 @@
-import logging
 import shutil
 import csv
 from csv_handling import return_user_names, return_users
 import os
 from datetime import datetime
 import ChaOS_constants
-from input import input_y_n
 from main import syslog
-from user import create_user_object, User
+from user import create_user_object
 import logging
 
 
@@ -39,8 +37,6 @@ def create_file(dir, name, user):
         now = datetime.now()
         now = datetime.strftime(now, '%d.%m.%Y %H:%M')
         if not check_file_existence(path):
-            header_line = None
-            header = None
             if path.endswith('.txt'):
                 header = f'{name} created on the {now} by {user.name} with ChaOS {ChaOS_constants.CHAOS_VERSION}'
                 header_line = ''
@@ -63,7 +59,8 @@ def log_dir_metadata(user, dirname, access_permission, parent_dir):
     logging_format = '[%(levelname)s] %(message)s'
     logging.basicConfig(level=logging.DEBUG, format=logging_format)
     """
-    Path for metadata always is: parent_dir/metadata.csv, for example the metadata for A/ChaOS_Users/kaf221122 is in A/ChaOS_Users/metadata.csv
+    Path for metadata always is: parent_dir/metadata.csv, 
+    for example the metadata for A/ChaOS_Users/kaf221122 is in A/ChaOS_Users/metadata.csv
     """
     if access_permission not in [user.name, 'all_users', 'admins', 'devs']:
         raise ValueError(f'Invalid access permission "{access_permission}" given. ')
@@ -150,13 +147,6 @@ def initialize_user_directories():
         if not os.path.exists(path):
             os.mkdir(path)
 
-    # for user_dir in os.listdir('A/ChaOS_Users'):  # delete directories of non existent users
-    #     if user_dir not in return_user_names():
-    #         try:
-    #             shutil.rmtree(f'A/ChaOS_Users/{user_dir}')  #TODO: make the programm delete deleted user's dirs, but not active user's non-personal dirs
-    #         except NotADirectoryError:
-    #             os.remove(f'A/ChaOS_Users/{user_dir}')
-
     for username in usernames:
         initialize_user_dir_metadata(username)
 
@@ -169,7 +159,8 @@ def initialize_user_dir_metadata(username):
 
     for line in all_users:
         if line['name'] == username:
-            temp_user_obj = create_user_object(username=line['name'], password='None', account_type=line['account type'])
+            temp_user_obj = create_user_object(username=line['name'], password='None',
+                                               account_type=line['account type'])
             log_dir_metadata(user=temp_user_obj, dirname=temp_user_obj.name, parent_dir='A/ChaOS_Users',
                              access_permission=temp_user_obj.name)
 
@@ -222,7 +213,7 @@ def delete_file(path):
 
 # delete dir kaf221122 "" "" "" sudo
 
-def delete_dir(directory, dir_name, dir_owners):
+def delete_dir(directory, dir_name):
     path = directory + '/' + dir_name
     try:
         shutil.rmtree(path)
@@ -250,7 +241,7 @@ def create_dir(user, dir, name, cmd_split=None):
             name_valid = False
 
     if name_valid:
-        access_permission = user.name # the default access permission is creator only
+        access_permission = user.name  # the default access permission is creator only
         if cmd_split:
             try:
                 access_permission = cmd_split[3]
@@ -277,7 +268,7 @@ def validate_dir_access(parent_dir: str, dirname: str, user, cmd_split: list) ->
     fmt = ChaOS_constants.LOGGING_FORMAT
     logging.basicConfig(level=logging.DEBUG, format=fmt)
 
-    if f'{parent_dir}/{dirname}' in ['A/','A', 'A/ChaOS_Users']:  # TODO: this looks dumb, check if it's not
+    if f'{parent_dir}/{dirname}' in ['A/', 'A', 'A/ChaOS_Users']:  # TODO: this looks dumb, check if it's not
         return True
 
     owner, owner_account_type, access_permission = read_dir_metadata(dirname, parent_dir)
@@ -301,7 +292,7 @@ def validate_dir_access(parent_dir: str, dirname: str, user, cmd_split: list) ->
         return False
 
 
-def validate_file_access(directory, filename, user):
+def validate_file_access(filename, user):
     if filename in ChaOS_constants.SYSTEN_FILE_NAMES and user.account_type != 'dev':
         print('You need developer privileges to access a system file or directory. ')
         return False

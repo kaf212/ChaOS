@@ -3,7 +3,7 @@ import os
 
 import ChaOS_constants
 from encryption import encrypt_str, decrypt_str
-from user import create_user_object, check_user_existence, enter_username
+from user import create_user_object, enter_username
 from input import list_selection_options
 
 
@@ -34,7 +34,6 @@ def login():
 
     print(f'\n-- {username} --')
     tries = 3
-    input_password = None
     while tries > 0:
         input_password = input('Password > ')
         if input_password != decrypt_str(password):

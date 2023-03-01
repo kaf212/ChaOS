@@ -117,6 +117,7 @@ def invert_bin(binary):
 
     return bin_str
 
+
 def bin_dec(binary):
     dec = int(binary, 2)
     return dec

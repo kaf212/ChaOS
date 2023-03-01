@@ -43,6 +43,7 @@ def list_selection_options(false_user_input: str, valid_selections: list):
         i += 1
     print('.\n')
 
+
 def input_int(prompt):
     while True:
         try:

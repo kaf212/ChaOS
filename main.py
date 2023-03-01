@@ -12,16 +12,10 @@ import logging
 
 def main():
     global user
-    global dir_owners
     initialize_user_directories()
     reset_syslog()
     user = login()
     os.system('cls')
-    dir_owners = {f'A/ChaOS_Users/{user.name}': f'{user.name}',
-                  f'A/ChaOS_Users': 'all users',
-                  f'A/': 'all users',
-                  f'A': 'all users',
-                  }
     command_prompt()
 
 
@@ -30,7 +24,6 @@ def command_prompt():
     cr_dir = f'A/ChaOS_Users/{user.name}'  # cr_dir = the actual current directory: A/ChaOS_Users
     cr_dir_ui = translate_path_2_ui(cr_dir)  # cr_dir_ui = the simulated directory seen by the user = A:/Users
     while True:
-        logging_format = '[%(levelname)s]   %(message)s'
         logging.basicConfig(level='debug', format=ChaOS_constants.LOGGING_FORMAT)
         cmd = input(f'{cr_dir_ui}>')
 
@@ -69,7 +62,8 @@ def command_prompt():
 
                 elif cmd_split[0] == 'cd':
                     dir_cd = change_dir(translate_ui_2_path(cmd_split[1]),
-                                        cr_dir, cmd_split)  # before a dir change, the user input dir needs to be translated from ui_dir to actual dir.
+                                        cr_dir, cmd_split)
+                    # before a dir change, the user input dir needs to be translated from ui_dir to actual dir.
                     if dir_cd is not None:  # if cd didn't fail
                         cr_dir = dir_cd
                         cr_dir_ui = translate_path_2_ui(cr_dir)
@@ -219,9 +213,10 @@ def delete_x(cmd_split):
         elif cmd_split[1] == 'dir':
             target_dir = translate_ui_2_path(cmd_split[2])
             if os.path.isdir(cr_dir + '/' + target_dir):
-                if validate_dir_access(cmd_split=cmd_split, user=user, dirname=target_dir, parent_dir=cr_dir):  # make sure he has access permission
+                if validate_dir_access(cmd_split=cmd_split, user=user, dirname=target_dir, parent_dir=cr_dir):
+                    # make sure he has access permission
                     if validate_dir_alteration(target_dir, user):   # make sure he's not deleting a system directory
-                        delete_dir(cr_dir, target_dir,  dir_owners)
+                        delete_dir(cr_dir, target_dir)
             else:
                 print(f'The directory "{cmd_split[2]}" does not exist. ')
         else:
@@ -284,7 +279,8 @@ def change_dir(path, cr_dir, cmd_split):
 
         elif os.path.exists(path):
             dir = path
-            if validate_dir_access(parent_dir=cr_dir, user=user, cmd_split=cmd_split, dirname=path):  #TODO if something's broken, check these arguments for corectness
+            if validate_dir_access(parent_dir=cr_dir, user=user, cmd_split=cmd_split, dirname=path):
+                # TODO if something's broken, check these arguments for corectness
                 return dir
             return dir
         else:
@@ -309,18 +305,17 @@ def list_dir(cr_dir):
     total_files_size = 0
     for dir in dirs:
 
-        ti_c = os.path.getctime(f'{cr_dir}/{dir}')
-        ti_c = time.ctime(ti_c)
         last_modified = os.path.getmtime(f'{cr_dir}/{dir}')
         last_modified = time.ctime(last_modified)
-
 
         if '.' not in dir:  # if there's no "." in the name, it can only be a directory.
             total_dirs += 1
             if dir in equivalents:
-                print(f'{last_modified}\t<DIR>\t{equivalents[dir]}')   # if there is a translation for the dir (A, ChaOS_Users)
+                print(f'{last_modified}\t<DIR>\t{equivalents[dir]}')
+                # if there is a translation for the dir (A, ChaOS_Users)
             else:
-                print(f'{last_modified}\t<DIR>\t{dir}')  # if there's no translations --> user directory, so just print the real name
+                print(f'{last_modified}\t<DIR>\t{dir}')
+                # if there's no translations --> user directory, so just print the real name
 
         else:
             total_files += 1
@@ -444,9 +439,6 @@ def access_dev_tools(cmd_split):
 
     else:
         print(f'"{cmd_split[1]}" is not a valid dev command. ')
-
-
-
 
 
 if __name__ == '__main__':

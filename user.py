@@ -7,6 +7,7 @@ import csv
 import time
 from system import syslog
 
+
 @dataclass
 class User:
     name: str
@@ -57,7 +58,8 @@ def edit_user(cmd_split):
                 break
 
             if edit_selection != 'x':
-                alter_user_csv(username=cmd_split[2], attribute=edit_selection, old_value=old_value, new_value=new_value)
+                alter_user_csv(username=cmd_split[2], attribute=edit_selection,
+                               old_value=old_value, new_value=new_value)
                 syslog('alteration', f'Edited user "{cmd_split[2]}"')
 
             if edit_selection == 'name':
@@ -91,7 +93,6 @@ def alter_user_csv(username, attribute, old_value, new_value):
         with open('users.csv', 'r', encoding='utf-8') as csv_file:
             attributes = ChaOS_constants.USER_CSV_ATTRIBUTES
             next(csv_file)
-            csv_reader = csv.DictReader(csv_file, fieldnames=attributes)
             csv_iter = ''.join([i for i in csv_file])
 
             csv_iter = csv_iter.replace(old_value, new_value)
