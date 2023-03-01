@@ -1,13 +1,10 @@
 import time
-import os
-import ChaOS_constants
 from file import *
 from input import input_y_n
 from login import login, create_user_ui
 from ChaOS_DevTools import *
-from ChaOS_constants import *
+from system import *
 from user import edit_user
-import socket
 import platform
 
 import logging
@@ -17,7 +14,7 @@ def main():
     global user
     global dir_owners
     initialize_user_directories()
-    reset_cmd_log()
+    reset_syslog()
     user = login()
     os.system('cls')
     dir_owners = {f'A/ChaOS_Users/{user.name}': f'{user.name}',
@@ -56,7 +53,7 @@ def command_prompt():
                 pass
 
         if not cmd_invalid:
-            log_command(cmd)   # TODO: get this to the appropriate positions
+            syslog('command', f'used command "{cmd}"')   # TODO: get this to the appropriate positions
             try:
                 if cmd_split[0] == 'create':
                     create_x(cmd_split)
@@ -449,41 +446,6 @@ def access_dev_tools(cmd_split):
         print(f'"{cmd_split[1]}" is not a valid dev command. ')
 
 
-def reset_cmd_log():
-    with open('syslog.csv', 'w', encoding='utf-8') as csv_file:
-        attributes = ChaOS_constants.SYSLOG_CSV_ATTRIBUTES
-        csv_writer = csv.DictWriter(csv_file, fieldnames=attributes)
-        csv_writer.writeheader()
-        csv_file.close()
-
-
-def log_command(cmd):
-    with open('syslog.csv', 'r', encoding='utf-8') as csv_file:
-        attributes = ChaOS_constants.SYSLOG_CSV_ATTRIBUTES
-        next(csv_file)
-        csv_reader = csv.DictReader(csv_file, fieldnames=attributes)
-        log_list = []
-        for line in csv_reader:
-            log_list.append(line)
-        try:
-            latest_log = log_list[-1]
-            index = log_list.index(latest_log) + 1
-        except IndexError:
-            index = 0
-
-    with open('syslog.csv', 'a+', encoding='utf-8') as csv_file:
-        attributes = ChaOS_constants.SYSLOG_CSV_ATTRIBUTES
-        csv_writer = csv.DictWriter(csv_file, fieldnames=attributes)
-        csv_writer.writerow({'ID': index, 'category': 'command', 'msg': cmd})
-
-
-def show_syslog():
-    with open('syslog.csv', 'r', encoding='utf-8') as csv_file:
-        attributes = ChaOS_constants.SYSLOG_CSV_ATTRIBUTES
-        next(csv_file)
-        csv_reader = csv.DictReader(csv_file, fieldnames=attributes)
-        for line in csv_reader:
-            print(f"id: {line['ID']}, category: {line['category']}, msg: {line['msg']}")
 
 
 

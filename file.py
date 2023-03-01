@@ -6,6 +6,7 @@ import os
 from datetime import datetime
 import ChaOS_constants
 from input import input_y_n
+from main import syslog
 from user import create_user_object, User
 import logging
 
@@ -51,6 +52,7 @@ def create_file(dir, name, user):
                     f.write(header_line + '\n')
                     f.write('\n')
                     f.close()
+                syslog('creation', f'created file "{path}"')
         else:
             print(f'{name} already exists in {dir}. ')
     else:
@@ -213,6 +215,7 @@ def check_file_existence(path):
 def delete_file(path):
     if check_file_existence(path):
         os.remove(path)
+        syslog('deletion', f'deleted file "{path}"')
     else:
         print("File not found. ")
 
@@ -224,6 +227,7 @@ def delete_dir(directory, dir_name, dir_owners):
     try:
         shutil.rmtree(path)
         delete_metadata(dir_name, directory)
+        syslog('deletion', f'deleted directory "{path}"')
     except FileNotFoundError:
         print(f'The directory "{path}" does not exist')
     else:
@@ -236,6 +240,7 @@ def edit_txt(path):
         f.write('\n')
         f.write(user_text)
         f.close()
+    syslog('alteration', f'edited file "{path}"')
 
 
 def create_dir(user, dir, name, cmd_split=None):
@@ -259,6 +264,7 @@ def create_dir(user, dir, name, cmd_split=None):
         try:
             os.mkdir(path, 0o777)
             log_dir_metadata(user, name, access_permission, dir)
+            syslog('creation', f'created directory "{path}"')
         except FileExistsError:
             print(f'The directory "{name}" already exists. ')
         else:
@@ -318,6 +324,7 @@ def validate_file_alteration(filename, user):
             return False
     else:
         return True
+
 
 def validate_dir_alteration(dirname, user):
     if dirname in ChaOS_constants.SYSTEM_DIR_NAMES and user.account_type != 'dev':

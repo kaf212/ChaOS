@@ -5,7 +5,7 @@ from input import input_selection, list_selection_options
 from encryption import encrypt_str
 import csv
 import time
-
+from system import syslog
 
 @dataclass
 class User:
@@ -58,6 +58,7 @@ def edit_user(cmd_split):
 
             if edit_selection != 'x':
                 alter_user_csv(username=cmd_split[2], attribute=edit_selection, old_value=old_value, new_value=new_value)
+                syslog('alteration', f'Edited user "{cmd_split[2]}"')
 
             if edit_selection == 'name':
                 print(f'Successfully renamed "{old_value}" to "{new_value}". ')
