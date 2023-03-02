@@ -46,3 +46,9 @@ def print_warning(output):
     print(colors.fg.red, end="")
     print(output)
     print(colors.reset, end="")
+
+
+def print_success(output):
+    print(colors.fg.lightgreen, end="")
+    print(output)
+    print(colors.reset, end="")

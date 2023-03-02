@@ -50,6 +50,7 @@ def create_file(dir, name, user):
                     f.write('\n')
                     f.close()
                 syslog('creation', f'created file "{path}"')
+                print_success(f'Created file {name} in {translate_path_2_ui(path)}. ')
         else:
             print_warning(f'{name} already exists in {dir}. ')
     else:
@@ -270,7 +271,7 @@ def create_dir(user, dir, name, cmd_split=None):
         except FileExistsError:
             print_warning(f'The directory "{name}" already exists. ')
         else:
-            print(f'Directory "{name}" has been created in {dir}. ')
+            print_success(f'Directory "{name}" has been created in {dir}. ')
     else:
         print_warning(f'"{name}" contains illegal characters. ')
 
@@ -348,3 +349,51 @@ def split_path(path):
             break
 
     return path_split_total
+
+
+def translate_ui_2_path(ui_path):
+    """
+    The user sees and enters directories as "A:/Users", but the actual directory would be "A/CHaOS_Users",
+    because you obviously can't just create a folder named like a drive.
+    This function translates user inputs to an actual path, so it can be processed.
+    :param ui_path:
+    :return path:
+    """
+    equivalents = ChaOS_constants.UI_2_PATH_TRANSLATIONS
+
+    ui_path_split = split_path(ui_path)
+
+    path_list = []
+
+    for path in ui_path_split:
+        if path in equivalents.keys():
+            path = equivalents[path]
+        path_list.append(path)
+
+    path = ''.join(path_list)
+
+    return path
+
+
+def translate_path_2_ui(path):
+    """
+    The user sees and enters directories as "A:/Users", but the actual directory would be "A/CHaOS_Users",
+    because you obviously can't just create a folder named like a drive.
+    This function translates an actual path to a simulated one.
+    :param path:
+    :return ui_path:
+    """
+    equivalents = ChaOS_constants.PATH_2_UI_TRANSLATIONS
+
+    cr_path_split = split_path(path)
+
+    ui_path_list = []
+
+    for path in cr_path_split:
+        if path in equivalents.keys():  # if there's a translation present:
+            path = equivalents[path]   # translate it
+        ui_path_list.append(path)   # either way, add it to the translated list
+
+    ui_path = ''.join(ui_path_list)  # reconvert the list to a string
+
+    return ui_path

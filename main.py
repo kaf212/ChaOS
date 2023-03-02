@@ -143,7 +143,7 @@ def create_x(cmd_split: list):
     """
 
     if cmd_split[2] == 'sudo':
-        print(f'You must enter a valid {cmd_split[1]}name to proceed. ')
+        print_warning(f'You must enter a valid {cmd_split[1]}name to proceed. ')
     # check if the user didn't forget the name and "sudo" is misinterpreted as the name.
 
     else:
@@ -153,7 +153,7 @@ def create_x(cmd_split: list):
                 if not check_file_existence(cr_dir + cmd_split[2]):   # if the file doesn't exist yet:
                     create_file(cr_dir, cmd_split[2], user)
                 else:
-                    print(f'The file "{cmd_split[2]}" already exists. ')
+                    print_warning(f'The file "{cmd_split[2]}" already exists. ')
 
         elif cmd_split[1] == 'dir':
             create_dir(user, cr_dir, cmd_split[2], cmd_split)
@@ -163,7 +163,7 @@ def create_x(cmd_split: list):
             # the difference between create_user() and create_user_ui() is,
             # that the latter prompts for user info in the console.
         else:
-            print(f'"{cmd_split[1]}" is not a valid statement for command "{cmd_split[0]}"\n')
+            print_warning(f'"{cmd_split[1]}" is not a valid statement for command "{cmd_split[0]}"\n')
 
 
 def read_x(cmd_split):
@@ -177,10 +177,10 @@ def read_x(cmd_split):
         if cmd_split[2].endswith('.txt'):
             read_txt(cr_dir, cmd_split[2])
         else:
-            print(f'"{"." + cmd_split[2].partition(".")[2]}" is not a valid filetype\n')
+            print_warning(f'"{"." + cmd_split[2].partition(".")[2]}" is not a valid filetype\n')
             # extracts the filetype from the file with the .partition method and "." as delimiter.
     else:
-        print(f'"{cmd_split[1]}" is not a valid statement for command "{cmd_split[0]}\n')
+        print_warning(f'"{cmd_split[1]}" is not a valid statement for command "{cmd_split[0]}\n')
 
 
 def delete_x(cmd_split):
@@ -203,7 +203,7 @@ def delete_x(cmd_split):
                     confirmation = input_y_n(f'Delete {cr_dir + "/" + cmd_split[2]}? > ')
                     if confirmation == 'y':
                         delete_file(cr_dir + "/" + cmd_split[2])
-                        print(f'Deleted {cmd_split[2]}')
+                        print_success(f'Deleted {cmd_split[2]}')
                     else:
                         pass
 
@@ -337,54 +337,6 @@ def list_dir(cr_dir):
         print(f'\t{total_dirs} directories')
 
 
-def translate_path_2_ui(path):
-    """
-    The user sees and enters directories as "A:/Users", but the actual directory would be "A/CHaOS_Users",
-    because you obviously can't just create a folder named like a drive.
-    This function translates an actual path to a simulated one.
-    :param path:
-    :return ui_path:
-    """
-    equivalents = ChaOS_constants.PATH_2_UI_TRANSLATIONS
-
-    cr_path_split = split_path(path)
-
-    ui_path_list = []
-
-    for path in cr_path_split:
-        if path in equivalents.keys():  # if there's a translation present:
-            path = equivalents[path]   # translate it
-        ui_path_list.append(path)   # either way, add it to the translated list
-
-    ui_path = ''.join(ui_path_list)  # reconvert the list to a string
-
-    return ui_path
-
-
-def translate_ui_2_path(ui_path):
-    """
-    The user sees and enters directories as "A:/Users", but the actual directory would be "A/CHaOS_Users",
-    because you obviously can't just create a folder named like a drive.
-    This function translates user inputs to an actual path, so it can be processed.
-    :param ui_path:
-    :return path:
-    """
-    equivalents = ChaOS_constants.UI_2_PATH_TRANSLATIONS
-
-    ui_path_split = split_path(ui_path)
-
-    path_list = []
-
-    for path in ui_path_split:
-        if path in equivalents.keys():
-            path = equivalents[path]
-        path_list.append(path)
-
-    path = ''.join(path_list)
-
-    return path
-
-
 def shutdown(cmd_split):
     """
     No explanation needed.
@@ -416,8 +368,16 @@ def access_dev_tools(cmd_split):
     :param cmd_split:
     :return:
     """
-    def print_dev(output: str):   # every output related to the devtools should be recognized as one
-        print(f'[DEVTOOL]: {output}')
+    def print_dev(output: str, color=None):   # every output related to the devtools should be recognized as one
+        if color is not None:
+            if color == 'red':
+                print_warning(f'[DEVTOOL]: {output}')
+            elif color == 'green':
+                print_success(f'[DEVTOOL]: {output}')
+            else:
+                print(f'[DEVTOOL]: {output}')
+        else:
+            print(f'[DEVTOOL]: {output}')
 
     if cmd_split[1] == 'reset':
         if cmd_split[2] == 'user_csv' or cmd_split[2] == 'users_csv':
@@ -428,18 +388,18 @@ def access_dev_tools(cmd_split):
                 reset_user_csv(None)
             try:
                 if cmd_split[3] == '-hard':
-                    print_dev('User CSV was reset HARD successfully. ')
+                    print_dev('User CSV was reset HARD successfully. ', 'green')
             except IndexError:
-                print_dev('User CSV was reset successfully. ')
+                print_dev('User CSV was reset successfully. ', 'green')
 
         elif cmd_split[2] == 'user_dirs':
             initialize_user_directories()
-            print_dev('User directories were reset successfully. ')
+            print_dev('User directories were reset successfully. ', 'green')
         else:
-            print_warning(f'"{cmd_split[2]}" is not a valid statement for command "reset". ')
+            print_dev(f'"{cmd_split[2]}" is not a valid statement for command "reset". ', 'red')
 
     else:
-        print_warning(f'"{cmd_split[1]}" is not a valid dev command. ')
+        print_dev(f'"{cmd_split[1]}" is not a valid dev command. ', 'red')
 
 
 if __name__ == '__main__':
