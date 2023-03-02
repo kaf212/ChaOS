@@ -8,6 +8,7 @@ from user import edit_user
 import platform
 
 import logging
+from colors import *
 
 
 def main():
@@ -46,7 +47,7 @@ def command_prompt():
                 pass
 
         if not cmd_invalid:
-            syslog('command', f'used command "{cmd}"')   # TODO: get this to the appropriate positions
+            syslog('command', f'used command "{cmd}"')
             try:
                 if cmd_split[0] == 'create':
                     create_x(cmd_split)
@@ -75,7 +76,7 @@ def command_prompt():
                     try:
                         print(cmd_split[1])
                     except IndexError:
-                        print('You must enter a valid statement to echo. ')
+                        print_warning('You must enter a valid statement to echo. ')
 
                 elif cmd_split[0] == 'clear':
                     os.system('cls')
@@ -95,15 +96,15 @@ def command_prompt():
                     if user.account_type == 'dev':
                         access_dev_tools(cmd_split)
                     else:
-                        print('You need developer privileges to access the DevTools. ')
+                        print_warning('You need developer privileges to access the DevTools. ')
 
                 else:
-                    print(f'The command "{cmd_split[0]}" does not exist. \n')
+                    print_warning(f'The command "{cmd_split[0]}" does not exist. \n')
 
             except TypeError:
-                print('TypeError: You must enter a valid command to proceed, type "help" for help. ')
+                print_warning('TypeError: You must enter a valid command to proceed, type "help" for help. ')
             except IndexError:
-                print('IndexError: You must enter a valid command to proceed, type "help" for help. ')
+                print_warning('IndexError: You must enter a valid command to proceed, type "help" for help. ')
 
 
 def help_cmd(cmd_split: list):
@@ -191,7 +192,7 @@ def delete_x(cmd_split):
     :return None:
     """
     if cmd_split[2] == 'sudo':
-        print(f'You must enter a valid {cmd_split[1]}name to proceed. ')
+        print_warning(f'You must enter a valid {cmd_split[1]}name to proceed. ')
     # check if the user didn't forget the name and "sudo" is misinterpreted as the name.
 
     else:
@@ -218,9 +219,9 @@ def delete_x(cmd_split):
                     if validate_dir_alteration(target_dir, user):   # make sure he's not deleting a system directory
                         delete_dir(cr_dir, target_dir)
             else:
-                print(f'The directory "{cmd_split[2]}" does not exist. ')
+                print_warning(f'The directory "{cmd_split[2]}" does not exist. ')
         else:
-            print(f'"{cmd_split[1]}" is not a valid statement for command "{cmd_split[0]}"\n')
+            print_warning(f'"{cmd_split[1]}" is not a valid statement for command "{cmd_split[0]}"\n')
 
 
 def edit_x(cmd_split):
@@ -232,7 +233,7 @@ def edit_x(cmd_split):
     """
 
     if cmd_split[2] == 'sudo':
-        print(f'You must enter a valid {cmd_split[1]}name to proceed. ')
+        print_warning(f'You must enter a valid {cmd_split[1]}name to proceed. ')
     # check if the user didn't forget the name and "sudo" is misinterpreted as the name.
 
     else:
@@ -242,13 +243,13 @@ def edit_x(cmd_split):
                 if validate_filetype(cmd_split[2], ['.txt']):
                     edit_txt(cr_dir + "/" + cmd_split[2])
             else:
-                print(f'File "{cmd_split[2]}" does not exist. ')
+                print_warning(f'File "{cmd_split[2]}" does not exist. ')
 
         elif cmd_split[1] == 'user':
             if cmd_split[len(cmd_split) - 1] == 'sudo':
                 edit_user(cmd_split)
             elif cmd_split[2] != user.name and user.account_type not in ['admin', 'dev']:
-                print('You need administrator privileges to edit another user. ')
+                print_warning('You need administrator privileges to edit another user. ')
             else:
                 edit_user(cmd_split)
 
@@ -284,10 +285,10 @@ def change_dir(path, cr_dir, cmd_split):
                 return dir
             return dir
         else:
-            print(f'The directory "{path}" does not exist. ')
+            print_warning(f'The directory "{path}" does not exist. ')
 
     else:
-        print(f'The directory "{path}" does not exist. ')
+        print_warning(f'The directory "{path}" does not exist. ')
 
 
 def list_dir(cr_dir):
@@ -435,10 +436,10 @@ def access_dev_tools(cmd_split):
             initialize_user_directories()
             print_dev('User directories were reset successfully. ')
         else:
-            print(f'"{cmd_split[2]}" is not a valid statement for command "reset". ')
+            print_warning(f'"{cmd_split[2]}" is not a valid statement for command "reset". ')
 
     else:
-        print(f'"{cmd_split[1]}" is not a valid dev command. ')
+        print_warning(f'"{cmd_split[1]}" is not a valid dev command. ')
 
 
 if __name__ == '__main__':

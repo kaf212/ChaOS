@@ -1,11 +1,13 @@
 import csv
 import os
+import time
 
 import ChaOS_constants
 from encryption import encrypt_str, decrypt_str
 from file import create_dir
 from user import create_user_object, enter_username
 from input import list_selection_options
+from colors import print_warning
 
 
 def login():
@@ -31,7 +33,7 @@ def login():
                     account_type = line['account type']
 
             if username is None:
-                print('User not found, try again: ')
+                print_warning('User not found, try again: ')
 
     print(f'\n-- {username} --')
     tries = 3
@@ -39,12 +41,13 @@ def login():
         input_password = input('Password > ')
         if input_password != decrypt_str(password):
             tries -= 1
-            print('Wrong password, try again: ')
+            print_warning('Wrong password, try again: ')
         else:
             break
 
     if tries <= 0:
-        input('You haven entered too many wrong passwords. ')
+        print('You haven entered too many wrong passwords. ')
+        time.sleep(2)
         exit()
 
     user_object = create_user_object(username, password, account_type)
@@ -83,7 +86,7 @@ def create_user_ui(user=None, cmd_split=None):
         if input_password == pw_confirmation:
             password_invalid = False
         else:
-            input("Your passwords don't match, try again: ")
+            print_warning("Your passwords don't match, try again: ")
 
     if user is None:
         create_user(input_username, input_password, 'standard')
@@ -100,11 +103,11 @@ def create_user_ui(user=None, cmd_split=None):
                 break
 
             elif user.account_type not in ['admin', 'dev'] and input_account_type == 'admin':
-                print('You need administrator privileges to create a new admin. ')
+                print_warning('You need administrator privileges to create a new admin. ')
                 continue
 
             elif user.account_type != 'dev' and input_account_type == 'dev':
-                print('You need developer privileges to create a new dev. ')
+                print_warning('You need developer privileges to create a new dev. ')
 
             else:
                 create_user(input_username, input_password, input_account_type)

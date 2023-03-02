@@ -1,3 +1,6 @@
+from colors import print_warning
+
+
 def input_y_n(prompt):
     user_input = None
     while user_input not in ['y', 'n']:
@@ -30,7 +33,9 @@ def input_selection(valid_selections, selection_names, prompt):
 
 
 def list_selection_options(false_user_input: str, valid_selections: list):
-    print(f'"{false_user_input}" is not a valid input. Try ', end="")
+    print(f'"{false_user_input}" is not a valid input. Try ')
+    # TODO: make this work with print_warning()
+    #  (it doesn't yet because print_warning doesn't accept end="" as a parameter.)
     i = 0
     reached_end = False
     for sel in valid_selections:
@@ -49,7 +54,7 @@ def input_int(prompt):
         try:
             user_input = int(input(prompt))
         except ValueError:
-            print(f'Input is not an integer. ')
+            print_warning(f'Input is not an integer. ')
         else:
             break
 
@@ -61,7 +66,7 @@ def input_float(prompt):
         try:
             user_input = float(input(prompt))
         except ValueError:
-            print('Input is not a float. ')
+            print_warning('Input is not a float. ')
         else:
             break
 

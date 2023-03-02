@@ -7,6 +7,7 @@ import ChaOS_constants
 from user import create_user_object
 import logging
 from system import syslog
+from colors import *
 
 
 def find_file(user):
@@ -50,9 +51,9 @@ def create_file(dir, name, user):
                     f.close()
                 syslog('creation', f'created file "{path}"')
         else:
-            print(f'{name} already exists in {dir}. ')
+            print_warning(f'{name} already exists in {dir}. ')
     else:
-        print(f'{name} contains illegal characters. ')
+        print_warning(f'{name} contains illegal characters. ')
 
 
 def log_dir_metadata(user, dirname, access_permission, parent_dir):
@@ -203,7 +204,7 @@ def validate_filetype(filename, valid_filetypes):
             ft_valid = True
 
     if not ft_valid:
-        print(f'"{"." + filename.partition(".")[2]}" is not a valid filetype\n')
+        print_warning(f'"{"." + filename.partition(".")[2]}" is not a valid filetype\n')
 
     return ft_valid
 
@@ -218,7 +219,7 @@ def delete_file(path):
         os.remove(path)
         syslog('deletion', f'deleted file "{path}"')
     else:
-        print("File not found. ")
+        print_warning("File not found. ")
 
 
 # delete dir kaf221122 "" "" "" sudo
@@ -230,7 +231,7 @@ def delete_dir(directory, dir_name):
         delete_metadata(dir_name, directory)
         syslog('deletion', f'deleted directory "{path}"')
     except FileNotFoundError:
-        print(f'The directory "{path}" does not exist')
+        print_warning(f'The directory "{path}" does not exist')
     else:
         print(f'"{path}" was deleted successfully. ')
 
@@ -267,11 +268,11 @@ def create_dir(user, dir, name, cmd_split=None):
             log_dir_metadata(user, name, access_permission, dir)
             syslog('creation', f'created directory "{path}"')
         except FileExistsError:
-            print(f'The directory "{name}" already exists. ')
+            print_warning(f'The directory "{name}" already exists. ')
         else:
             print(f'Directory "{name}" has been created in {dir}. ')
     else:
-        print(f'"{name}" contains illegal characters. ')
+        print_warning(f'"{name}" contains illegal characters. ')
 
 
 def validate_dir_access(parent_dir: str, dirname: str, user, cmd_split: list) -> bool:
@@ -294,17 +295,17 @@ def validate_dir_access(parent_dir: str, dirname: str, user, cmd_split: list) ->
         return True
 
     if user.account_type != 'dev' and owner_account_type == 'dev':
-        print("You need developer privileges to access another dev's directory. ")
+        print_warning("You need developer privileges to access another dev's directory. ")
         return False
 
     if user.account_type not in ['admin', 'dev'] and owner != user.name:
-        print("You need administrator privileges to access another user's directory. ")
+        print_warning("You need administrator privileges to access another user's directory. ")
         return False
 
 
 def validate_file_access(filename, user):
     if filename in ChaOS_constants.SYSTEN_FILE_NAMES and user.account_type != 'dev':
-        print('You need developer privileges to access a system file or directory. ')
+        print_warning('You need developer privileges to access a system file or directory. ')
         return False
     else:
         return True
@@ -318,10 +319,10 @@ def validate_file_alteration(filename, user):
             if conf == 'iknowwhatimdoing':
                 return True
             else:
-                print('File deletion was aborted. ')
+                print_warning('File deletion was aborted. ')
                 return False
         else:
-            print('You need developer privileges to alter a system file. ')
+            print_warning('You need developer privileges to alter a system file. ')
             return False
     else:
         return True
@@ -329,7 +330,7 @@ def validate_file_alteration(filename, user):
 
 def validate_dir_alteration(dirname, user):
     if dirname in ChaOS_constants.SYSTEM_DIR_NAMES and user.account_type != 'dev':
-        print('You need developer privileges to alter a system directory. ')
+        print_warning('You need developer privileges to alter a system directory. ')
         return False
     else:
         return True

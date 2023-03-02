@@ -6,6 +6,7 @@ from encryption import encrypt_str
 import csv
 import time
 from system import syslog
+from colors import print_warning
 
 
 @dataclass
@@ -23,7 +24,7 @@ def create_user_object(username, password, account_type):
 
 def edit_user(cmd_split):
     if not check_user_existence(cmd_split[2]):
-        print(f'The user "{cmd_split[2]}" does not exist. ')
+        print_warning(f'The user "{cmd_split[2]}" does not exist. ')
     else:
         while True:
             edit_selection = input_selection(['n', 'p', 'a', 'x'], ['name', 'password', 'account type', 'done editing'],
@@ -41,7 +42,7 @@ def edit_user(cmd_split):
                     if pw == pw_confirmation:
                         break
                     else:
-                        print("Your passwords don't match, try again: ")
+                        print_warning("Your passwords don't match, try again: ")
                 new_value = pw
                 edit_selection = 'password'
             elif edit_selection == 'a':
@@ -183,11 +184,11 @@ def enter_username():
             if char in input_username:
                 name_valid = False
         if not name_valid or input_username == '':
-            print('This username contains illegal characters. ')
+            print_warning('This username contains illegal characters. ')
             continue
 
         name_taken = check_user_existence(input_username)
         if name_taken:
-            print(f'The username "{input_username}" is already taken. ')
+            print_warning(f'The username "{input_username}" is already taken. ')
         else:
             return input_username
