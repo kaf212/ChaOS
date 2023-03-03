@@ -183,9 +183,14 @@ def enter_username():
         if not name_valid or input_username == '':
             print_warning('This username contains illegal characters. ')
             continue
+        if os.path.isdir(f'A/ChaOS_Users/{input_username}'):
+            print_warning(f'There is already a directory called "{input_username}" in A:/Users')
+            continue
 
         name_taken = check_user_existence(input_username)
         if name_taken:
             print_warning(f'The username "{input_username}" is already taken. ')
         else:
             return input_username
+
+
