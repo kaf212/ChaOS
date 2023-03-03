@@ -6,7 +6,7 @@ from encryption import encrypt_str
 import csv
 import time
 from system import syslog
-from colors import print_warning
+from colors import print_warning, print_success
 
 
 @dataclass
@@ -64,14 +64,11 @@ def edit_user(cmd_split):
                 syslog('alteration', f'Edited user "{cmd_split[2]}"')
 
             if edit_selection == 'name':
-                print(f'Successfully renamed "{old_value}" to "{new_value}". ')
-                time.sleep(1.5)
+                print_success(f'Successfully renamed "{old_value}" to "{new_value}". ')
             if edit_selection == 'password':
-                print(f'Successfully changed password of "{cmd_split[2]}". ')
-                time.sleep(1.5)
+                print_success(f'Successfully changed password of "{cmd_split[2]}". ')
             if edit_selection == 'account type':
-                print(f'Succcessfully chnanged account type of "{cmd_split[2]}". ')
-                time.sleep(1.5)
+                print_success(f'Succcessfully chnanged account type of "{cmd_split[2]}". ')
 
 
 def alter_user_csv(username, attribute, old_value, new_value):

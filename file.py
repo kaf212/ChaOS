@@ -4,6 +4,7 @@ from csv_handling import return_user_names, return_users
 import os
 from datetime import datetime
 import ChaOS_constants
+from input import input_y_n
 from user import create_user_object
 import logging
 from system import syslog
@@ -216,25 +217,31 @@ def check_file_existence(path):
 
 
 def delete_file(path):
-    if check_file_existence(path):
-        os.remove(path)
-        syslog('deletion', f'deleted file "{path}"')
-    else:
-        print_warning("File not found. ")
+    confirmation = input_y_n(f'Delete "{path}" ? > ')
+    if confirmation == 'y':
+        if check_file_existence(path):
+            os.remove(path)
+            syslog('deletion', f'deleted file "{path}"')
+            print_success(f'Deleted "{path}". ')
+        else:
+            print_warning("File not found. ")
 
 
 # delete dir kaf221122 "" "" "" sudo
 
 def delete_dir(directory, dir_name):
     path = directory + '/' + dir_name
-    try:
-        shutil.rmtree(path)
-        delete_metadata(dir_name, directory)
-        syslog('deletion', f'deleted directory "{path}"')
-    except FileNotFoundError:
-        print_warning(f'The directory "{path}" does not exist')
-    else:
-        print(f'"{path}" was deleted successfully. ')
+
+    confirmation = input_y_n(f'Delete "{path}" ? >')
+    if confirmation == 'y':
+        try:
+            shutil.rmtree(path)
+            delete_metadata(dir_name, directory)
+            syslog('deletion', f'deleted directory "{path}"')
+        except FileNotFoundError:
+            print_warning(f'The directory "{path}" does not exist')
+        else:
+            print_success(f'Deleted "{path}". ')
 
 
 def edit_txt(path):

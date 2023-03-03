@@ -1,13 +1,15 @@
 import csv
 import os
+import shutil
 import time
 
 import ChaOS_constants
 from encryption import encrypt_str, decrypt_str
 from file import create_dir
+from system import syslog
 from user import create_user_object, enter_username
 from input import list_selection_options
-from colors import print_warning
+from colors import print_warning, print_success
 
 
 def login():
@@ -66,12 +68,12 @@ def create_user(username: str, password: str, account_type: str):
     temp_user_obj = create_user_object(username, password, account_type)
     for subdir in ChaOS_constants.STANDARD_USER_SUBDIRS:
         create_dir(user=temp_user_obj, name=subdir, dir=f'A/ChaOS_Users/{username}')
-
     with open('users.csv', 'a+', encoding="utf-8") as csv_file:
         attributes = ['username', 'password', 'account type']
         csv_writer = csv.DictWriter(csv_file, fieldnames=attributes)
         csv_writer.writerow({'username': username, 'password': encrypt_str(password), 'account type': account_type})
         csv_file.close()
+    syslog('creation', f'created user "{username}"')
 
 
 def create_user_ui(user=None, cmd_split=None):
@@ -90,7 +92,7 @@ def create_user_ui(user=None, cmd_split=None):
 
     if user is None:
         create_user(input_username, input_password, 'standard')
-        input(f'User {input_username} was successfully created. ')
+        print_success(f'User "{input_username}" was successfully created. ')
     else:
         while True:
             input_account_type = input('Enter an account type > ').lower()
@@ -99,7 +101,7 @@ def create_user_ui(user=None, cmd_split=None):
                 continue
             if input_account_type == 'admin' and cmd_split[len(cmd_split) - 1] == 'sudo':
                 create_user(input_username, input_password, input_account_type)
-                input(f'User {input_username} was successfully created. ')
+                print_success(f'User "{input_username}" was successfully created. ')
                 break
 
             elif user.account_type not in ['admin', 'dev'] and input_account_type == 'admin':
@@ -111,5 +113,5 @@ def create_user_ui(user=None, cmd_split=None):
 
             else:
                 create_user(input_username, input_password, input_account_type)
-                input(f'User {input_username} was successfully created. ')
+                print_success(f'User "{input_username}" was successfully created. ')
                 break

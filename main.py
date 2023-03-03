@@ -200,12 +200,10 @@ def delete_x(cmd_split):
         if cmd_split[1] == 'file':
             if check_file_existence(cr_dir + "/" + cmd_split[2]):
                 if validate_file_alteration(cmd_split[2], user):   # make sure the user isn't deleting any system files
-                    confirmation = input_y_n(f'Delete {cr_dir + "/" + cmd_split[2]}? > ')
-                    if confirmation == 'y':
-                        delete_file(cr_dir + "/" + cmd_split[2])
-                        print_success(f'Deleted {cmd_split[2]}')
-                    else:
-                        pass
+                    delete_file(cr_dir + "/" + cmd_split[2])
+
+                else:
+                    pass
 
         elif cmd_split[1] == 'user':
             print('this feature doesnt exist yet. ')
