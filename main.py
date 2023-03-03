@@ -136,6 +136,9 @@ def help_cmd(cmd_split: list):
 
 
 def create_x(cmd_split: list):
+    logging.basicConfig(format=ChaOS_constants.LOGGING_FORMAT, level=logging.DEBUG)
+    logging.debug(f'cmd_split = {cmd_split}')
+    logging.debug(f'cmd_split[1] = {cmd_split[1]}')
     """
     The top-level command interpreter for anything starting with "create".
     :param cmd_split:
@@ -144,10 +147,9 @@ def create_x(cmd_split: list):
 
     if cmd_split[2] == 'sudo':
         print_warning(f'You must enter a valid {cmd_split[1]}name to proceed. ')
-    # check if the user didn't forget the name and "sudo" is misinterpreted as the name.
-
+        # check if the user didn't forget the name and "sudo" is misinterpreted as the name.
     else:
-
+        logging.debug(f'cmd_split[1] = {cmd_split[1]}')
         if cmd_split[1] == 'file':
             if validate_filetype(cmd_split[2], ['.txt']):   # if the file is a txt:
                 if not check_file_existence(cr_dir + cmd_split[2]):   # if the file doesn't exist yet:
@@ -159,6 +161,7 @@ def create_x(cmd_split: list):
             create_dir(user, cr_dir, cmd_split[2], cmd_split)
 
         elif cmd_split[1] == 'user':
+            logging.debug('user detected')
             create_user_ui(user, cmd_split)
             # the difference between create_user() and create_user_ui() is,
             # that the latter prompts for user info in the console.

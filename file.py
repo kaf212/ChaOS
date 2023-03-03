@@ -149,16 +149,20 @@ def initialize_user_directories():
 
     for username in usernames:
         path = 'A/ChaOS_Users/' + username
-        if not os.path.exists(path):
+        temp_user_obj = None
+        for line in all_users:
+            if line['name'] == username:
+                temp_user_obj = create_user_object(username=line['name'], password='None',  # create a temporary user
+                                                   account_type=line['account type'])
+        if not os.path.exists(path):  # create the primary user dir if not exists already
             os.mkdir(path)
-            temp_user_obj = None
-            for line in all_users:
-                if line['name'] == username:
-                    temp_user_obj = create_user_object(username=line['name'], password='None',
-                                                       account_type=line['account type'])
-            for subdir in ChaOS_constants.STANDARD_USER_SUBDIRS:
+
+        for subdir in ChaOS_constants.STANDARD_USER_SUBDIRS:
+            try:
                 os.mkdir(path + '/' + subdir)
                 log_dir_metadata(temp_user_obj, subdir, username, path)
+            except FileExistsError:
+                pass
 
     for username in usernames:
         initialize_user_dir_metadata(username)
@@ -398,8 +402,8 @@ def translate_path_2_ui(path):
 
     for path in cr_path_split:
         if path in equivalents.keys():  # if there's a translation present:
-            path = equivalents[path]   # translate it
-        ui_path_list.append(path)   # either way, add it to the translated list
+            path = equivalents[path]  # translate it
+        ui_path_list.append(path)  # either way, add it to the translated list
 
     ui_path = ''.join(ui_path_list)  # reconvert the list to a string
 
