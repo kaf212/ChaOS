@@ -1,4 +1,5 @@
-name,password,account type
+name,password,account type
+
 
 
 kaf221122,,dev
@@ -13,9 +14,5 @@ seve,ÇÃÄÏÉØËÌÞ,standard
 
 Manu,ÙÞÆßÞÐÃ,standard
 
-testuser,ÞÏÙÞ,standard
 
-testuser2,ÞÏÙÞ,standard
-
-test,ÞÏÙÞ,standard
-
+test,ÞÏÙÞ,standard
