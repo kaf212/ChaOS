@@ -1,6 +1,6 @@
 import ChaOS_constants
 import csv
-
+from colors import *
 
 def reset_syslog():
     with open('syslog.csv', 'w', encoding='utf-8') as csv_file:
@@ -38,5 +38,14 @@ def show_syslog():
         attributes = ChaOS_constants.SYSLOG_CSV_ATTRIBUTES
         next(csv_file)
         csv_reader = csv.DictReader(csv_file, fieldnames=attributes)
+
         for line in csv_reader:
-            print(f"id: {line['ID']}, category: {line['category']}, msg: {line['msg']}")
+            output = f"id:{line['ID']}\t[{line['category']}]:\t {line['msg']}"
+            if line['category'] == 'deletion':
+                print_red(output)
+            elif line['category'] == 'creation':
+                print_green(output)
+            elif line['category'] == 'alteration':
+                print_orange(output)
+            else:
+                print(output)

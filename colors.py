@@ -52,3 +52,27 @@ def print_success(output):
     print(colors.fg.lightgreen, end="")
     print(output)
     print(colors.reset, end="")
+
+
+def print_orange(output):
+    print(colors.fg.orange, end="")
+    print(output)
+    print(colors.reset, end="")
+
+
+def print_red(output):
+    print(colors.fg.lightred, end="")
+    print(output)
+    print(colors.reset, end="")
+
+
+def print_green(output):
+    print(colors.fg.green, end="")
+    print(output)
+    print(colors.reset, end="")
+
+
+def print_blue(output):
+    print(colors.fg.blue, end="")
+    print(output)
+    print(colors.reset, end="")
