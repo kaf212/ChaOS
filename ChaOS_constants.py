@@ -10,11 +10,27 @@ SYSLOG_CATEGORIES = ['command', 'creation', 'deletion', 'alteration']
 UI_2_PATH_TRANSLATIONS = {'A:': 'A',
                           'Users': 'ChaOS_Users'
                           }
-STANDARD_USER_SUBDIRS = ['Documents', 'Desktop']
 
 PATH_2_UI_TRANSLATIONS = {'A': 'A:',
                           'ChaOS_Users': 'Users'
                           }
+
+CMD_SHORTS = {'cr': 'create',
+              'rd': 'read',
+              'del': 'delete',
+              'ed': 'edit',
+              'alt': 'edit',
+              'cl': 'clear',
+              'sd': 'shutdown',
+              'sl': 'syslog',
+
+              'f': 'file',
+              'd': 'dir',
+              'u': 'user',
+
+              }
+
+STANDARD_USER_SUBDIRS = ['Documents', 'Desktop']
 
 SYSTEN_FILE_NAMES = ['metadata.csv']
 

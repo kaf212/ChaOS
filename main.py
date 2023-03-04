@@ -1,4 +1,6 @@
 import time
+
+import ChaOS_constants
 from file import *
 from input import input_y_n
 from login import login, create_user_ui
@@ -48,6 +50,9 @@ def command_prompt():
 
         if not cmd_invalid:
             syslog('command', f'used command "{cmd}"')
+            for item in cmd_split:
+                if item in ChaOS_constants.CMD_SHORTS.keys():
+                    cmd_split[cmd_split.index(item)] = ChaOS_constants.CMD_SHORTS[item]
             try:
                 if cmd_split[0] == 'create':
                     create_x(cmd_split)
@@ -282,10 +287,10 @@ def change_dir(path, cr_dir, cmd_split):
                 return dir
             return dir
         else:
-            print_warning(f'The directory "{path}" does not exist. ')
+            print_warning(f'The directory "{translate_path_2_ui(path)}" does not exist. ')
 
     else:
-        print_warning(f'The directory "{path}" does not exist. ')
+        print_warning(f'The directory "{translate_path_2_ui(path)}" does not exist. ')
 
 
 def list_dir(cr_dir):
