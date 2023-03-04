@@ -236,16 +236,16 @@ def delete_file(path):
 def delete_dir(directory, dir_name):
     path = directory + '/' + dir_name
 
-    confirmation = input_y_n(f'Delete "{path}" ? >')
+    confirmation = input_y_n(f'Delete "{translate_path_2_ui(path)}" ? >')
     if confirmation == 'y':
         try:
             shutil.rmtree(path)
             delete_metadata(dir_name, directory)
-            syslog('deletion', f'deleted directory "{path}"')
+            syslog('deletion', f'deleted directory "{translate_path_2_ui(path)}"')
         except FileNotFoundError:
-            print_warning(f'The directory "{path}" does not exist')
+            print_warning(f'The directory "{translate_path_2_ui(path)}" does not exist')
         else:
-            print_success(f'Deleted "{path}". ')
+            print_success(f'Deleted "{translate_path_2_ui(path)}". ')
 
 
 def edit_txt(path):
@@ -254,7 +254,7 @@ def edit_txt(path):
         f.write('\n')
         f.write(user_text)
         f.close()
-    syslog('alteration', f'edited file "{path}"')
+    syslog('alteration', f'edited file "{translate_path_2_ui(path)}"')
 
 
 def create_dir(user, dir, name, cmd_split=None):
@@ -278,11 +278,11 @@ def create_dir(user, dir, name, cmd_split=None):
         try:
             os.mkdir(path, 0o777)
             log_dir_metadata(user, name, access_permission, dir)
-            syslog('creation', f'created directory "{path}"')
+            syslog('creation', f'created directory "{translate_path_2_ui(path)}"')
         except FileExistsError:
             print_warning(f'The directory "{name}" already exists. ')
         else:
-            print_success(f'Directory "{name}" has been created in {dir}. ')
+            print_success(f'Directory "{name}" has been created in {translate_path_2_ui(path)}. ')
     else:
         print_warning(f'"{name}" contains illegal characters. ')
 

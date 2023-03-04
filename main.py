@@ -10,19 +10,19 @@ import platform
 import logging
 from colors import *
 
+user = login()
+cr_dir = f'A/ChaOS_Users/{user.name}'  # cr_dir = the actual current directory: A/ChaOS_Users
+
 
 def main():
-    global user
     initialize_user_directories()
     reset_syslog()
-    user = login()
     os.system('cls')
     command_prompt()
 
 
 def command_prompt():
     global cr_dir
-    cr_dir = f'A/ChaOS_Users/{user.name}'  # cr_dir = the actual current directory: A/ChaOS_Users
     cr_dir_ui = translate_path_2_ui(cr_dir)  # cr_dir_ui = the simulated directory seen by the user = A:/Users
     while True:
         logging.basicConfig(level='debug', format=ChaOS_constants.LOGGING_FORMAT)
