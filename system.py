@@ -1,6 +1,7 @@
 import ChaOS_constants
 import csv
 from colors import *
+from datetime import datetime
 
 def reset_syslog():
     with open('syslog.csv', 'w', encoding='utf-8') as csv_file:
@@ -26,11 +27,20 @@ def syslog(category, msg):
             index = log_list.index(latest_log) + 1
         except IndexError:
             index = 0
-
+    now = get_formatted_time()
     with open('syslog.csv', 'a+', encoding='utf-8') as csv_file:
         attributes = ChaOS_constants.SYSLOG_CSV_ATTRIBUTES
         csv_writer = csv.DictWriter(csv_file, fieldnames=attributes)
-        csv_writer.writerow({'ID': index, 'category': category, 'msg': msg})
+        csv_writer.writerow({'ID': index, 'time': now, 'category': category, 'msg': msg})
+
+
+def get_formatted_time() -> str:
+    now = datetime.now()
+    if now.minute < 10:
+        now = f'{now.hour}:0{now.minute}'
+    else:
+        now = f'{now.hour}:{now.minute}'
+    return now
 
 
 def show_syslog():
@@ -40,7 +50,7 @@ def show_syslog():
         csv_reader = csv.DictReader(csv_file, fieldnames=attributes)
 
         for line in csv_reader:
-            output = f"id:{line['ID']}\t[{line['category']}]:\t {line['msg']}"
+            output = f"{line['ID']} - {line['time']}\t[{line['category']}]:\t\t{line['msg']}"
             if line['category'] == 'deletion':
                 print_red(output)
             elif line['category'] == 'creation':
