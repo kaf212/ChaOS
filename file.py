@@ -58,13 +58,15 @@ def create_file(dir, name, user):
         print_warning(f'{name} contains illegal characters. ')
 
 
-def log_dir_metadata(user, dirname, access_permission, parent_dir):
+def log_dir_metadata(user, dirname, access_permission, parent_dir, dir_type):
     logging_format = '[%(levelname)s] %(message)s'
     logging.basicConfig(level=logging.DEBUG, format=logging_format)
     """
     Path for metadata always is: parent_dir/metadata.csv, 
     for example the metadata for A/ChaOS_Users/kaf221122 is in A/ChaOS_Users/metadata.csv
     """
+
+
     if access_permission not in [user.name, 'all_users', 'admins', 'devs']:
         raise ValueError(f'Invalid access permission "{access_permission}" given. ')
 
@@ -74,21 +76,22 @@ def log_dir_metadata(user, dirname, access_permission, parent_dir):
     md_path = f'{parent_dir}/metadata.csv'
     if not os.path.exists(md_path):
         with open(md_path, 'w') as md_csv:
-            attributes = ['dirname', 'owner', 'owner account type', 'access permission']
+            attributes = ChaOS_constants.METADATA_CSV_ATTRIBUTES
             csv_writer = csv.DictWriter(md_csv, fieldnames=attributes)
             csv_writer.writeheader()
             md_csv.close()
 
-    if not check_metadata_existence(user, dirname, access_permission, parent_dir):
+    if not check_metadata_existence(user, dirname, access_permission, parent_dir, dir_type):
         with open(md_path, 'a+') as md_csv:
-            attributes = ['dirname', 'owner', 'owner_account_type', 'access_permission']
+            attributes = ChaOS_constants.METADATA_CSV_ATTRIBUTES
             csv_writer = csv.DictWriter(md_csv, fieldnames=attributes)
             csv_writer.writerow({'dirname': dirname, 'owner': user.name, 'owner_account_type': user.account_type,
-                                 'access_permission': access_permission})
+                                 'access_permission': access_permission, 'dir_type': dir_type})
             md_csv.close()
 
 
-def read_dir_metadata(dirname: str, parent_dir: str) -> tuple:
+
+def read_dir_metadata(dirname: str, parent_dir: str) -> dict:
     logging.basicConfig(level=logging.DEBUG, format=ChaOS_constants.LOGGING_FORMAT)
     if not os.path.isdir(parent_dir):
         raise NotADirectoryError(f'{parent_dir} is not a directory. ')
@@ -96,31 +99,30 @@ def read_dir_metadata(dirname: str, parent_dir: str) -> tuple:
     md_path = f'{parent_dir}/metadata.csv'
     if os.path.exists(md_path):
         with open(md_path, 'r') as md_csv:
-            attributes = ['dirname', 'owner', 'owner_account_type', 'access_permission']
+            attributes = ChaOS_constants.METADATA_CSV_ATTRIBUTES
             csv_reader = csv.DictReader(md_csv, fieldnames=attributes)
             dir_metadata = None
             for line in csv_reader:
                 if line['dirname'] == dirname:
                     dir_metadata = line
             if not dir_metadata:
-                raise Exception(f'No metadata found for ')
-
+                raise Exception(f'No metadata found for {dirname}')
             md_csv.close()
 
-            return dir_metadata['owner'], dir_metadata['owner_account_type'], dir_metadata['access_permission']
+            return dir_metadata
     else:
         raise FileNotFoundError(f'metadata.csv not found in {md_path}. ')
 
 
-def check_metadata_existence(user, dirname: str, access_permission: str, path: str) -> bool:
+def check_metadata_existence(user, dirname: str, access_permission: str, path: str, dir_type: str) -> bool:
     md_path = f'{path}/metadata.csv'
     with open(md_path, 'r') as md_csv:
-        attributes = ['dirname', 'owner', 'owner_account_type', 'access_permission']
+        attributes = ChaOS_constants.METADATA_CSV_ATTRIBUTES
         next(md_csv)
         csv_reader = csv.DictReader(md_csv, fieldnames=attributes)
         for line in csv_reader:
             if line == {'dirname': dirname, 'owner': user.name, 'owner_account_type': user.account_type,
-                        'access_permission': access_permission}:
+                        'access_permission': access_permission, 'dir_type': dir_type}:
                 md_csv.close()
                 return True
         return False
@@ -160,12 +162,37 @@ def initialize_user_directories():
         for subdir in ChaOS_constants.STANDARD_USER_SUBDIRS:
             try:
                 os.mkdir(path + '/' + subdir)
-                log_dir_metadata(temp_user_obj, subdir, username, path)
+                log_dir_metadata(temp_user_obj, subdir, username, path, 'personal')
             except FileExistsError:
                 pass
 
     for username in usernames:
         initialize_user_dir_metadata(username)
+
+
+def reset_user_dirs(reset_flag=None):
+    logging.basicConfig(level=logging.DEBUG, format=ChaOS_constants.LOGGING_FORMAT)
+    """
+    Contrary to initialize_user_dirs(), this function deletes everything except standard direcotries of
+    existent users and communist
+    :return:
+    """
+    if reset_flag is None:
+        initialize_user_directories()
+        for dir in os.listdir('A/ChaOS_Users'):
+            if os.path.isdir(f'A/ChaOS_Users/{dir}') and f'A/ChaOS_Users/{dir}' not in ChaOS_constants.SYSTEM_DIR_NAMES:
+                metadata = read_dir_metadata(dir, 'A/ChaOS_Users')
+                if metadata['dir_type'] in ['personal', 'capitalist'] and metadata['owner'] not in return_user_names():
+                    shutil.rmtree(f'A/ChaOS_Users/{dir}')
+                    delete_metadata(dir, 'A/ChaOS_Users')
+    if reset_flag == '-hard':
+        for dir in os.listdir('A/ChaOS_Users'):
+            path = f'A/ChaOS_Users/{dir}'
+            if os.path.isdir(path):
+                shutil.rmtree(path)
+            else:
+                os.remove(path)
+        initialize_user_directories()
 
 
 def initialize_user_dir_metadata(username):
@@ -179,13 +206,13 @@ def initialize_user_dir_metadata(username):
             temp_user_obj = create_user_object(username=line['name'], password='None',
                                                account_type=line['account type'])
             log_dir_metadata(user=temp_user_obj, dirname=temp_user_obj.name, parent_dir='A/ChaOS_Users',
-                             access_permission=temp_user_obj.name)
+                             access_permission=temp_user_obj.name, dir_type='personal')
 
 
 def delete_metadata(dirname, parent_dir):
     md_path = f'{parent_dir}/metadata.csv'
     with open(md_path, 'r') as md_csv:
-        attributes = ['dirname', 'owner', 'owner_account_type', 'access_permission']
+        attributes = ChaOS_constants.METADATA_CSV_ATTRIBUTES
         next(md_csv)
         csv_reader = csv.DictReader(md_csv, fieldnames=attributes)
         temp_dict_list = []
@@ -195,7 +222,7 @@ def delete_metadata(dirname, parent_dir):
         md_csv.close()
 
     with open(md_path, 'w') as md_csv:
-        attributes = ['dirname', 'owner', 'owner_account_type', 'access_permission']
+        attributes = ChaOS_constants.METADATA_CSV_ATTRIBUTES
         csv_writer = csv.DictWriter(md_csv, fieldnames=attributes)
         csv_writer.writeheader()
         for line in temp_dict_list:
@@ -257,11 +284,14 @@ def edit_txt(path):
     syslog('alteration', f'edited file "{translate_path_2_ui(path)}"')
 
 
-def create_dir(user, dir, name, cmd_split=None):
+def create_dir(user, dir, name, dir_type, cmd_split=None):
     name_valid = True
     for char in [' ', '..', '.', '...', '/', "'", '"']:
         if char in name:
             name_valid = False
+
+    if dir_type not in ChaOS_constants.VALID_DIR_TYPES:
+        raise ValueError(f'Invalid dir_type "{dir_type}" given. ')
 
     if name_valid:
         access_permission = user.name  # the default access permission is creator only
@@ -277,7 +307,7 @@ def create_dir(user, dir, name, cmd_split=None):
             path = dir + name
         try:
             os.mkdir(path, 0o777)
-            log_dir_metadata(user, name, access_permission, dir)
+            log_dir_metadata(user, name, access_permission, dir, dir_type=dir_type)
             syslog('creation', f'created directory "{translate_path_2_ui(path)}"')
         except FileExistsError:
             print_warning(f'The directory "{name}" already exists. ')
@@ -294,7 +324,12 @@ def validate_dir_access(parent_dir: str, dirname: str, user, cmd_split: list) ->
     if f'{parent_dir}/{dirname}' in ['A/', 'A', 'A/ChaOS_Users']:  # TODO: this looks dumb, check if it's not
         return True
 
-    owner, owner_account_type, access_permission = read_dir_metadata(dirname, parent_dir)
+    metadata = read_dir_metadata(dirname, parent_dir)
+    owner = metadata['owner']
+    owner_account_type = metadata['owner_account_type']
+    access_permission = metadata['access_permission']
+    if access_permission == user.name:
+        return True
     if access_permission == 'all_users':
         return True
     if access_permission == user.account_type:

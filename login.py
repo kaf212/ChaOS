@@ -69,7 +69,7 @@ def create_user(username: str, password: str, account_type: str):
         os.mkdir(f'A/ChaOS_Users/{username}')
         temp_user_obj = create_user_object(username, password, account_type)
         for subdir in ChaOS_constants.STANDARD_USER_SUBDIRS:
-            create_dir(user=temp_user_obj, name=subdir, dir=f'A/ChaOS_Users/{username}')
+            create_dir(user=temp_user_obj, name=subdir, dir=f'A/ChaOS_Users/{username}', dir_type='personal')
         with open('users.csv', 'a+', encoding="utf-8") as csv_file:
             attributes = ['username', 'password', 'account type']
             csv_writer = csv.DictWriter(csv_file, fieldnames=attributes)

@@ -161,7 +161,11 @@ def create_x(cmd_split: list):
             else:
                 print_warning(f'The file "{cmd_split[2]}" already exists. ')
     elif cmd_split[1] == 'dir':
-        create_dir(user, cr_dir, cmd_split[2], cmd_split)
+        if cmd_split[-1] == 'all_users':
+            dir_type = 'communist'
+        else:
+            dir_type = 'capitalist'
+        create_dir(user=user, dir=cr_dir, name=cmd_split[2], cmd_split=cmd_split, dir_type=dir_type)
     elif cmd_split[1] == 'user':
         create_user_ui(user, cmd_split)
         # the difference between create_user() and create_user_ui() is,
@@ -257,6 +261,8 @@ def edit_x(cmd_split):
 
 
 def change_dir(path, cr_dir, cmd_split):
+    logging.basicConfig(level=logging.DEBUG, format=ChaOS_constants.LOGGING_FORMAT)
+    print_red('change_dir()')
     if path == '..':
         pth_spl = split_path(cr_dir)  # split the current directory into a list
         pth_spl.pop()    # remove the last directory
@@ -269,6 +275,7 @@ def change_dir(path, cr_dir, cmd_split):
     if path in invalid_paths:
         path_valid = False
 
+    print_red(f'path_valid = {path_valid}')
     if path_valid:
         if not cr_dir.endswith('/'):
             full_path = cr_dir + '/' + path
@@ -276,12 +283,17 @@ def change_dir(path, cr_dir, cmd_split):
             full_path = cr_dir + path
 
         if os.path.exists(full_path):
+            print_red(f'os.path.exists({path}) (FULL PATH) = True')
             dir = full_path
             if validate_dir_access(parent_dir=cr_dir, user=user, cmd_split=cmd_split, dirname=path):
                 return dir
-
+            print_red(f'validate_dir_access(parent_dir={cr_dir}, user={user}, cmd_split={cmd_split}, dirname={path})')
+            print_red(f'= {validate_dir_access(parent_dir=cr_dir, user=user, cmd_split=cmd_split, dirname=path):}')
         elif os.path.exists(path):
+            print_red(f'os.path.exists({path}) = True')
+
             dir = path
+            print_red(f'path = {path}')
             if validate_dir_access(parent_dir=cr_dir, user=user, cmd_split=cmd_split, dirname=path):
                 # TODO if something's broken, check these arguments for corectness
                 return dir
@@ -395,11 +407,13 @@ def access_dev_tools(cmd_split):
                 print_dev('User CSV was reset successfully. ', 'green')
 
         elif cmd_split[2] == 'user_dirs':
-            initialize_user_directories()
-            print_dev('User directories were reset successfully. ', 'green')
-        else:
-            print_dev(f'"{cmd_split[2]}" is not a valid statement for command "reset". ', 'red')
-
+            try:
+                if cmd_split[3] == '-hard':
+                    reset_user_dirs('-hard')
+                    print_dev('User directories were reset HARD successfully. ', 'green')
+            except IndexError:
+                reset_user_dirs()
+                print_dev('User directories were reset successfully. ', 'green')
     else:
         print_dev(f'"{cmd_split[1]}" is not a valid dev command. ', 'red')
 
