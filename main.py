@@ -48,7 +48,7 @@ def command_prompt():
             except IndexError:
                 pass
 
-        if not cmd_invalid:
+        if not cmd_invalid and cmd != '':
             syslog('command', f'used command "{cmd}"')
             for item in cmd_split:
                 if item in ChaOS_constants.CMD_SHORTS.keys():
@@ -262,7 +262,6 @@ def edit_x(cmd_split):
 
 def change_dir(path, cr_dir, cmd_split):
     logging.basicConfig(level=logging.DEBUG, format=ChaOS_constants.LOGGING_FORMAT)
-    print_red('change_dir()')
     if path == '..':
         pth_spl = split_path(cr_dir)  # split the current directory into a list
         pth_spl.pop()    # remove the last directory
@@ -275,7 +274,6 @@ def change_dir(path, cr_dir, cmd_split):
     if path in invalid_paths:
         path_valid = False
 
-    print_red(f'path_valid = {path_valid}')
     if path_valid:
         if not cr_dir.endswith('/'):
             full_path = cr_dir + '/' + path
@@ -283,17 +281,11 @@ def change_dir(path, cr_dir, cmd_split):
             full_path = cr_dir + path
 
         if os.path.exists(full_path):
-            print_red(f'os.path.exists({path}) (FULL PATH) = True')
             dir = full_path
             if validate_dir_access(parent_dir=cr_dir, user=user, cmd_split=cmd_split, dirname=path):
                 return dir
-            print_red(f'validate_dir_access(parent_dir={cr_dir}, user={user}, cmd_split={cmd_split}, dirname={path})')
-            print_red(f'= {validate_dir_access(parent_dir=cr_dir, user=user, cmd_split=cmd_split, dirname=path):}')
         elif os.path.exists(path):
-            print_red(f'os.path.exists({path}) = True')
-
             dir = path
-            print_red(f'path = {path}')
             if validate_dir_access(parent_dir=cr_dir, user=user, cmd_split=cmd_split, dirname=path):
                 # TODO if something's broken, check these arguments for corectness
                 return dir

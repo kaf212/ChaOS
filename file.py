@@ -66,12 +66,13 @@ def log_dir_metadata(user, dirname, access_permission, parent_dir, dir_type):
     for example the metadata for A/ChaOS_Users/kaf221122 is in A/ChaOS_Users/metadata.csv
     """
 
-
     if access_permission not in [user.name, 'all_users', 'admins', 'devs']:
         raise ValueError(f'Invalid access permission "{access_permission}" given. ')
 
     if not os.path.isdir(parent_dir):
         raise NotADirectoryError(f'{parent_dir} is not a directory. ')
+
+    dirname = dirname.lower()
 
     md_path = f'{parent_dir}/metadata.csv'
     if not os.path.exists(md_path):
@@ -90,11 +91,12 @@ def log_dir_metadata(user, dirname, access_permission, parent_dir, dir_type):
             md_csv.close()
 
 
-
 def read_dir_metadata(dirname: str, parent_dir: str) -> dict:
     logging.basicConfig(level=logging.DEBUG, format=ChaOS_constants.LOGGING_FORMAT)
     if not os.path.isdir(parent_dir):
-        raise NotADirectoryError(f'{parent_dir} is not a directory. ')
+        raise NotADirectoryError(f'"{parent_dir}" is not a directory. ')
+
+    dirname = dirname.lower()
 
     md_path = f'{parent_dir}/metadata.csv'
     if os.path.exists(md_path):
@@ -115,6 +117,9 @@ def read_dir_metadata(dirname: str, parent_dir: str) -> dict:
 
 
 def check_metadata_existence(user, dirname: str, access_permission: str, path: str, dir_type: str) -> bool:
+
+    dirname = dirname.lower()
+
     md_path = f'{path}/metadata.csv'
     with open(md_path, 'r') as md_csv:
         attributes = ChaOS_constants.METADATA_CSV_ATTRIBUTES
@@ -210,6 +215,9 @@ def initialize_user_dir_metadata(username):
 
 
 def delete_metadata(dirname, parent_dir):
+
+    dirname = dirname.lower()
+
     md_path = f'{parent_dir}/metadata.csv'
     with open(md_path, 'r') as md_csv:
         attributes = ChaOS_constants.METADATA_CSV_ATTRIBUTES
