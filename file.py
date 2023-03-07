@@ -451,3 +451,13 @@ def translate_path_2_ui(path):
     ui_path = ''.join(ui_path_list)  # reconvert the list to a string
 
     return ui_path
+
+
+def validate_path_existence(path, target=None):
+    if target == 'file':
+        return os.path.isfile(path)
+    elif target == 'dir':
+        return os.path.isdir(path)
+    else:
+        return os.path.exists(path)
+

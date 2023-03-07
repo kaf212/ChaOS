@@ -272,6 +272,10 @@ def change_dir(path, cr_dir, cmd_split):
         path_valid = False
 
     if path_valid:
+
+        if os.path.isdir(path):
+            return path
+
         if not cr_dir.endswith('/'):
             full_path = cr_dir + '/' + path
         else:
