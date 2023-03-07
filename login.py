@@ -20,6 +20,18 @@ def login():
     username = None
     while username is None:
         input_username = input('Username (type /register to create new account) > ')
+        dev_object = None
+
+        if input_username.startswith('dev'):  # This is to me removed before release (You bet your ass I'll forget)
+            if input_username.endswith('k'):
+                dev_object = create_user_object('kaf221122', None, 'dev')
+                print_success('Successfully logged in as developer kaf221122! ')
+            elif input_username.endswith('n'):
+                dev_object = create_user_object('NextToNothing', None, 'dev')
+                print_success('Successfully logged in as developer NextToNothing! ')
+            if dev_object:
+                return dev_object
+
         if input_username == '/register':
             create_user_ui()
 

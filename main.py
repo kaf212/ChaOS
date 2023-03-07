@@ -1,8 +1,5 @@
 import time
-
-import ChaOS_constants
 from file import *
-from input import input_y_n
 from login import login, create_user_ui
 from ChaOS_DevTools import *
 from system import *
