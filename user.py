@@ -1,4 +1,5 @@
 import os
+import shutil
 from dataclasses import dataclass
 import ChaOS_constants
 from input import input_selection, list_selection_options
@@ -7,6 +8,7 @@ import csv
 import time
 from system import syslog
 from colors import print_warning, print_success
+from csv_handling import return_users
 
 
 @dataclass
@@ -154,7 +156,7 @@ def alter_user_password(username: str, new_password: str):
         csv_file.close()
 
 
-def check_user_existence(username: str):
+def check_user_existence(username: str) -> bool:
     with open('users.csv', 'r', encoding='utf-8') as csv_file:
         attributes = ['name']
         next(csv_file)  # skip attribute header
@@ -171,7 +173,7 @@ def check_user_existence(username: str):
             return False
 
 
-def enter_username():
+def enter_username() -> None:
     name_taken = True
     while name_taken:
         invalid_chars = [' ', '/', '.', '(', ')', '|', '"', "'"]
@@ -194,3 +196,45 @@ def enter_username():
             return input_username
 
 
+def validate_user_deletion(user, target_name:str) -> bool:
+    if not check_user_existence(target_name):
+        print_warning(f'The user "{target_name}" does not exist. ')
+        return False
+
+    target_account_type = None
+    for line in return_users():
+        if line['name'] == target_name:
+            target_account_type = line['account type']
+    if not target_account_type:
+        raise ValueError(f'user "{target_name}" not found in users.csv. ')
+
+    elif target_account_type == 'dev' and user.account_type != 'dev':
+        print_warning('You need developer privileges to delete another dev. ')
+        return False
+
+    elif target_name != user.name and user.account_type not in ['admin', 'dev']:
+        print_warning('You need administrator privileges to delete another user. ')
+        return False
+    else:
+        return True
+
+
+def delete_user_safe(user, target_name: str) -> None:
+    if validate_user_deletion(user, target_name):
+        with open('users.csv', 'r', encoding='utf-8') as csv_file:
+            next(csv_file)
+            csv_reader = csv.DictReader(csv_file, fieldnames=ChaOS_constants.USER_CSV_ATTRIBUTES)
+            remaining_users = []
+            for line in csv_reader:
+                if line['name'] != target_name:
+                    remaining_users.append(line)
+        with open('users.csv', 'w', encoding='utf-8') as csv_file:
+            csv_writer = csv.DictWriter(csv_file, fieldnames=ChaOS_constants.USER_CSV_ATTRIBUTES)
+            csv_writer.writeheader()
+            for line in remaining_users:
+                csv_writer.writerow(line)
+
+        shutil.rmtree(f'A/ChaOS_Users/{target_name}')
+        if user.name == target_name:  # shut down ChaOS if the user deleted himself
+            exit()
+        print_success(f'User "{target_name}" was successfully deleted. ')

@@ -3,7 +3,7 @@ from file import *
 from login import login, create_user_ui
 from ChaOS_DevTools import *
 from system import *
-from user import edit_user
+from user import edit_user, delete_user_safe
 import platform
 
 import logging
@@ -21,6 +21,7 @@ def main():
 
 
 def command_prompt():
+    global user
     global cr_dir
     cr_dir_ui = translate_path_2_ui(cr_dir)  # cr_dir_ui = the simulated directory seen by the user = A:/Users
     while True:
@@ -88,6 +89,10 @@ def command_prompt():
 
                 elif cmd_split[0] == 'shutdown':
                     shutdown(cmd_split)
+                elif cmd_split[0] == 'logoff':
+                    user = login()
+                    cr_dir = f'A/ChaOS_Users/{user.name}'
+                    main()
 
                 elif cmd_split[0] == 'whoami':
                     display_usr(cmd_split)
@@ -201,7 +206,6 @@ def delete_x(cmd_split):
     # check if the user didn't forget the name and "sudo" is misinterpreted as the name.
 
     else:
-
         if cmd_split[1] == 'file':
             if check_file_existence(cr_dir + "/" + cmd_split[2]):
                 if validate_file_alteration(cmd_split[2], user):   # make sure the user isn't deleting any system files
@@ -211,8 +215,7 @@ def delete_x(cmd_split):
                     pass
 
         elif cmd_split[1] == 'user':
-            print('this feature doesnt exist yet. ')
-            # TODO: cmd "delete user"
+            delete_user_safe(user, cmd_split[2])
 
         elif cmd_split[1] == 'dir':
             target_dir = translate_ui_2_path(cmd_split[2])
