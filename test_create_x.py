@@ -10,21 +10,21 @@ user = User('unit_testing_user', 'password', 'standard')
 
 
 def clean_unit_testing_dir():
-    for file in os.listdir('A/unit_testing'):
+    for file in os.listdir('unit_testing'):
         try:
-            os.remove(f'A/unit_testing/{file}')
+            os.remove(f'unit_testing/{file}')
         except OSError:
-            shutil.rmtree(f'A/unit_testing/{file}')
+            shutil.rmtree(f'unit_testing/{file}')
 
 
 def test_create_file():
     try:
-        create_file('A/unit_testing', 'test_create_file.txt', user)
+        create_file('unit_testing', 'test_create_file.txt', user)
     except FileExistsError:
-        os.remove('A/unit_testing/test_create_file.txt')
-        create_file('A/unit_testing', 'test_create_file.txt', user)
+        os.remove('unit_testing/test_create_file.txt')
+        create_file('unit_testing', 'test_create_file.txt', user)
     filenames = []
-    for file in os.listdir('A/unit_testing'):
+    for file in os.listdir('unit_testing'):
         filenames.append(file)
 
     assert 'test_create_file.txt' in filenames
@@ -34,16 +34,16 @@ def test_create_file():
 
 def test_create_directory():
 
-    if not os.path.exists('A/unit_testing'):
-        os.mkdir('A/unit_testing')
+    if not os.path.exists('unit_testing'):
+        os.mkdir('unit_testing')
 
     try:
-        create_dir(user, 'A/unit_testing', 'test_create_dir')
+        create_dir(user, 'unit_testing', 'test_create_dir', 'capitalist')
     except FileExistsError:
-        os.remove('A/unit_testing/test_create_dir')
-        create_dir(user, 'A/unit_testing', 'test_create_dir')
+        os.remove('unit_testing/test_create_dir')
+        create_dir(user, 'unit_testing', 'test_create_dir', 'capitalist')
     dirnames = []
-    for file in os.listdir('A/unit_testing'):
+    for file in os.listdir('unit_testing'):
         dirnames.append(file)
 
     assert 'test_create_dir' in dirnames

@@ -10,21 +10,21 @@ user = User('unit_testing_user', 'password', 'standard')
 
 
 def clean_unit_testing_dir():
-    for file in os.listdir('A/unit_testing'):
+    for file in os.listdir('unit_testing'):
         if file != 'metadata.csv':
             try:
-                os.remove(f'A/unit_testing/{file}')
+                os.remove(f'unit_testing/{file}')
             except OSError:
-                shutil.rmtree(f'A/unit_testing/{file}')
+                shutil.rmtree(f'unit_testing/{file}')
 
 
 def test_delete_dir():
-    if not os.path.exists('A/unit_testing/testdir'):
-        create_dir(user, 'A/unit_testing', 'testdir', 'capitalist')
-    delete_dir('testdir', 'A/unit_testing')
-    if not os.path.isdir('A/unit_testing/testdir'):
+    if not os.path.exists('unit_testing/testdir'):
+        create_dir(user, 'unit_testing', 'testdir', 'capitalist')
+    delete_dir('testdir', 'unit_testing')
+    if not os.path.isdir('unit_testing/testdir'):
         try:
-            read_dir_metadata('testdir', 'A/unit_testing')
+            read_dir_metadata('testdir', 'unit_testing')
         except Exception:
             assert True
         else:
@@ -37,10 +37,10 @@ def test_delete_dir():
 
 
 def test_delete_metadata():
-    if not check_metadata_existence(user, 'md_testdir', user.name, 'A/unit_testing', 'capitalist'):
-        log_dir_metadata(user, 'md_testdir', user.name, 'A/unit_testing', 'capitalist')
+    if not check_metadata_existence(user, 'md_testdir', user.name, 'unit_testing', 'capitalist'):
+        log_dir_metadata(user, 'md_testdir', user.name, 'unit_testing', 'capitalist')
 
-    delete_metadata('md_testdir', 'A/unit_testing')
+    delete_metadata('md_testdir', 'unit_testing')
 
-    if not check_metadata_existence(user, 'md_testdir', user.name, 'A/unit_testing', 'capitalist'):
+    if not check_metadata_existence(user, 'md_testdir', user.name, 'unit_testing', 'capitalist'):
         assert True
