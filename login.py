@@ -1,6 +1,5 @@
 import csv
 import os
-import shutil
 import time
 
 import ChaOS_constants
@@ -91,10 +90,8 @@ def create_user(username: str, password: str, account_type: str):
 
 
 def create_user_ui(user=None, cmd_split=None):
-
     input_username = enter_username()
 
-    input_password = None
     password_invalid = True
     while password_invalid:
         input_password = input('Enter a password > ')

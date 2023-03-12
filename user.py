@@ -5,7 +5,6 @@ import ChaOS_constants
 from input import input_selection, list_selection_options
 from encryption import encrypt_str
 import csv
-import time
 from system import syslog
 from colors import print_warning, print_success
 from csv_handling import return_users

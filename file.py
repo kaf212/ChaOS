@@ -255,7 +255,7 @@ def check_file_existence(path):
     return f_exists
 
 
-def delete_file(path):
+def delete_file_ui(path):
     confirmation = input_y_n(f'Delete "{path}" ? > ')
     if confirmation == 'y':
         if check_file_existence(path):
@@ -268,19 +268,26 @@ def delete_file(path):
 
 # delete dir kaf221122 "" "" "" sudo
 
-def delete_dir(directory, dir_name):
+def delete_dir_ui(directory, dir_name):
     path = directory + '/' + dir_name
 
     confirmation = input_y_n(f'Delete "{translate_path_2_ui(path)}" ? >')
     if confirmation == 'y':
-        try:
-            shutil.rmtree(path)
-            delete_metadata(dir_name, directory)
-            syslog('deletion', f'deleted directory "{translate_path_2_ui(path)}"')
-        except FileNotFoundError:
-            print_warning(f'The directory "{translate_path_2_ui(path)}" does not exist')
-        else:
-            print_success(f'Deleted "{translate_path_2_ui(path)}". ')
+        delete_dir(path, dir_name, directory)
+
+
+def delete_dir(dir_name, directory):
+
+    path = directory + '/' + dir_name
+    print(path)
+    try:
+        shutil.rmtree(path)
+        delete_metadata(dir_name, directory)
+        syslog('deletion', f'deleted directory "{translate_path_2_ui(path)}"')
+    except FileNotFoundError:
+        print_warning(f'The directory "{translate_path_2_ui(path)}" does not exist')
+    else:
+        print_success(f'Deleted "{translate_path_2_ui(path)}". ')
 
 
 def edit_txt(path):
@@ -460,4 +467,3 @@ def validate_path_existence(path, target=None):
         return os.path.isdir(path)
     else:
         return os.path.exists(path)
-

@@ -223,7 +223,7 @@ def delete_x(cmd_split):
                 if validate_dir_access(cmd_split=cmd_split, user=user, dirname=target_dir, parent_dir=cr_dir):
                     # make sure he has access permission
                     if validate_dir_alteration(target_dir, user):   # make sure he's not deleting a system directory
-                        delete_dir(cr_dir, target_dir)
+                        delete_dir_ui(cr_dir, target_dir)
             else:
                 print_warning(f'The directory "{cmd_split[2]}" does not exist. ')
         else:
