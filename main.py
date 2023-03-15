@@ -1,3 +1,4 @@
+import os
 import time
 from file import *
 from login import login, create_user_ui
@@ -181,14 +182,17 @@ def read_x(cmd_split):
     :param cmd_split:
     :return None:
     """
-    if cmd_split[1] == 'file':
-        if cmd_split[2].endswith('.txt'):
-            read_txt(cr_dir, cmd_split[2])
+    if os.path.isfile(f'{cr_dir}/{cmd_split[2]}'):
+        if cmd_split[1] == 'file':
+            if cmd_split[2].endswith('.txt'):
+                read_txt(cr_dir, cmd_split[2])
+            else:
+                print_warning(f'"{"." + cmd_split[2].partition(".")[2]}" is not a valid filetype\n')
+                # extracts the filetype from the file with the .partition method and "." as delimiter.
         else:
-            print_warning(f'"{"." + cmd_split[2].partition(".")[2]}" is not a valid filetype\n')
-            # extracts the filetype from the file with the .partition method and "." as delimiter.
+            print_warning(f'"{cmd_split[1]}" is not a valid statement for command "{cmd_split[0]}\n')
     else:
-        print_warning(f'"{cmd_split[1]}" is not a valid statement for command "{cmd_split[0]}\n')
+        print_warning(f'The file "{cr_dir}/{cmd_split[2]}" does not exist. ')
 
 
 def delete_x(cmd_split):
