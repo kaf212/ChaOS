@@ -11,10 +11,11 @@ user = User('unit_testing_user', 'password', 'standard')
 
 def clean_unit_testing_dir():
     for file in os.listdir('unit_testing'):
-        try:
-            os.remove(f'unit_testing/{file}')
-        except OSError:
-            shutil.rmtree(f'unit_testing/{file}')
+        if file != 'metadata.csv':
+            try:
+                os.remove(f'unit_testing/{file}')
+            except OSError:
+                shutil.rmtree(f'unit_testing/{file}')
 
 
 def test_create_file():

@@ -48,9 +48,7 @@ def command_prompt():
 
         if not cmd_invalid and cmd != '':
             syslog('command', f'used command "{cmd}"')
-            for item in cmd_split:
-                if item in ChaOS_constants.CMD_SHORTS.keys():
-                    cmd_split[cmd_split.index(item)] = ChaOS_constants.CMD_SHORTS[item]
+            cmd_split = translate_command(cmd_split)
             try:
                 if cmd_split[0] == 'create':
                     create_x(cmd_split)
@@ -209,7 +207,7 @@ def delete_x(cmd_split):
         if cmd_split[1] == 'file':
             if check_file_existence(cr_dir + "/" + cmd_split[2]):
                 if validate_file_alteration(cmd_split[2], user):   # make sure the user isn't deleting any system files
-                    delete_file(cr_dir + "/" + cmd_split[2])
+                    delete_file_ui(cr_dir + "/" + cmd_split[2])
 
                 else:
                     pass
@@ -412,6 +410,21 @@ def access_dev_tools(cmd_split):
                 print_dev('User directories were reset successfully. ', 'green')
     else:
         print_dev(f'"{cmd_split[1]}" is not a valid dev command. ', 'red')
+
+
+def translate_command(cmd_split: list) -> list:
+    for item in cmd_split:
+        if item in ChaOS_constants.CMD_SHORTS.keys():
+            cmd_split[cmd_split.index(item)] = ChaOS_constants.CMD_SHORTS[item]
+
+    try:
+        if cmd_split[1] in ['f', 'file']:
+            if '.' not in cmd_split[2]:   # when filetype is not specified, change it to .txt
+                cmd_split[2] += '.txt'
+    except IndexError:
+        pass
+
+    return cmd_split
 
 
 if __name__ == '__main__':
