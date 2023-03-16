@@ -168,6 +168,8 @@ def initialize_user_directories():
             try:
                 os.mkdir(path + '/' + subdir)
                 log_dir_metadata(temp_user_obj, subdir, username, path, 'personal')
+                if subdir == 'Recycling bin':
+                    create_md_file(f'{path}/{subdir}')
             except FileExistsError:
                 pass
 
@@ -212,6 +214,12 @@ def initialize_user_dir_metadata(username):
                                                account_type=line['account type'])
             log_dir_metadata(user=temp_user_obj, dirname=temp_user_obj.name, parent_dir='A/ChaOS_Users',
                              access_permission=temp_user_obj.name, dir_type='personal')
+
+
+def create_md_file(location):
+    with open(f'{location}/metadata.csv', 'w') as md:
+        csv_writer = csv.DictWriter(md, fieldnames=ChaOS_constants.METADATA_CSV_ATTRIBUTES)
+        csv_writer.writeheader()
 
 
 def delete_metadata(dirname, parent_dir):
@@ -467,3 +475,11 @@ def validate_path_existence(path, target=None):
         return os.path.isdir(path)
     else:
         return os.path.exists(path)
+
+
+def recycle(target_name: str, location: str, ):
+    shutil.move(f'{location}/{target_name}', f'{location}/Recycling bin')
+    if os.path.isdir(f'{location}/Recycling bin/{target_name}'):
+        metadata = read_dir_metadata(target_name, location)
+        temp_user_obj = create_user_object(metadata['owner'], None, metadata['owner_account_type'])
+        log_dir_metadata(temp_user_obj, target_name, metadata['access_permission'], f'{location}/Recycling bin', metadata['dir_type'])

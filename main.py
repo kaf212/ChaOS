@@ -211,8 +211,8 @@ def delete_x(cmd_split):
         if cmd_split[1] == 'file':
             if check_file_existence(cr_dir + "/" + cmd_split[2]):
                 if validate_file_alteration(cmd_split[2], user):   # make sure the user isn't deleting any system files
-                    delete_file_ui(cr_dir + "/" + cmd_split[2])
-
+                    # delete_file_ui(cr_dir + "/" + cmd_split[2])
+                    recycle(cmd_split[2], cr_dir)
                 else:
                     pass
 
@@ -225,7 +225,8 @@ def delete_x(cmd_split):
                 if validate_dir_access(cmd_split=cmd_split, user=user, dirname=target_dir, parent_dir=cr_dir):
                     # make sure he has access permission
                     if validate_dir_alteration(target_dir, user):   # make sure he's not deleting a system directory
-                        delete_dir_ui(cr_dir, target_dir)
+                        recycle(target_dir, cr_dir)
+                        # delete_dir_ui(cr_dir, target_dir)
             else:
                 print_warning(f'The directory "{cmd_split[2]}" does not exist. ')
         else:
