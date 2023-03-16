@@ -60,6 +60,9 @@ def command_prompt():
                 elif cmd_split[0] == 'delete':
                     delete_x(cmd_split)
 
+                elif cmd_split[0] == 'burn':
+                    burn_x(cmd_split)
+
                 elif cmd_split[0] == 'edit':
                     edit_x(cmd_split)
 
@@ -231,6 +234,21 @@ def delete_x(cmd_split):
                 print_warning(f'The directory "{cmd_split[2]}" does not exist. ')
         else:
             print_warning(f'"{cmd_split[1]}" is not a valid statement for command "{cmd_split[0]}"\n')
+
+
+def burn_x(cmd_split):
+    """
+    Contrary to deleting, burning just removes the contents of a target and doesn't delete it entirely.
+    :param cmd_split:
+    :return:
+    """
+    if os.path.isdir(f'{cr_dir}/{cmd_split[1]}'):
+        if validate_dir_access(cr_dir, cmd_split[1], user, cmd_split):
+            if cmd_split[1] == 'Recycling bin':
+                burn_dir(f'{cr_dir}/Recycling bin')
+                print_success(f'Burned "{cmd_split[1]}" successfully. ')
+    else:
+        print_warning(f'"{cmd_split[1]}" is not a directory. ')
 
 
 def edit_x(cmd_split):

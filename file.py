@@ -483,3 +483,10 @@ def recycle(target_name: str, location: str, ):
         metadata = read_dir_metadata(target_name, location)
         temp_user_obj = create_user_object(metadata['owner'], None, metadata['owner_account_type'])
         log_dir_metadata(temp_user_obj, target_name, metadata['access_permission'], f'{location}/Recycling bin', metadata['dir_type'])
+
+
+def burn_dir(target):
+    shutil.rmtree(target)
+    os.mkdir(target)
+    create_md_file(target)
+
