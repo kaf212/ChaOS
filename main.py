@@ -249,25 +249,31 @@ def burn_x(cmd_split):
     :return:
     """
     path = f'{cr_dir}/{cmd_split[2]}'
-    if cmd_split[1] == 'd':
+    if cmd_split[1] == 'dir':
         if os.path.isdir(f'{cr_dir}/{cmd_split[2]}'):
             if validate_dir_access(cr_dir, cmd_split[2], user, cmd_split):
                 if cmd_split[1] == 'Recycling bin':
                     shutil.rmtree(path)
                     os.mkdir(path)
                     create_md_file(path)
+                    print_success(f'Burned "{cmd_split[2]}" successfully. ')
                 else:
-                    shutil.rmtree(path)
-    elif cmd_split[1] == 'f':
-        if os.path.isfile:
-            if cmd_split[2] not in ChaOS_constants:
+                    if cmd_split[2] not in ChaOS_constants.SYSTEM_DIR_NAMES:
+                        shutil.rmtree(path)
+                        print_success(f'Burned "{cmd_split[2]}" successfully. ')
+                    else:
+                        print_warning('You cannot burn system directories. ')
+    elif cmd_split[1] == 'file':
+        if os.path.isfile(f'{cr_dir}/{cmd_split[2]}'):
+            if cmd_split[2] not in ChaOS_constants.SYSTEN_FILE_NAMES:
                 os.remove(path)
+                print_success(f'Burned "{cmd_split[2]}" successfully. ')
             else:
                 print_warning(f'You cannot burn a system file. ')
         else:
             print_warning(f'"{path}" is not a file. ')
 
-    print_success(f'Burned "{cmd_split[1]}" successfully. ')
+
 
 
 def edit_x(cmd_split):
