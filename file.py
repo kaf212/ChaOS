@@ -483,21 +483,18 @@ def recycle(target_name: str, location: str, ):
             os.remove(f'{location}/Recycling bin/{target_name}')
         except PermissionError:
             shutil.rmtree(f'{location}/Recycling bin/{target_name}')
+            delete_metadata(target_name, f'{location}/Recycling bin')
 
     shutil.move(f'{location}/{target_name}', f'{location}/Recycling bin')
 
     if os.path.isdir(f'{location}/Recycling bin/{target_name}'):  # if the recycled object is a directory:
         # log metadata in rec bin.
         metadata = read_dir_metadata(target_name, location)
+        delete_metadata(target_name, location)
         temp_user_obj = create_user_object(metadata['owner'], None, metadata['owner_account_type'])
         log_dir_metadata(temp_user_obj, target_name, metadata['access_permission'], f'{location}/Recycling bin', metadata['dir_type'])
         print_success(f'Directory "{location}/{target_name}" recycled successfully. ')
     else:
         print_success(f'File "{location}/{target_name}" recycled successfully. ')
 
-
-def burn_dir(target):
-    shutil.rmtree(target)
-    os.mkdir(target)
-    create_md_file(target)
 

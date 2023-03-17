@@ -3,6 +3,7 @@ import csv
 from colors import *
 from datetime import datetime
 
+
 def reset_syslog():
     with open('syslog.csv', 'w', encoding='utf-8') as csv_file:
         attributes = ChaOS_constants.SYSLOG_CSV_ATTRIBUTES

@@ -252,14 +252,17 @@ def burn_x(cmd_split):
     if cmd_split[1] == 'dir':
         if os.path.isdir(f'{cr_dir}/{cmd_split[2]}'):
             if validate_dir_access(cr_dir, cmd_split[2], user, cmd_split):
-                if cmd_split[1] == 'Recycling bin':
+                if cmd_split[2] == 'Recycling bin':
                     shutil.rmtree(path)
                     os.mkdir(path)
                     create_md_file(path)
+                    syslog('deletion', f'burned recycling bin. ')
                     print_success(f'Burned "{cmd_split[2]}" successfully. ')
                 else:
                     if cmd_split[2] not in ChaOS_constants.SYSTEM_DIR_NAMES:
                         shutil.rmtree(path)
+                        delete_metadata(cmd_split[2], cr_dir)
+                        syslog('deletion', f'burned directory "{cmd_split[2]}". ')
                         print_success(f'Burned "{cmd_split[2]}" successfully. ')
                     else:
                         print_warning('You cannot burn system directories. ')
@@ -267,13 +270,12 @@ def burn_x(cmd_split):
         if os.path.isfile(f'{cr_dir}/{cmd_split[2]}'):
             if cmd_split[2] not in ChaOS_constants.SYSTEN_FILE_NAMES:
                 os.remove(path)
+                syslog('deletion', f'burned file "{cmd_split[2]}". ')
                 print_success(f'Burned "{cmd_split[2]}" successfully. ')
             else:
                 print_warning(f'You cannot burn a system file. ')
         else:
             print_warning(f'"{path}" is not a file. ')
-
-
 
 
 def edit_x(cmd_split):
