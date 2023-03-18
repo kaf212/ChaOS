@@ -498,3 +498,11 @@ def recycle(target_name: str, location: str, ):
         print_success(f'File "{location}/{target_name}" recycled successfully. ')
 
 
+def restore_file(filename, rec_bin_dir):
+    og_path = f'{rec_bin_dir}/{filename}'
+    rec_bin_dir = split_path(rec_bin_dir)
+    rec_bin_dir.remove('Recycling bin')
+    rec_bin_dir.pop(-1)
+    destination = ''.join(rec_bin_dir)
+    shutil.move(og_path, destination)
+    print_success(f'File "{translate_path_2_ui(og_path)}" restored successfully to "{translate_path_2_ui(destination)}". ')

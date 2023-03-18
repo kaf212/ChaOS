@@ -62,6 +62,8 @@ def command_prompt():
 
                 elif cmd_split[0] == 'burn':
                     burn_x(cmd_split)
+                elif cmd_split[0] == 'restore':
+                    restore_x(cmd_split)
 
                 elif cmd_split[0] == 'edit':
                     edit_x(cmd_split)
@@ -240,6 +242,28 @@ def delete_x(cmd_split):
                 print_warning(f'The directory "{cmd_split[2]}" does not exist. ')
         else:
             print_warning(f'"{cmd_split[1]}" is not a valid statement for command "{cmd_split[0]}"\n')
+
+# A/ChaOS_Users/kaf221122
+# restore file testfile
+
+
+def restore_x(cmd_split):
+    rec_bin_dir = f'{cr_dir}/Recycling bin'
+    if validate_dir_access(cr_dir, 'Recycling bin', user, cmd_split):
+        if cmd_split[1] == 'file':
+            target_path = f'{rec_bin_dir}/{cmd_split[2]}'
+            if os.path.isfile(target_path):
+                restore_file(cmd_split[2], rec_bin_dir)
+            else:
+                print_warning(f'The file "{translate_path_2_ui(target_path)}" does not exist. ')
+
+        if cmd_split[1] == 'dir':
+            target_path = f'{rec_bin_dir}/{cmd_split[2]}'
+            if os.path.isdir(target_path):
+                print_warning(f'You cannot yet restore directories. ')
+
+            else:
+                print_warning(f'The directory "{translate_path_2_ui(target_path)}" does not exist. ')
 
 
 def burn_x(cmd_split):
