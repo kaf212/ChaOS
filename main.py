@@ -244,7 +244,7 @@ def delete_x(cmd_split):
 
 def burn_x(cmd_split):
     """
-    Contrary to deleting, burning just removes the contents of a target and doesn't delete it entirely.
+    Contrary to deleting, burning removes data from its pathetic existence with no steps inbetween.
     :param cmd_split:
     :return:
     """
@@ -253,25 +253,28 @@ def burn_x(cmd_split):
         if os.path.isdir(f'{cr_dir}/{cmd_split[2]}'):
             if validate_dir_access(cr_dir, cmd_split[2], user, cmd_split):
                 if cmd_split[2] == 'Recycling bin':
-                    shutil.rmtree(path)
-                    os.mkdir(path)
-                    create_md_file(path)
-                    syslog('deletion', f'burned recycling bin. ')
-                    print_success(f'Burned "{cmd_split[2]}" successfully. ')
+                    if input_y_n(f'Burn recycling bin? > ') == 'y':
+                        shutil.rmtree(path)
+                        os.mkdir(path)
+                        create_md_file(path)
+                        syslog('deletion', f'burned recycling bin. ')
+                        print_success(f'Burned "{cmd_split[2]}" successfully. ')
                 else:
                     if cmd_split[2] not in ChaOS_constants.SYSTEM_DIR_NAMES:
-                        shutil.rmtree(path)
-                        delete_metadata(cmd_split[2], cr_dir)
-                        syslog('deletion', f'burned directory "{cmd_split[2]}". ')
-                        print_success(f'Burned "{cmd_split[2]}" successfully. ')
+                        if input_y_n(f'Burn "{cmd_split[2]}"? > ') == 'y':
+                            shutil.rmtree(path)
+                            delete_metadata(cmd_split[2], cr_dir)
+                            syslog('deletion', f'burned directory "{cmd_split[2]}". ')
+                            print_success(f'Burned "{cmd_split[2]}" successfully. ')
                     else:
                         print_warning('You cannot burn system directories. ')
     elif cmd_split[1] == 'file':
         if os.path.isfile(f'{cr_dir}/{cmd_split[2]}'):
             if cmd_split[2] not in ChaOS_constants.SYSTEN_FILE_NAMES:
-                os.remove(path)
-                syslog('deletion', f'burned file "{cmd_split[2]}". ')
-                print_success(f'Burned "{cmd_split[2]}" successfully. ')
+                if input_y_n(f'Burn "{cmd_split[2]}"? > ') == 'y':
+                    os.remove(path)
+                    syslog('deletion', f'burned file "{cmd_split[2]}". ')
+                    print_success(f'Burned "{cmd_split[2]}" successfully. ')
             else:
                 print_warning(f'You cannot burn a system file. ')
         else:
