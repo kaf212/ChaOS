@@ -41,81 +41,87 @@ def command_prompt():
                 if cmd_split[0] == 'sudo':
                     cmd_split.remove('sudo')
                     cmd_split.append('')
-                    cmd_split.append('')   # yes, this is part 1 of the fix for issue #13
+                    cmd_split.append('')  # yes, this is part 1 of the fix for issue #13
                     cmd_split.append('')
                     cmd_split.append('sudo')
             except IndexError:
                 pass
 
+        cmd_map = {'test': function_with_2_args,
+                    'create': create_x,
+                   'read': read_x,
+                   'delete': delete_x,
+                   'burn': burn_x,
+                   'restore': restore_x,
+                   'edit': edit_x,
+                   'dir': list_dir,
+                   'echo': echo,
+                   'clear': clear_screen,
+                   'help': help_cmd,
+                   'shutdown': shutdown,
+                   'whoami': display_usr,
+                   'syslog': show_syslog
+                   # 'dev': lambda dev: dev if user.account_type == 'dev' else print_warning('You need to be a dev. ')
+                   }
+
+        args_map = {'create': [cmd_split],
+                    'read': [cmd_split],
+                    'delete': [cmd_split],
+                    'burn': [cmd_split],
+                    'restore': [cmd_split],
+                    'edit': [cmd_split],
+                    'dir': [cr_dir],
+                    'echo': [cmd_split],
+                    'clear': [],
+                    'help': [cmd_split],
+                    'shutdown': [cmd_split],
+                    'whoami': [cmd_split],
+                    'syslog': []
+                    }
+
         if not cmd_invalid and cmd != '':
             syslog('command', f'used command "{cmd}"')
             cmd_split = translate_command(cmd_split)
-            try:
-                if cmd_split[0] == 'create':
-                    create_x(cmd_split)
 
-                elif cmd_split[0] == 'read':
-                    read_x(cmd_split)
+            if cmd_split[0] in cmd_map.keys():
+                args = args_map[cmd_split[0]]
+                func = cmd_map[cmd_split[0]]
+                execute_cmd(func, *args)
 
-                elif cmd_split[0] == 'delete':
-                    delete_x(cmd_split)
+            else:
 
-                elif cmd_split[0] == 'burn':
-                    burn_x(cmd_split)
-                elif cmd_split[0] == 'restore':
-                    restore_x(cmd_split)
+                try:
 
-                elif cmd_split[0] == 'edit':
-                    edit_x(cmd_split)
+                    if cmd_split[0] == 'cd':
+                        dir_cd = change_dir(translate_ui_2_path(cmd_split[1]),
+                                            cr_dir, cmd_split)
+                        # before a dir change, the user input dir needs to be translated from ui_dir to actual dir.
+                        if dir_cd is not None:  # if cd didn't fail
+                            cr_dir = dir_cd
+                            cr_dir_ui = translate_path_2_ui(cr_dir)
 
-                elif cmd_split[0] == 'cd':
-                    dir_cd = change_dir(translate_ui_2_path(cmd_split[1]),
-                                        cr_dir, cmd_split)
-                    # before a dir change, the user input dir needs to be translated from ui_dir to actual dir.
-                    if dir_cd is not None:  # if cd didn't fail
-                        cr_dir = dir_cd
-                        cr_dir_ui = translate_path_2_ui(cr_dir)
+                    elif cmd_split[0] == 'logoff':
+                        user = login()
+                        cr_dir = f'A/ChaOS_Users/{user.name}'
+                        main()
 
-                elif cmd_split[0] == 'dir':
-                    list_dir(cr_dir)
+                    elif cmd_split[0] == 'dev':
+                        if user.account_type == 'dev':
+                            access_dev_tools(cmd_split)
+                        else:
+                            print_warning('You need developer privileges to access the DevTools. ')
 
-                elif cmd_split[0] == 'echo':
-                    try:
-                        print(cmd_split[1])
-                    except IndexError:
-                        print_warning('You must enter a valid statement to echo. ')
-
-                elif cmd_split[0] == 'clear':
-                    os.system('cls')
-
-                elif cmd_split[0] == 'help':
-                    help_cmd(cmd_split)
-
-                elif cmd_split[0] == 'shutdown':
-                    shutdown(cmd_split)
-                elif cmd_split[0] == 'logoff':
-                    user = login()
-                    cr_dir = f'A/ChaOS_Users/{user.name}'
-                    main()
-
-                elif cmd_split[0] == 'whoami':
-                    display_usr(cmd_split)
-                elif cmd_split[0] == 'syslog':
-                    show_syslog()
-
-                elif cmd_split[0] == 'dev':
-                    if user.account_type == 'dev':
-                        access_dev_tools(cmd_split)
                     else:
-                        print_warning('You need developer privileges to access the DevTools. ')
+                        print_warning(f'The command "{cmd_split[0]}" does not exist. \n')
 
-                else:
-                    print_warning(f'The command "{cmd_split[0]}" does not exist. \n')
+                except TypeError:
+                    print_warning('TypeError: You must enter a valid command to proceed, type "help" for help. ')
+                except IndexError:
+                    print_warning('IndexError: You must enter a valid command to proceed, type "help" for help. ')
 
-            except TypeError:
-                print_warning('TypeError: You must enter a valid command to proceed, type "help" for help. ')
-            except IndexError:
-                print_warning('IndexError: You must enter a valid command to proceed, type "help" for help. ')
+
+def execute_cmd(func, *args, **kwargs):
+    func(*args, **kwargs)
 
 
 def help_cmd(cmd_split: list):
@@ -153,6 +159,7 @@ def create_x(cmd_split: list):
     :param cmd_split:
     :return None:   
     """
+
     try:
         if cmd_split[2] == 'sudo':
             print_warning(f'You must enter a valid {cmd_split[1]}name to proceed. ')
@@ -161,8 +168,8 @@ def create_x(cmd_split: list):
         pass
 
     if cmd_split[1] == 'file':
-        if validate_filetype(cmd_split[2], ['.txt']):   # if the file is a txt:
-            if not check_file_existence(cr_dir + cmd_split[2]):   # if the file doesn't exist yet:
+        if validate_filetype(cmd_split[2], ['.txt']):  # if the file is a txt:
+            if not check_file_existence(cr_dir + cmd_split[2]):  # if the file doesn't exist yet:
                 create_file(cr_dir, cmd_split[2], user)
             else:
                 print_warning(f'The file "{cmd_split[2]}" already exists. ')
@@ -215,7 +222,7 @@ def delete_x(cmd_split):
     else:
         if cmd_split[1] == 'file':
             if check_file_existence(cr_dir + "/" + cmd_split[2]):
-                if validate_file_alteration(cmd_split[2], user):   # make sure the user isn't deleting any system files
+                if validate_file_alteration(cmd_split[2], user):  # make sure the user isn't deleting any system files
                     # delete_file_ui(cr_dir + "/" + cmd_split[2])
                     recycle(cmd_split[2], cr_dir)
                 else:
@@ -229,7 +236,7 @@ def delete_x(cmd_split):
             if os.path.isdir(cr_dir + '/' + target_dir):
                 if validate_dir_access(cmd_split=cmd_split, user=user, dirname=target_dir, parent_dir=cr_dir):
                     # make sure he has access permission
-                    if validate_dir_alteration(target_dir, user):   # make sure he's not deleting a system directory
+                    if validate_dir_alteration(target_dir, user):  # make sure he's not deleting a system directory
                         if target_dir != 'Recycling bin':
                             if cr_dir in ['A', 'A/ChaOS_Users']:
                                 delete_dir(target_dir, cr_dir)
@@ -242,6 +249,7 @@ def delete_x(cmd_split):
                 print_warning(f'The directory "{cmd_split[2]}" does not exist. ')
         else:
             print_warning(f'"{cmd_split[1]}" is not a valid statement for command "{cmd_split[0]}"\n')
+
 
 # A/ChaOS_Users/kaf221122
 # restore file testfile
@@ -339,8 +347,8 @@ def change_dir(path, cr_dir, cmd_split):
     logging.basicConfig(level=logging.DEBUG, format=ChaOS_constants.LOGGING_FORMAT)
     if path == '..':
         pth_spl = split_path(cr_dir)  # split the current directory into a list
-        pth_spl.pop()    # remove the last directory
-        pth_spl.pop()    # remove the "/"
+        pth_spl.pop()  # remove the last directory
+        pth_spl.pop()  # remove the "/"
         dir = ''.join(pth_spl)  # reconvert it into a string
         return dir
 
@@ -422,6 +430,17 @@ def list_dir(cr_dir):
         print(f'\t{total_dirs} directories')
 
 
+def echo(cmd):
+    try:
+        print(cmd[1])
+    except IndexError:
+        print_warning('You must enter a valid statement to echo. ')
+
+
+def clear_screen():
+    os.system('cls')
+
+
 def shutdown(cmd_split):
     """
     No explanation needed.
@@ -453,7 +472,8 @@ def access_dev_tools(cmd_split):
     :param cmd_split:
     :return:
     """
-    def print_dev(output: str, color=None):   # every output related to the devtools should be recognized as one
+
+    def print_dev(output: str, color=None):  # every output related to the devtools should be recognized as one
         if color is not None:
             if color == 'red':
                 print_warning(f'[DEVTOOL]: {output}')
@@ -496,12 +516,16 @@ def translate_command(cmd_split: list) -> list:
 
     try:
         if cmd_split[1] in ['f', 'file']:
-            if '.' not in cmd_split[2]:   # when filetype is not specified, change it to .txt
+            if '.' not in cmd_split[2]:  # when filetype is not specified, change it to .txt
                 cmd_split[2] += '.txt'
     except IndexError:
         pass
 
     return cmd_split
+
+
+def function_with_2_args(arg1, arg2):
+    print(f'arg1 = {arg1}, arg2 = {arg2}')
 
 
 if __name__ == '__main__':
