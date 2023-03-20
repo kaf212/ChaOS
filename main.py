@@ -1,4 +1,3 @@
-import os
 import time
 from file import *
 from login import login, create_user_ui
@@ -22,6 +21,23 @@ def main():
 
 
 def command_prompt():
+
+    def validate_cmd():
+        if cmd_split[0] in cmd_vld_st_map.keys() and cmd_split[0] in cmd_map.keys():
+            # if the command's valid statements are mapped, and it actually exists:
+            try:
+                if cmd_split[1] not in cmd_vld_st_map[cmd_split[0]]:
+                    print_warning(f'"{cmd_split[1]}" is not a valid argument for command "{cmd_split[0]}". ')
+                    return False
+            except IndexError:
+                print_warning(f'You must enter a valid statement to execute command "{cmd_split[0]}". ')
+                return False
+        elif cmd_split[0] in cmd_map.keys():
+            return True
+        else:
+            print(f'The command "{cmd_split[0]}" does not exist. ')
+
+
     global user
     global cr_dir
     cr_dir_ui = translate_path_2_ui(cr_dir)  # cr_dir_ui = the simulated directory seen by the user = A:/Users
@@ -47,8 +63,7 @@ def command_prompt():
             except IndexError:
                 pass
 
-        cmd_map = {'test': function_with_2_args,
-                    'create': create_x,
+        cmd_map = {'create': create_x,
                    'read': read_x,
                    'delete': delete_x,
                    'burn': burn_x,
@@ -61,30 +76,38 @@ def command_prompt():
                    'shutdown': shutdown,
                    'whoami': display_usr,
                    'syslog': show_syslog
-                   # 'dev': lambda dev: dev if user.account_type == 'dev' else print_warning('You need to be a dev. ')
                    }
 
-        args_map = {'create': [cmd_split],
-                    'read': [cmd_split],
-                    'delete': [cmd_split],
-                    'burn': [cmd_split],
-                    'restore': [cmd_split],
-                    'edit': [cmd_split],
-                    'dir': [cr_dir],
-                    'echo': [cmd_split],
-                    'clear': [],
-                    'help': [cmd_split],
-                    'shutdown': [cmd_split],
-                    'whoami': [cmd_split],
-                    'syslog': []
-                    }
+        cmd_args_map = {'create': [cmd_split],
+                        'read': [cmd_split],
+                        'delete': [cmd_split],
+                        'burn': [cmd_split],
+                        'restore': [cmd_split],
+                        'edit': [cmd_split],
+                        'dir': [cr_dir],
+                        'echo': [cmd_split],
+                        'clear': [],
+                        'help': [cmd_split],
+                        'shutdown': [cmd_split],
+                        'whoami': [cmd_split],
+                        'syslog': []
+                        }
+
+        cmd_vld_st_map = {'create': ['file', 'dir', 'user'],
+                          'read': ['file'],
+                          'delete': ['file', 'dir', 'user'],
+                          'burn': ['file', 'dir'],
+                          'restore': ['file', 'dir'],
+                          'edit': ['file', 'user'],
+                          'dev': ['reset']
+                          }
 
         if not cmd_invalid and cmd != '':
             syslog('command', f'used command "{cmd}"')
             cmd_split = translate_command(cmd_split)
 
             if cmd_split[0] in cmd_map.keys():
-                args = args_map[cmd_split[0]]
+                args = cmd_args_map[cmd_split[0]]
                 func = cmd_map[cmd_split[0]]
                 execute_cmd(func, *args)
 
@@ -118,6 +141,8 @@ def command_prompt():
                     print_warning('TypeError: You must enter a valid command to proceed, type "help" for help. ')
                 except IndexError:
                     print_warning('IndexError: You must enter a valid command to proceed, type "help" for help. ')
+
+
 
 
 def execute_cmd(func, *args, **kwargs):
@@ -523,9 +548,6 @@ def translate_command(cmd_split: list) -> list:
 
     return cmd_split
 
-
-def function_with_2_args(arg1, arg2):
-    print(f'arg1 = {arg1}, arg2 = {arg2}')
 
 
 if __name__ == '__main__':
