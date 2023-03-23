@@ -63,9 +63,19 @@ def show_syslog():
                 print(output)
 
 
-def display_sys_info():
+def display_ipconfig(cmd_split):
     import subprocess
-    result = subprocess.run(['ipconfig', '/all'], capture_output=True, text=True, encoding='ANSI')
-    output = result.stdout
-    output.replace('Windows', 'ChaOS')
-    print(output)
+
+    try:
+        if cmd_split[1] == 'all':
+            result = subprocess.run(['ipconfig', '/all'], capture_output=True, text=True, encoding='ANSI')
+            output = result.stdout
+            output = output.replace('Windows', 'ChaOS')
+            output = output.replace('Konfiguration', 'Configuration')
+            print(output)
+    except IndexError:
+        result = subprocess.run(['ipconfig'], capture_output=True, text=True, encoding='ANSI')
+        output = result.stdout
+        output = output.replace('Windows', 'ChaOS')
+        output = output.replace('Konfiguration', 'Configuration')
+        print(output)
