@@ -2,6 +2,7 @@ import ChaOS_constants
 import csv
 from colors import *
 from datetime import datetime
+import os
 
 
 def reset_syslog():
@@ -60,3 +61,11 @@ def show_syslog():
                 print_orange(output)
             else:
                 print(output)
+
+
+def display_sys_info():
+    import subprocess
+    result = subprocess.run(['ipconfig', '/all'], capture_output=True, text=True, encoding='ANSI')
+    output = result.stdout
+    output.replace('Windows', 'ChaOS')
+    print(output)

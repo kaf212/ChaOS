@@ -37,7 +37,6 @@ def command_prompt():
         else:
             print(f'The command "{cmd_split[0]}" does not exist. ')
 
-
     global user
     global cr_dir
     cr_dir_ui = translate_path_2_ui(cr_dir)  # cr_dir_ui = the simulated directory seen by the user = A:/Users
@@ -75,7 +74,8 @@ def command_prompt():
                    'help': help_cmd,
                    'shutdown': shutdown,
                    'whoami': display_usr,
-                   'syslog': show_syslog
+                   'syslog': show_syslog,
+                   'ipconfig': display_sys_info
                    }
 
         cmd_args_map = {'create': [cmd_split],
@@ -86,11 +86,9 @@ def command_prompt():
                         'edit': [cmd_split],
                         'dir': [cr_dir],
                         'echo': [cmd_split],
-                        'clear': [],
                         'help': [cmd_split],
                         'shutdown': [cmd_split],
                         'whoami': [cmd_split],
-                        'syslog': []
                         }
 
         cmd_vld_st_map = {'create': ['file', 'dir', 'user'],
@@ -107,7 +105,11 @@ def command_prompt():
             cmd_split = translate_command(cmd_split)
 
             if cmd_split[0] in cmd_map.keys():
-                args = cmd_args_map[cmd_split[0]]
+                try:
+                    args = cmd_args_map[cmd_split[0]]
+                except KeyError:  # if the function doesn't take any arguments
+                    args = []
+
                 func = cmd_map[cmd_split[0]]
                 execute_cmd(func, *args)
 
@@ -141,8 +143,6 @@ def command_prompt():
                     print_warning('TypeError: You must enter a valid command to proceed, type "help" for help. ')
                 except IndexError:
                     print_warning('IndexError: You must enter a valid command to proceed, type "help" for help. ')
-
-
 
 
 def execute_cmd(func, *args, **kwargs):
