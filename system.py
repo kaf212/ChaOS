@@ -64,7 +64,7 @@ def show_syslog():
 
 
 def display_ipconfig(cmd_split):
-    import subprocess
+    import subprocess  # that was not my idea honestly
 
     try:
         if cmd_split[1] == 'all':

@@ -1,3 +1,4 @@
+import socket
 import time
 from file import *
 from login import login, create_user_ui
@@ -490,7 +491,10 @@ def display_usr(cmd_split):
     if cmd_split[len(cmd_split) - 1] == 'sudo':
         print(f"{platform.uname()[1]}/bootleg_administrator")
     else:
-        print(f'{platform.uname()[1]}/{user.name}')
+        print(f'{"Username:":15}{user.name}')
+        print(f'{"Account type:":15}{user.account_type}')
+        print(f'{"Hostname:":15}{platform.uname()[1]}')
+        print(f'{"IPv4:":15}{socket.gethostbyname(socket.gethostname())}')
 
 
 def access_dev_tools(cmd_split):
