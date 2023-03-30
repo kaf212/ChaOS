@@ -279,12 +279,12 @@ def delete_x(cmd_split):
             print_warning(f'"{cmd_split[1]}" is not a valid statement for command "{cmd_split[0]}"\n')
 
 
-# A/ChaOS_Users/kaf221122
-# restore file testfile
-
-
 def restore_x(cmd_split):
     rec_bin_dir = f'{cr_dir}/Recycling bin'
+    if not os.path.exists(rec_bin_dir):
+        print_warning(f'There is no recycling bin in "{translate_path_2_ui(cr_dir)}". ')
+        return None   # neat way to just exit the function
+
     if validate_dir_access(cr_dir, 'Recycling bin', user, cmd_split):
         if cmd_split[1] == 'file':
             target_path = f'{rec_bin_dir}/{cmd_split[2]}'

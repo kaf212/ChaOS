@@ -1,2 +1,4 @@
 ID,time,category,msg
-0,10:09,command,"used command ""whoami"""
+0,18:12,command,"used command ""cd .."""
+1,18:12,command,"used command ""res f a"""
+2,18:12,command,"used command ""sd"""

@@ -108,7 +108,7 @@ def read_dir_metadata(dirname: str, parent_dir: str) -> dict:
                 if line['dirname'] == dirname:
                     dir_metadata = line
             if not dir_metadata:
-                raise Exception(f'No metadata found for {dirname}')
+                raise Exception(f'No metadata found for "{dirname}"')
             md_csv.close()
 
             return dir_metadata
