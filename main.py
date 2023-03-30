@@ -13,6 +13,8 @@ from colors import *
 user = login()
 cr_dir = f'A/ChaOS_Users/{user.name}'  # cr_dir = the actual current directory: A/ChaOS_Users
 
+# why not pushing ????
+
 
 def main():
     initialize_user_directories()
