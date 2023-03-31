@@ -342,25 +342,22 @@ def validate_dir_access(parent_dir: str, dirname: str, user, cmd_split: list) ->
     fmt = ChaOS_constants.LOGGING_FORMAT
     logging.basicConfig(level=logging.DEBUG, format=fmt)
 
-    if f'{parent_dir}/{dirname}' in ['A/', 'A', 'A/ChaOS_Users']:  # TODO: this looks dumb, check if it's not
-        return True
-
     metadata = read_dir_metadata(dirname, parent_dir)
     owner = metadata['owner']
     owner_account_type = metadata['owner_account_type']
     access_permission = metadata['access_permission']
-    if access_permission == user.name:
-        return True
-    if access_permission == 'all_users':
-        return True
-    if access_permission == user.account_type:
-        return True
 
-    if user.account_type == 'dev':
-        return True
+    conditions = [f'{parent_dir}/{dirname}' in ['A/', 'A', 'A/ChaOS_Users'],
+                  access_permission == user.name,
+                  access_permission == 'all_users',
+                  access_permission == user.account_type,
+                  user.account_type == 'dev',
+                  cmd_split[len(cmd_split) - 1] == 'sudo' and owner_account_type != 'dev'
+                  ]
 
-    if cmd_split[len(cmd_split) - 1] == 'sudo' and owner_account_type != 'dev':
-        return True
+    for cond in conditions:
+        if cond:
+            return True
 
     if user.account_type != 'dev' and owner_account_type == 'dev':
         print_warning("You need developer privileges to access another dev's directory. ")
@@ -381,19 +378,19 @@ def validate_file_access(filename, user):
 
 def validate_file_alteration(filename, user):
     logging.basicConfig(level=logging.DEBUG, format=ChaOS_constants.LOGGING_FORMAT)
-    if filename in ChaOS_constants.SYSTEN_FILE_NAMES:
-        if user.account_type == 'dev':
-            conf = input('You are about to delete a system file, type "iknowwhatimdoing" to proceed. ')
-            if conf == 'iknowwhatimdoing':
-                return True
-            else:
-                print_warning('File deletion was aborted. ')
-                return False
-        else:
-            print_warning('You need developer privileges to alter a system file. ')
-            return False
-    else:
+    if filename not in ChaOS_constants.SYSTEN_FILE_NAMES:
         return True
+
+    if user.account_type != 'dev':
+        print_warning('You need developer privileges to alter a system file. ')
+        return False
+
+    conf = input('You are about to delete a system file, type "iknowwhatimdoing" to proceed. ')
+    if conf == 'iknowwhatimdoing':
+        return True
+    else:
+        print_warning('File deletion was aborted. ')
+        return False
 
 
 def validate_dir_alteration(dirname, user):
