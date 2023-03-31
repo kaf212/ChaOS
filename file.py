@@ -50,7 +50,7 @@ def create_file(dir, name, user):
                     f.write(header_line + '\n')
                     f.write('\n')
                     f.close()
-                syslog('creation', f'created file "{path}"')
+                syslog('creation', f'created file "{translate_path_2_ui(path)}"')
                 print_success(f'Created file {name} in {translate_path_2_ui(path)}. ')
         else:
             print_warning(f'{name} already exists in {dir}. ')
@@ -273,8 +273,6 @@ def delete_file_ui(path):
         else:
             print_warning("File not found. ")
 
-
-# delete dir kaf221122 "" "" "" sudo
 
 def delete_dir_ui(directory, dir_name):
     path = directory + '/' + dir_name

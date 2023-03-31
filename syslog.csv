@@ -1,4 +1,6 @@
 ID,time,category,msg
-0,18:12,command,"used command ""cd .."""
-1,18:12,command,"used command ""res f a"""
-2,18:12,command,"used command ""sd"""
+0,17:00,command,"used command ""dir"""
+1,17:01,command,"used command ""alt f test"""
+2,17:01,alteration,"edited file ""A:/Users/kaf221122/test.txt"""
+3,17:01,command,"used command ""dir"""
+4,17:02,command,"used command ""logoff"""

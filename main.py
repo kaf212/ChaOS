@@ -326,7 +326,7 @@ def burn_x(cmd_split):
                         if input_y_n(f'Burn "{cmd_split[2]}"? > ') == 'y':
                             shutil.rmtree(path)
                             delete_metadata(cmd_split[2], cr_dir)
-                            syslog('deletion', f'burned directory "{cmd_split[2]}". ')
+                            syslog('deletion', f'burned directory "{translate_path_2_ui(path)}". ')
                             print_success(f'Burned "{cmd_split[2]}" successfully. ')
                     else:
                         print_warning('You cannot burn system directories. ')
@@ -335,7 +335,7 @@ def burn_x(cmd_split):
             if cmd_split[2] not in ChaOS_constants.SYSTEN_FILE_NAMES:
                 if input_y_n(f'Burn "{cmd_split[2]}"? > ') == 'y':
                     os.remove(path)
-                    syslog('deletion', f'burned file "{cmd_split[2]}". ')
+                    syslog('deletion', f'burned file "{translate_path_2_ui(path)}". ')
                     print_success(f'Burned "{cmd_split[2]}" successfully. ')
             else:
                 print_warning(f'You cannot burn a system file. ')
@@ -445,9 +445,9 @@ def list_dir(cr_dir):
             total_files += 1
             total_files_size += os.path.getsize(f'{cr_dir}/{dir}')
             if dir in equivalents:
-                print(f'{last_modified}\t\t{equivalents[dir]}')
+                print(f'{last_modified}\t\t\t{equivalents[dir]}')
             else:
-                print(f'{last_modified}\t\t{dir}')
+                print(f'{last_modified}\t\t\t{dir}')
 
     if total_files == 1:
         print(f'\t{total_files} file\t\ttotal: {total_files_size} bytes')
