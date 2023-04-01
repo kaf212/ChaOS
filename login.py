@@ -9,6 +9,7 @@ from system import syslog
 from user import create_user_object, enter_username
 from input import list_selection_options
 from colors import print_warning, print_success
+import getpass
 
 
 def login():
@@ -51,7 +52,7 @@ def login():
     print(f'\n-- {username} --')
     tries = 3
     while tries > 0:
-        input_password = input('Password > ')
+        input_password = getpass.getpass('Password > ')
         if input_password != decrypt_str(password):
             tries -= 1
             print_warning('Wrong password, try again: ')
