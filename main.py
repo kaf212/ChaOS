@@ -13,8 +13,6 @@ from colors import *
 user = login()
 cr_dir = f'A/ChaOS_Users/{user.name}'  # cr_dir = the actual current directory: A/ChaOS_Users
 
-# why not pushing ????
-
 
 def main():
     initialize_user_directories()
@@ -183,12 +181,12 @@ def help_cmd(cmd_split: list):
 
 
 def create_x(cmd_split: list):
-    logging.basicConfig(format=ChaOS_constants.LOGGING_FORMAT, level=logging.DEBUG)
     """
     The top-level command interpreter for anything starting with "create".
     :param cmd_split:
-    :return None:   
+    :return None:
     """
+    logging.basicConfig(format=ChaOS_constants.LOGGING_FORMAT, level=logging.DEBUG)
 
     try:
         if cmd_split[2] == 'sudo':
@@ -224,17 +222,19 @@ def read_x(cmd_split):
     :param cmd_split:
     :return None:
     """
-    if os.path.isfile(f'{cr_dir}/{cmd_split[2]}'):
-        if cmd_split[1] == 'file':
-            if cmd_split[2].endswith('.txt'):
-                read_txt(cr_dir, cmd_split[2])
-            else:
-                print_warning(f'"{"." + cmd_split[2].partition(".")[2]}" is not a valid filetype\n')
-                # extracts the filetype from the file with the .partition method and "." as delimiter.
-        else:
-            print_warning(f'"{cmd_split[1]}" is not a valid statement for command "{cmd_split[0]}\n')
-    else:
+    if not os.path.isfile(f'{cr_dir}/{cmd_split[2]}'):
         print_warning(f'The file "{cr_dir}/{cmd_split[2]}" does not exist. ')
+        return None
+
+    if cmd_split[1] != 'file':
+        print_warning(f'"{cmd_split[1]}" is not a valid statement for command "{cmd_split[0]}\n')
+        return None
+
+    if cmd_split[2].endswith('.txt'):
+        read_txt(cr_dir, cmd_split[2])
+    else:
+        print_warning(f'"{"." + cmd_split[2].partition(".")[2]}" is not a valid filetype\n')
+        # extracts the filetype from the file with the .partition method and "." as delimiter.
 
 
 def delete_x(cmd_split):
@@ -247,38 +247,44 @@ def delete_x(cmd_split):
     """
     if cmd_split[2] == 'sudo':
         print_warning(f'You must enter a valid {cmd_split[1]}name to proceed. ')
+        return None
     # check if the user didn't forget the name and "sudo" is misinterpreted as the name.
 
-    else:
-        if cmd_split[1] == 'file':
-            if check_file_existence(cr_dir + "/" + cmd_split[2]):
-                if validate_file_alteration(cmd_split[2], user):  # make sure the user isn't deleting any system files
-                    # delete_file_ui(cr_dir + "/" + cmd_split[2])
-                    recycle(cmd_split[2], cr_dir)
-                else:
-                    pass
+    if cmd_split[1] == 'file':
+        if not os.path.isfile(cr_dir + "/" + cmd_split[2]):
+            print_warning(f'The file "{cr_dir + "/" + cmd_split[2]}" is not a file or does not exist. ')
+            return None
+        if validate_file_alteration(cmd_split[2], user):  # make sure the user isn't deleting any system files
+            # delete_file_ui(cr_dir + "/" + cmd_split[2])
+            recycle(cmd_split[2], cr_dir)
 
-        elif cmd_split[1] == 'user':
-            delete_user_safe(user, cmd_split[2])
+    elif cmd_split[1] == 'user':
+        delete_user_safe(user, cmd_split[2])
 
-        elif cmd_split[1] == 'dir':
-            target_dir = translate_ui_2_path(cmd_split[2])
-            if os.path.isdir(cr_dir + '/' + target_dir):
-                if validate_dir_access(cmd_split=cmd_split, user=user, dirname=target_dir, parent_dir=cr_dir):
-                    # make sure he has access permission
-                    if validate_dir_alteration(target_dir, user):  # make sure he's not deleting a system directory
-                        if target_dir != 'Recycling bin':
-                            if cr_dir in ['A', 'A/ChaOS_Users']:
-                                delete_dir(target_dir, cr_dir)
-                            else:
-                                recycle(target_dir, cr_dir)
-                        else:
-                            print_warning('You cannot delete the recycling bin. ')
-                        # delete_dir_ui(cr_dir, target_dir)
-            else:
-                print_warning(f'The directory "{cmd_split[2]}" does not exist. ')
+    elif cmd_split[1] == 'dir':
+        target_dir = translate_ui_2_path(cmd_split[2])
+        if not os.path.isdir(cr_dir + '/' + target_dir):
+            print_warning(f'The directory "{cmd_split[2]}" does not exist. ')
+            return None
+
+        if not validate_dir_access(cmd_split=cmd_split, user=user, dirname=target_dir, parent_dir=cr_dir):
+            return None
+
+        # make sure he has access permission
+        if not validate_dir_alteration(target_dir, user):  # make sure he's not deleting a system directory
+            return None
+
+        if target_dir == 'Recycling bin':
+            print_warning('You cannot delete the recycling bin. ')
+            return None
+
+        if cr_dir in ['A', 'A/ChaOS_Users']:
+            delete_dir(target_dir, cr_dir)
         else:
-            print_warning(f'"{cmd_split[1]}" is not a valid statement for command "{cmd_split[0]}"\n')
+            recycle(target_dir, cr_dir)
+            # delete_dir_ui(cr_dir, target_dir)
+    else:
+        print_warning(f'"{cmd_split[1]}" is not a valid statement for command "{cmd_split[0]}"\n')
 
 
 def restore_x(cmd_split):

@@ -314,28 +314,29 @@ def create_dir(user, dir, name, dir_type, cmd_split=None):
     if dir_type not in ChaOS_constants.VALID_DIR_TYPES:
         raise ValueError(f'Invalid dir_type "{dir_type}" given. ')
 
-    if name_valid:
-        access_permission = user.name  # the default access permission is creator only
-        if cmd_split:
-            try:
-                access_permission = cmd_split[3]
-            except IndexError:
-                pass
-
-        if not dir.endswith('/'):
-            path = dir + '/' + name
-        else:
-            path = dir + name
-        try:
-            os.mkdir(path, 0o777)
-            log_dir_metadata(user, name, access_permission, dir, dir_type=dir_type)
-            syslog('creation', f'created directory "{translate_path_2_ui(path)}"')
-        except FileExistsError:
-            print_warning(f'The directory "{name}" already exists. ')
-        else:
-            print_success(f'Directory "{name}" has been created in {translate_path_2_ui(path)}. ')
-    else:
+    if not name_valid:
         print_warning(f'"{name}" contains illegal characters. ')
+        return None
+
+    access_permission = user.name  # the default access permission is creator only
+    if cmd_split:
+        try:
+            access_permission = cmd_split[3]
+        except IndexError:
+            pass
+
+    if not dir.endswith('/'):
+        path = dir + '/' + name
+    else:
+        path = dir + name
+    try:
+        os.mkdir(path, 0o777)
+        log_dir_metadata(user, name, access_permission, dir, dir_type=dir_type)
+        syslog('creation', f'created directory "{translate_path_2_ui(path)}"')
+    except FileExistsError:
+        print_warning(f'The directory "{name}" already exists. ')
+    else:
+        print_success(f'Directory "{name}" has been created in {translate_path_2_ui(path)}. ')
 
 
 def validate_dir_access(parent_dir: str, dirname: str, user, cmd_split: list) -> bool:
@@ -463,15 +464,6 @@ def translate_path_2_ui(path):
     return ui_path
 
 
-def validate_path_existence(path, target=None):
-    if target == 'file':
-        return os.path.isfile(path)
-    elif target == 'dir':
-        return os.path.isdir(path)
-    else:
-        return os.path.exists(path)
-
-
 def recycle(target_name: str, location: str, ):
     if os.path.exists(f'{location}/Recycling bin/{target_name}'):
         try:
@@ -488,9 +480,11 @@ def recycle(target_name: str, location: str, ):
         delete_metadata(target_name, location)
         temp_user_obj = create_user_object(metadata['owner'], None, metadata['owner_account_type'])
         log_dir_metadata(temp_user_obj, target_name, metadata['access_permission'], f'{location}/Recycling bin', metadata['dir_type'])
+        syslog('alteration', f'recycled dir "{location}"')
         print_success(f'Directory "{location}/{target_name}" recycled successfully. ')
     else:
         print_success(f'File "{location}/{target_name}" recycled successfully. ')
+        syslog('alteration', f'recycled file "{location}"')
 
 
 def restore_file(filename, rec_bin_dir):
