@@ -172,7 +172,7 @@ def check_user_existence(username: str) -> bool:
             return False
 
 
-def enter_username() -> None:
+def enter_username() -> str:
     name_taken = True
     while name_taken:
         invalid_chars = [' ', '/', '.', '(', ')', '|', '"', "'"]

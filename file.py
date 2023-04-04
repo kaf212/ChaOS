@@ -58,7 +58,7 @@ def create_file(dir, name, user):
         print_warning(f'{name} contains illegal characters. ')
 
 
-def log_dir_metadata(user, dirname, access_permission, parent_dir, dir_type):
+def log_dir_metadata(user, dirname: str, access_permission: str, parent_dir: str, dir_type: str) -> None:
     logging_format = '[%(levelname)s] %(message)s'
     logging.basicConfig(level=logging.DEBUG, format=logging_format)
     """
