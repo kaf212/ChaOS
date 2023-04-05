@@ -1,10 +1,13 @@
 import socket
 import time
+
+import cmd_definitions
 from file import *
 from login import login, create_user_ui
 from ChaOS_DevTools import *
 from system import *
 from user import edit_user, delete_user_safe
+from cmd_definitions import cmd_def_map, cmd_usage
 import platform
 
 import logging
@@ -160,24 +163,30 @@ def help_cmd(cmd_split: list):
     :param cmd_split:
     :return None:
     """
-    cmd_usage = {'create': 'create <object> <name>',
-                 'read': 'read <object> <name>',
-                 'delete': 'delete <object> <name>',
-                 'edit': 'edit  <object> <name>',
-                 'cd': 'cd <target dir>',
-                 'echo': 'echo <string>',
-                 'help': 'help <target cmd>',
-                 'shutdown': 'shutdown t- <seconds>'
-                 }
+
     try:
         if cmd_split[1] in cmd_usage.keys():
             print(f'-- Help for command {cmd_split[1]} -- ')
-            print(f'{cmd_split[1]}: {cmd_usage[cmd_split[1]]}')
-    except KeyError:
-        print(f'The command "{cmd_split[1]}" does not exist. ')
+            print(f'Syntax: {cmd_usage[cmd_split[1]]}')
+        else:
+            print_warning(f'The command "{cmd_split[1]}" does not exist. ')
+            return None
     except IndexError:
         for cmd, usage in cmd_usage.items():
             print(f'{cmd}: {usage}')
+
+    if len(cmd_split) < 3:  # if there's no ternary statement:
+        return None
+
+    print()
+    if cmd_split[2] == '-def':
+        try:
+            print(cmd_definitions.cmd_def_map[cmd_split[1]])
+        except IndexError:
+            print_warning(f'No definition found for command "{cmd_split[1]}". ')
+        except KeyError:
+            print_warning(f'No definition found for command "{cmd_split[1]}". ')
+        print()
 
 
 def create_x(cmd_split: list):
