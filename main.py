@@ -247,16 +247,19 @@ def read_x(cmd_split):
 
 
 def delete_x(cmd_split):
-    logging.basicConfig(level=logging.DEBUG, format=ChaOS_constants.LOGGING_FORMAT)
     """
     The top-level command interpreter for anything starting with "delete".
     Currently only works for txts.
     :param cmd_split:
     :return None:
     """
-    if cmd_split[2] == 'sudo':
-        print_warning(f'You must enter a valid {cmd_split[1]}name to proceed. ')
-        return None
+    logging.basicConfig(level=logging.DEBUG, format=ChaOS_constants.LOGGING_FORMAT)
+    try:
+        if cmd_split[2] == 'sudo':
+            print_warning(f'You must enter a valid {cmd_split[1]}name to proceed. ')
+            return None
+    except IndexError:
+        pass
     # check if the user didn't forget the name and "sudo" is misinterpreted as the name.
 
     if cmd_split[1] == 'file':
