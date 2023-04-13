@@ -117,7 +117,6 @@ def read_dir_metadata(dirname: str, parent_dir: str) -> dict:
 
 
 def check_metadata_existence(user, dirname: str, access_permission: str, path: str, dir_type: str) -> bool:
-
     dirname = dirname.lower()
 
     md_path = f'{path}/metadata.csv'
@@ -223,7 +222,6 @@ def create_md_file(location):
 
 
 def delete_metadata(dirname, parent_dir):
-
     dirname = dirname.lower()
 
     md_path = f'{parent_dir}/metadata.csv'
@@ -283,7 +281,6 @@ def delete_dir_ui(directory, dir_name):
 
 
 def delete_dir(dir_name, directory):
-
     path = directory + '/' + dir_name
     print(path)
     try:
@@ -479,12 +476,13 @@ def recycle(target_name: str, location: str, ):
         metadata = read_dir_metadata(target_name, location)
         delete_metadata(target_name, location)
         temp_user_obj = create_user_object(metadata['owner'], None, metadata['owner_account_type'])
-        log_dir_metadata(temp_user_obj, target_name, metadata['access_permission'], f'{location}/Recycling bin', metadata['dir_type'])
-        syslog('alteration', f'recycled dir "{location}"')
+        log_dir_metadata(temp_user_obj, target_name, metadata['access_permission'], f'{location}/Recycling bin',
+                         metadata['dir_type'])
+        syslog('alteration', f'recycled dir "{translate_path_2_ui(location)}"')
         print_success(f'Directory "{location}/{target_name}" recycled successfully. ')
     else:
         print_success(f'File "{location}/{target_name}" recycled successfully. ')
-        syslog('alteration', f'recycled file "{location}"')
+        syslog('alteration', f'recycled file "{translate_path_2_ui(location)}"')
 
 
 def restore_file(filename, rec_bin_dir):
@@ -494,4 +492,41 @@ def restore_file(filename, rec_bin_dir):
     rec_bin_dir.pop(-1)
     destination = ''.join(rec_bin_dir)
     shutil.move(og_path, destination)
-    print_success(f'File "{translate_path_2_ui(og_path)}" restored successfully to "{translate_path_2_ui(destination)}". ')
+    print_success(
+        f'File "{translate_path_2_ui(og_path)}" restored successfully to "{translate_path_2_ui(destination)}". ')
+
+
+# move f hello.txt a:/Users/seve
+
+def move_file(cr_dir, user, cmd_split):
+    """
+    destination: fully qualified path of the desired destination (A:/Users/kaf221122/Desktop)
+
+    """
+    destination = cmd_split[3]
+    source = cmd_split[2]
+    trg_dirname = destination
+    if '/' in destination:
+        trg_dirname = destination.partition('/')[-1]
+
+    print(os.path.exists(f'{cr_dir}/{source}'))
+    print(f'{cr_dir}/{source}')
+
+    print(os.path.exists(f'{cr_dir}/{source}'))
+    if os.path.exists(f'{cr_dir}/{source}'):  # if the defined source is in cr_dir
+        source = f'{cr_dir}/{source}'
+    elif not os.path.exists(source):  # if the source is not fully qualified barebone
+        print_warning(f'The target file or directory "{source}" does not exist')
+        return None
+
+    if os.path.exists(f'{cr_dir}/{destination}'):  # if the defined destination is in cr_dir
+        destination = f'{cr_dir}/{destination}'
+    elif not os.path.exists(destination):  # if the destination is not fully qualified barebone
+        print_warning(f'The target directory "{destination}" does not exist')
+        return None
+
+    for path in [source, destination]:
+        if os.path.isdir(path) and not validate_dir_access(cr_dir, trg_dirname, user, cmd_split):
+            return None
+
+    shutil.move(source, destination)
