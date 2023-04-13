@@ -509,10 +509,6 @@ def move_file(cr_dir, user, cmd_split):
     if '/' in destination:
         trg_dirname = destination.partition('/')[-1]
 
-    print(os.path.exists(f'{cr_dir}/{source}'))
-    print(f'{cr_dir}/{source}')
-
-    print(os.path.exists(f'{cr_dir}/{source}'))
     if os.path.exists(f'{cr_dir}/{source}'):  # if the defined source is in cr_dir
         source = f'{cr_dir}/{source}'
     elif not os.path.exists(source):  # if the source is not fully qualified barebone
@@ -529,4 +525,13 @@ def move_file(cr_dir, user, cmd_split):
         if os.path.isdir(path) and not validate_dir_access(cr_dir, trg_dirname, user, cmd_split):
             return None
 
+    if os.path.isdir(source):
+        syslog('alteration', f'moved dir "{translate_path_2_ui(source)}" to "{translate_path_2_ui(destination)}". ')
+        print_success(f' successfully moved dir "{translate_path_2_ui(source)}" to "{translate_path_2_ui(destination)}".')
+    else:
+        syslog('alteration', f'moved file "{translate_path_2_ui(source)}" to "{translate_path_2_ui(destination)}". ')
+        print_success(f'successfully moved file "{translate_path_2_ui(source)}" to "{translate_path_2_ui(destination)}". ')
+
     shutil.move(source, destination)
+
+

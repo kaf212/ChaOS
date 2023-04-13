@@ -26,6 +26,7 @@ CMD_SHORTS = {'cr': 'create',
               'sd': 'shutdown',
               'sl': 'syslog',
               'res': 'restore',
+              'mv': 'move',
 
               'f': 'file',
               'd': 'dir',

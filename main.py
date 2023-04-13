@@ -79,7 +79,8 @@ def command_prompt():
                    'shutdown': shutdown,
                    'whoami': display_usr,
                    'syslog': show_syslog,
-                   'ipconfig': display_ipconfig
+                   'ipconfig': display_ipconfig,
+                   'move': move_file
                    }
 
         cmd_args_map = {'create': [cmd_split],
@@ -93,7 +94,8 @@ def command_prompt():
                         'help': [cmd_split],
                         'shutdown': [cmd_split],
                         'whoami': [cmd_split],
-                        'ipconfig': [cmd_split]
+                        'ipconfig': [cmd_split],
+                        'move': [cr_dir, user, cmd_split]
                         }
 
         cmd_vld_st_map = {'create': ['file', 'dir', 'user'],
@@ -103,7 +105,8 @@ def command_prompt():
                           'restore': ['file', 'dir'],
                           'edit': ['file', 'user'],
                           'dev': ['reset'],
-                          'ipconfig': ['all']
+                          'ipconfig': ['all'],
+                          'move': ['file', 'dir']
                           }
 
         if not cmd_invalid and cmd != '':
