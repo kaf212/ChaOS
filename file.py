@@ -525,6 +525,16 @@ def move_file(cr_dir, user, cmd_split):
         if os.path.isdir(path) and not validate_dir_access(cr_dir, trg_dirname, user, cmd_split):
             return None
 
+    if os.path.exists(f'{destination}') or os.path.exists('INSERT PATH'):
+        if input_y_n(f'"{source}" already exists in "{destination}", do you want to overwrite? ') == 'n':
+            print_warning(f'Aborted action. ')
+            return None
+        else:
+            if os.path.isdir(destination):
+                shutil.rmtree(destination)
+            else:
+                os.remove(destination)
+
     if os.path.isdir(source):
         syslog('alteration', f'moved dir "{translate_path_2_ui(source)}" to "{translate_path_2_ui(destination)}". ')
         print_success(f' successfully moved dir "{translate_path_2_ui(source)}" to "{translate_path_2_ui(destination)}".')

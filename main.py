@@ -578,6 +578,5 @@ def translate_command(cmd_split: list) -> list:
     return cmd_split
 
 
-
 if __name__ == '__main__':
     main()
