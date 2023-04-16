@@ -399,7 +399,7 @@ def validate_dir_alteration(dirname, user):
         return True
 
 
-def split_path(path):
+def split_path(path) -> list:
     path_split_total = []
     while True:
         path_split = path.partition('/')
@@ -543,5 +543,28 @@ def move_file(cr_dir, user, cmd_split):
         print_success(f'successfully moved file "{translate_path_2_ui(source)}" to "{translate_path_2_ui(destination)}". ')
 
     shutil.move(source, destination)
+
+
+def select_file(user, cr_dir, trg_name, cmd_split, mode):
+    trg_path = None
+    if os.path.exists(trg_name):
+        trg_path = trg_name
+    elif os.path.exists(f'{cr_dir}/{trg_name}'):
+        trg_path = f'{cr_dir}/{trg_name}'
+    else:
+        print_warning(f'The file or directory "{trg_name}" does not exist. ')
+        return False
+    if os.path.isdir(trg_path):
+        parent_dir = split_path(trg_path)
+        parent_dir.pop(-1)
+        parent_dir.pop(-2)
+        parent_dir = ''.join(parent_dir)
+        if validate_dir_access(parent_dir, trg_name, user, cmd_split):
+            return trg_path
+        else:
+            return False
+    else:
+        return trg_path
+
 
 

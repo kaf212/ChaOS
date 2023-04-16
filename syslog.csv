@@ -1,6 +1,6 @@
 ID,time,category,msg
-0,17:00,command,"used command ""dir"""
-1,17:01,command,"used command ""alt f test"""
-2,17:01,alteration,"edited file ""A:/Users/kaf221122/test.txt"""
-3,17:01,command,"used command ""dir"""
-4,17:02,command,"used command ""logoff"""
+0,16:12,command,"used command ""cd .."""
+1,16:12,command,"used command ""cd Manu"""
+2,16:12,command,"used command ""sudo cd manu"""
+3,16:12,command,"used command ""cd desktop"""
+4,16:12,command,"used command ""sudo cd desktop"""
