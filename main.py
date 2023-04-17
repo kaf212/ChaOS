@@ -27,6 +27,10 @@ class Cmd:
 
     def interpret(self, cmd_str: str):
         cmd_split = cmd_str.split()
+        for arg in cmd_split:
+            if arg == 'sudo':
+                cmd_split.remove('sudo')
+                self.perm_arg = 'sudo'
         try:
             self.cmd = cmd_split[0]
         except IndexError:
@@ -35,14 +39,15 @@ class Cmd:
             self.pri_arg = cmd_split[1]
             self.sec_arg = cmd_split[2]
             self.ter_arg = cmd_split[3]
-            # self.flags = cmd_split[4]  # TODO: add support for flags
-            self.perm_arg = cmd_split[-1]
         except IndexError:
             pass
 
         for arg in cmd_split:
             if arg.startswith('-'):
-                self.flags[arg] = cmd_split[cmd_split.index(arg) + 1]
+                try:
+                    self.flags[arg] = cmd_split[cmd_split.index(arg) + 1]
+                except IndexError:  # if the flag expects no argument (like -def in cmd "help")
+                    self.flags[arg] = None
 
     def compile(self):
         if self.cmd in CMD_SHORTS.keys():  # compile the command from keyword to cmd
@@ -51,12 +56,9 @@ class Cmd:
             self.pri_arg = CMD_SHORTS[self.pri_arg]
 
         for attr, value in self.__dict__.items():
-            if type(value) == str and (not value.startswith('__') and '/' in value):  # loop over all attributes and if they're
-                # not a builtin and are a path, translate them
+            if type(value) == str and (not value.startswith('__') and '/' in value):
+                # loop over all attributes and if they're not a builtin and are a path, translate them
                 self.__dict__[attr] = translate_ui_2_path(value)
-            if value == 'sudo':
-                self.perm_arg = 'sudo'
-                self.__dict__[attr] = None
 
     def validate(self):
         if self.cmd not in cmd_map:
@@ -79,6 +81,7 @@ class Cmd:
 
             func = cmd_map[self.cmd]
             func(*args)
+            print_warning(f'executed command: {cmd_obj}')
         else:
             print_warning(f'Command not found in cmd_map (Add support for non cmd_map commands!). ')
             # TODO: add support for commands not in cmd_map
@@ -86,9 +89,7 @@ class Cmd:
 
 user = login()
 cr_dir = f'A/ChaOS_Users/{user.name}'  # cr_dir = the actual current directory: A/ChaOS_Users
-cmd_split = []
 cmd_obj = Cmd()
-print(hex(id(cmd_obj)))
 
 
 def main():
@@ -165,16 +166,15 @@ def help_cmd(cmd):
         for command, usage in cmd_usage.items():
             print(f'{command}: {usage}')
 
-
-    # print()
-    # if cmd.sec_arg == '-def':
-    #     try:
-    #         print(cmd_definitions.cmd_def_map[cmd.pri_arg])
-    #     except IndexError:
-    #         print_warning(f'No definition found for command "{cmd.pri_arg}". ')
-    #     except KeyError:
-    #         print_warning(f'No definition found for command "{cmd.pri_arg}". ')
-    #     print()
+    print()
+    if '-def' in cmd.flags.keys():
+        try:
+            print(cmd_definitions.cmd_def_map[cmd.pri_arg])
+        except IndexError:
+            print_warning(f'No definition found for command "{cmd.pri_arg}". ')
+        except KeyError:
+            print_warning(f'No definition found for command "{cmd.pri_arg}". ')
+        print()
 
 
 def create_x(cmd):
