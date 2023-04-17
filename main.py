@@ -43,6 +43,9 @@ class Cmd:
     def compile(self):
         if self.cmd in CMD_SHORTS.keys():  # compile the command from keyword to cmd
             self.cmd = CMD_SHORTS[self.cmd]
+        if self.pri_arg in CMD_SHORTS.keys():  # compile the primary argument from keyword to cmd (for help cmd)
+            self.pri_arg = CMD_SHORTS[self.pri_arg]
+
         for attr, value in self.__dict__.items():
             if value and (not value.startswith('--') and '/' in value):  # loop over all attributes and if they're
                 # not a builtin and are a path, translate them
@@ -55,14 +58,12 @@ class Cmd:
         if self.cmd not in cmd_map:
             print_warning(f'The command "{self.cmd}" does not exist. ')
             return False
-
-        for arg in [self.pri_arg, self.sec_arg, self.ter_arg]:
-            try:
-                if arg not in cmd_vld_arg_map[self.cmd]:
-                    print_warning(f'"{arg}" is not a valid statement for command "{self.cmd}". ')
-                    return False
-            except KeyError:
-                pass
+        try:
+            if self.pri_arg not in cmd_vld_arg_map[self.cmd]:
+                print_warning(f'"{self.pri_arg}" is not a valid statement for command "{self.cmd}". ')
+                return False
+        except KeyError:
+            pass
         return True
 
     def execute(self):
@@ -82,8 +83,8 @@ class Cmd:
 user = login()
 cr_dir = f'A/ChaOS_Users/{user.name}'  # cr_dir = the actual current directory: A/ChaOS_Users
 cmd_split = []
-cmd = Cmd()
-print(hex(id(cmd)))
+cmd_obj = Cmd()
+print(hex(id(cmd_obj)))
 
 
 def main():
@@ -97,17 +98,18 @@ def command_prompt():
     global cmd_split
     global user
     global cr_dir
-    global cmd
+    global cmd_obj
     cr_dir_ui = translate_path_2_ui(cr_dir)  # cr_dir_ui = the simulated directory seen by the user = A:/Users
     while True:
         logging.basicConfig(level='debug', format=ChaOS_constants.LOGGING_FORMAT)
         cmd_str = input(f'{cr_dir_ui}>')
 
         if cmd_str:
-            cmd.interpret(cmd_str)
-            cmd.compile()
-            if cmd.validate():
-                cmd.execute()
+            cmd_obj.interpret(cmd_str)
+            cmd_obj.compile()
+            print(cmd_obj)
+            if cmd_obj.validate():
+                cmd_obj.execute()
 
         #    else:
         #        try:
@@ -140,48 +142,39 @@ def command_prompt():
         #            print_warning('IndexError: You must enter a valid command to proceed, type "help" for help. ')
 
 
-
-
-
-def execute_cmd(func, *args, **kwargs):
-    func(*args, **kwargs)
-
-
-def help_cmd(cmd_split: list):
+def help_cmd(cmd):
     """
     I think this is self-explanatory:
     takes cmd_split as an argument and goes through the dictionary beneath and lists
     the command usage.
-    :param cmd_split:
+    :param cmd:
     :return None:
     """
-
+    print(hex(id(cmd)))
     try:
-        if cmd_split[1] in cmd_usage.keys():
-            print(f'-- Help for command {cmd_split[1]} -- ')
-            print(f'Syntax: {cmd_usage[cmd_split[1]]}')
+        if cmd.pri_arg in cmd_usage.keys():
+            print(f'-- Help for command {cmd.pri_arg} -- ')
+            print(f'Syntax: {cmd_usage[cmd.pri_arg]}')
         else:
-            print_warning(f'The command "{cmd_split[1]}" does not exist. ')
+            print_warning(f'The command "{cmd.pri_arg}" does not exist. ')
             return None
     except IndexError:
-        for cmd, usage in cmd_usage.items():
-            print(f'{cmd}: {usage}')
-
-    if len(cmd_split) < 3:  # if there's no ternary statement:
-        return None
-
-    print()
-    if cmd_split[2] == '-def':
-        try:
-            print(cmd_definitions.cmd_def_map[cmd_split[1]])
-        except IndexError:
-            print_warning(f'No definition found for command "{cmd_split[1]}". ')
-        except KeyError:
-            print_warning(f'No definition found for command "{cmd_split[1]}". ')
-        print()
+        for command, usage in cmd_usage.items():
+            print(f'{command}: {usage}')
 
 
-def create_x(cmd_split: list):
+    # print()
+    # if cmd.sec_arg == '-def':
+    #     try:
+    #         print(cmd_definitions.cmd_def_map[cmd.pri_arg])
+    #     except IndexError:
+    #         print_warning(f'No definition found for command "{cmd.pri_arg}". ')
+    #     except KeyError:
+    #         print_warning(f'No definition found for command "{cmd.pri_arg}". ')
+    #     print()
+
+
+def create_x(cmd):
     """
     The top-level command interpreter for anything starting with "create".
     :param cmd_split:
@@ -190,55 +183,55 @@ def create_x(cmd_split: list):
     logging.basicConfig(format=ChaOS_constants.LOGGING_FORMAT, level=logging.DEBUG)
 
     try:
-        if cmd_split[2] == 'sudo':
-            print_warning(f'You must enter a valid {cmd_split[1]}name to proceed. ')
+        if cmd.perm_arg == 'sudo':
+            print_warning(f'You must enter a valid {cmd.pri_arg}name to proceed. ')
             # check if the user didn't forget the name and "sudo" is misinterpreted as the name.
     except IndexError:
         pass
 
-    if cmd_split[1] == 'file':
-        if validate_filetype(cmd_split[2], ['.txt']):  # if the file is a txt:
-            if not check_file_existence(cr_dir + cmd_split[2]):  # if the file doesn't exist yet:
-                create_file(cr_dir, cmd_split[2], user)
+    if cmd.pri_arg == 'file':
+        if validate_filetype(cmd.sec_arg, ['.txt']):  # if the file is a txt:
+            if not check_file_existence(cr_dir + cmd.sec_arg):  # if the file doesn't exist yet:
+                create_file(cr_dir, cmd.sec_arg, user)
             else:
-                print_warning(f'The file "{cmd_split[2]}" already exists. ')
-    elif cmd_split[1] == 'dir':
+                print_warning(f'The file "{cmd.sec_arg}" already exists. ')
+    elif cmd.pri_arg == 'dir':
         if cmd_split[-1] == 'all_users':
             dir_type = 'communist'
         else:
             dir_type = 'capitalist'
-        create_dir(user=user, dir=cr_dir, name=cmd_split[2], cmd_split=cmd_split, dir_type=dir_type)
-    elif cmd_split[1] == 'user':
+        create_dir(user=user, dir=cr_dir, name=cmd.sec_arg, cmd_split=cmd_split, dir_type=dir_type)
+    elif cmd.pri_arg == 'user':
         create_user_ui(user, cmd_split)
         # the difference between create_user() and create_user_ui() is,
         # that the latter prompts for user info in the console.
     else:
-        print_warning(f'"{cmd_split[1]}" is not a valid statement for command "{cmd_split[0]}"\n')
+        print_warning(f'"{cmd.pri_arg}" is not a valid statement for command "{cmd.cmd}"\n')
 
 
-def read_x(cmd_split):
+def read_x(cmd):
     """
     The top-level command interpreter for anything starting with "read".
     Currently only works for txts.
     :param cmd_split:
     :return None:
     """
-    if not os.path.isfile(f'{cr_dir}/{cmd_split[2]}'):
-        print_warning(f'The file "{cr_dir}/{cmd_split[2]}" does not exist. ')
+    if not os.path.isfile(f'{cr_dir}/{cmd.sec_arg}'):
+        print_warning(f'The file "{cr_dir}/{cmd.sec_arg}" does not exist. ')
         return None
 
-    if cmd_split[1] != 'file':
-        print_warning(f'"{cmd_split[1]}" is not a valid statement for command "{cmd_split[0]}\n')
+    if cmd.pri_arg != 'file':
+        print_warning(f'"{cmd.pri_arg}" is not a valid statement for command "{cmd.cmd}\n')
         return None
 
-    if cmd_split[2].endswith('.txt'):
-        read_txt(cr_dir, cmd_split[2])
+    if cmd.sec_arg.endswith('.txt'):
+        read_txt(cr_dir, cmd.sec_arg)
     else:
-        print_warning(f'"{"." + cmd_split[2].partition(".")[2]}" is not a valid filetype\n')
+        print_warning(f'"{"." + cmd.sec_arg.partition(".")[2]}" is not a valid filetype\n')
         # extracts the filetype from the file with the .partition method and "." as delimiter.
 
 
-def delete_x(cmd_split):
+def delete_x(cmd):
     """
     The top-level command interpreter for anything starting with "delete".
     Currently only works for txts.
@@ -247,28 +240,28 @@ def delete_x(cmd_split):
     """
     logging.basicConfig(level=logging.DEBUG, format=ChaOS_constants.LOGGING_FORMAT)
     try:
-        if cmd_split[2] == 'sudo':
-            print_warning(f'You must enter a valid {cmd_split[1]}name to proceed. ')
+        if cmd.perm_arg == 'sudo':
+            print_warning(f'You must enter a valid {cmd.pri_arg}name to proceed. ')
             return None
     except IndexError:
         pass
     # check if the user didn't forget the name and "sudo" is misinterpreted as the name.
 
-    if cmd_split[1] == 'file':
-        if not os.path.isfile(cr_dir + "/" + cmd_split[2]):
-            print_warning(f'The file "{cr_dir + "/" + cmd_split[2]}" is not a file or does not exist. ')
+    if cmd.pri_arg == 'file':
+        if not os.path.isfile(cr_dir + "/" + cmd.sec_arg):
+            print_warning(f'The file "{cr_dir + "/" + cmd.sec_arg}" is not a file or does not exist. ')
             return None
-        if validate_file_alteration(cmd_split[2], user):  # make sure the user isn't deleting any system files
-            # delete_file_ui(cr_dir + "/" + cmd_split[2])
-            recycle(cmd_split[2], cr_dir)
+        if validate_file_alteration(cmd.sec_arg, user):  # make sure the user isn't deleting any system files
+            # delete_file_ui(cr_dir + "/" + cmd.sec_arg)
+            recycle(cmd.sec_arg, cr_dir)
 
-    elif cmd_split[1] == 'user':
-        delete_user_safe(user, cmd_split[2])
+    elif cmd.pri_arg == 'user':
+        delete_user_safe(user, cmd.sec_arg)
 
-    elif cmd_split[1] == 'dir':
-        target_dir = translate_ui_2_path(cmd_split[2])
+    elif cmd.pri_arg == 'dir':
+        target_dir = translate_ui_2_path(cmd.sec_arg)
         if not os.path.isdir(cr_dir + '/' + target_dir):
-            print_warning(f'The directory "{cmd_split[2]}" does not exist. ')
+            print_warning(f'The directory "{cmd.sec_arg}" does not exist. ')
             return None
 
         if not validate_dir_access(cmd_split=cmd_split, user=user, dirname=target_dir, parent_dir=cr_dir):
@@ -288,25 +281,25 @@ def delete_x(cmd_split):
             recycle(target_dir, cr_dir)
             # delete_dir_ui(cr_dir, target_dir)
     else:
-        print_warning(f'"{cmd_split[1]}" is not a valid statement for command "{cmd_split[0]}"\n')
+        print_warning(f'"{cmd.pri_arg}" is not a valid statement for command "{cmd.cmd}"\n')
 
 
-def restore_x(cmd_split):
+def restore_x(cmd):
     rec_bin_dir = f'{cr_dir}/Recycling bin'
     if not os.path.exists(rec_bin_dir):
         print_warning(f'There is no recycling bin in "{translate_path_2_ui(cr_dir)}". ')
         return None  # neat way to just exit the function
 
     if validate_dir_access(cr_dir, 'Recycling bin', user, cmd_split):
-        if cmd_split[1] == 'file':
-            target_path = f'{rec_bin_dir}/{cmd_split[2]}'
+        if cmd.pri_arg == 'file':
+            target_path = f'{rec_bin_dir}/{cmd.sec_arg}'
             if os.path.isfile(target_path):
-                restore_file(cmd_split[2], rec_bin_dir)
+                restore_file(cmd.sec_arg, rec_bin_dir)
             else:
                 print_warning(f'The file "{translate_path_2_ui(target_path)}" does not exist. ')
 
-        if cmd_split[1] == 'dir':
-            target_path = f'{rec_bin_dir}/{cmd_split[2]}'
+        if cmd.pri_arg == 'dir':
+            target_path = f'{rec_bin_dir}/{cmd.sec_arg}'
             if os.path.isdir(target_path):
                 print_warning(f'You cannot yet restore directories. ')
 
@@ -314,46 +307,46 @@ def restore_x(cmd_split):
                 print_warning(f'The directory "{translate_path_2_ui(target_path)}" does not exist. ')
 
 
-def burn_x(cmd_split):
+def burn_x(cmd):
     """
     Contrary to deleting, burning removes data from its pathetic existence with no steps inbetween.
     :param cmd_split:
     :return:
     """
-    path = f'{cr_dir}/{cmd_split[2]}'
-    if cmd_split[1] == 'dir':
-        if os.path.isdir(f'{cr_dir}/{cmd_split[2]}'):
-            if validate_dir_access(cr_dir, cmd_split[2], user, cmd_split):
-                if cmd_split[2] == 'Recycling bin':
+    path = f'{cr_dir}/{cmd.sec_arg}'
+    if cmd.pri_arg == 'dir':
+        if os.path.isdir(f'{cr_dir}/{cmd.sec_arg}'):
+            if validate_dir_access(cr_dir, cmd.sec_arg, user, cmd_split):
+                if cmd.sec_arg == 'Recycling bin':
                     if input_y_n(f'Burn recycling bin? > ') == 'y':
                         shutil.rmtree(path)
                         os.mkdir(path)
                         create_md_file(path)
                         syslog('deletion', f'burned recycling bin. ')
-                        print_success(f'Burned "{cmd_split[2]}" successfully. ')
+                        print_success(f'Burned "{cmd.sec_arg}" successfully. ')
                 else:
-                    if cmd_split[2] not in ChaOS_constants.SYSTEM_DIR_NAMES:
-                        if input_y_n(f'Burn "{cmd_split[2]}"? > ') == 'y':
+                    if cmd.sec_arg not in ChaOS_constants.SYSTEM_DIR_NAMES:
+                        if input_y_n(f'Burn "{cmd.sec_arg}"? > ') == 'y':
                             shutil.rmtree(path)
-                            delete_metadata(cmd_split[2], cr_dir)
+                            delete_metadata(cmd.sec_arg, cr_dir)
                             syslog('deletion', f'burned directory "{translate_path_2_ui(path)}". ')
-                            print_success(f'Burned "{cmd_split[2]}" successfully. ')
+                            print_success(f'Burned "{cmd.sec_arg}" successfully. ')
                     else:
                         print_warning('You cannot burn system directories. ')
-    elif cmd_split[1] == 'file':
-        if os.path.isfile(f'{cr_dir}/{cmd_split[2]}'):
-            if cmd_split[2] not in ChaOS_constants.SYSTEN_FILE_NAMES:
-                if input_y_n(f'Burn "{cmd_split[2]}"? > ') == 'y':
+    elif cmd.pri_arg == 'file':
+        if os.path.isfile(f'{cr_dir}/{cmd.sec_arg}'):
+            if cmd.sec_arg not in ChaOS_constants.SYSTEN_FILE_NAMES:
+                if input_y_n(f'Burn "{cmd.sec_arg}"? > ') == 'y':
                     os.remove(path)
                     syslog('deletion', f'burned file "{translate_path_2_ui(path)}". ')
-                    print_success(f'Burned "{cmd_split[2]}" successfully. ')
+                    print_success(f'Burned "{cmd.sec_arg}" successfully. ')
             else:
                 print_warning(f'You cannot burn a system file. ')
         else:
             print_warning(f'"{path}" is not a file. ')
 
 
-def edit_x(cmd_split):
+def edit_x(cmd):
     """
     The top-level command interpreter dor anything starting with "edit".
     Supports both txts and users.
@@ -361,29 +354,29 @@ def edit_x(cmd_split):
     :return None:
     """
 
-    if cmd_split[2] == 'sudo':
-        print_warning(f'You must enter a valid {cmd_split[1]}name to proceed. ')
+    if cmd.perm_arg == 'sudo':
+        print_warning(f'You must enter a valid {cmd.pri_arg}name to proceed. ')
     # check if the user didn't forget the name and "sudo" is misinterpreted as the name.
 
     else:
 
-        if cmd_split[1] == 'file':
-            if check_file_existence(cr_dir + "/" + cmd_split[2]):
-                if validate_filetype(cmd_split[2], ['.txt']):
-                    edit_txt(cr_dir + "/" + cmd_split[2])
+        if cmd.pri_arg == 'file':
+            if check_file_existence(cr_dir + "/" + cmd.sec_arg):
+                if validate_filetype(cmd.sec_arg, ['.txt']):
+                    edit_txt(cr_dir + "/" + cmd.sec_arg)
             else:
-                print_warning(f'File "{cmd_split[2]}" does not exist. ')
+                print_warning(f'File "{cmd.sec_arg}" does not exist. ')
 
-        elif cmd_split[1] == 'user':
+        elif cmd.pri_arg == 'user':
             if cmd_split[len(cmd_split) - 1] == 'sudo':
                 edit_user(cmd_split)
-            elif cmd_split[2] != user.name and user.account_type not in ['admin', 'dev']:
+            elif cmd.sec_arg != user.name and user.account_type not in ['admin', 'dev']:
                 print_warning('You need administrator privileges to edit another user. ')
             else:
                 edit_user(cmd_split)
 
 
-def change_dir(path, cr_dir, cmd_split):
+def change_dir(path, cr_dir, cmd):
     logging.basicConfig(level=logging.DEBUG, format=ChaOS_constants.LOGGING_FORMAT)
     if path == '..':
         pth_spl = split_path(cr_dir)  # split the current directory into a list
@@ -470,24 +463,24 @@ def list_dir(cr_dir):
         print(f'\t{total_dirs} directories')
 
 
-def echo(cmd_obj):
-    print_warning(cmd_obj)
-    print(cmd_obj.pri_arg)
+def echo(cmd):
+    print_warning(cmd)
+    print(cmd.pri_arg)
 
 
 def clear_screen():
     os.system('cls')
 
 
-def shutdown(cmd_split):
+def shutdown(cmd):
     """
     No explanation needed.
     :param cmd_split:
     :return:
     """
     try:
-        if 't-' in cmd_split[1]:  # if the user has specified a countdown with "t-"_
-            sd_cd = list(cmd_split[1])
+        if 't-' in cmd.pri_arg:  # if the user has specified a countdown with "t-"_
+            sd_cd = list(cmd.pri_arg)
             sd_cd.remove('t')
             sd_cd.remove('-')  # remove "t-"
             sd_cd = ''.join(sd_cd)
@@ -497,7 +490,7 @@ def shutdown(cmd_split):
         exit()
 
 
-def display_usr(cmd_split):
+def display_usr(cmd):
     if cmd_split[len(cmd_split) - 1] == 'sudo':
         print(f"{platform.uname()[1]}/bootleg_administrator")
     else:
@@ -507,7 +500,7 @@ def display_usr(cmd_split):
         print(f'{"IPv4:":15}{socket.gethostbyname(socket.gethostname())}')
 
 
-def access_dev_tools(cmd_split):
+def access_dev_tools(cmd):
     """
     The gateway to the land of dangerous and user-unfriendly operations.
     :param cmd_split:
@@ -525,44 +518,29 @@ def access_dev_tools(cmd_split):
         else:
             print(f'[DEVTOOL]: {output}')
 
-    if cmd_split[1] == 'reset':
-        if cmd_split[2] == 'user_csv' or cmd_split[2] == 'users_csv':
+    if cmd.pri_arg == 'reset':
+        if cmd.sec_arg == 'user_csv' or cmd.sec_arg == 'users_csv':
             try:
-                if cmd_split[3] == '-hard':
+                if cmd.ter_arg == '-hard':
                     reset_user_csv('-hard')
             except IndexError:
                 reset_user_csv(None)
             try:
-                if cmd_split[3] == '-hard':
+                if cmd.ter_arg == '-hard':
                     print_dev('User CSV was reset HARD successfully. ', 'green')
             except IndexError:
                 print_dev('User CSV was reset successfully. ', 'green')
 
-        elif cmd_split[2] == 'user_dirs':
+        elif cmd.sec_arg == 'user_dirs':
             try:
-                if cmd_split[3] == '-hard':
+                if cmd.ter_arg == '-hard':
                     reset_user_dirs('-hard')
                     print_dev('User directories were reset HARD successfully. ', 'green')
             except IndexError:
                 reset_user_dirs()
                 print_dev('User directories were reset successfully. ', 'green')
     else:
-        print_dev(f'"{cmd_split[1]}" is not a valid dev command. ', 'red')
-
-
-def translate_command(cmd_split: list) -> list:
-    for item in cmd_split:
-        if item in ChaOS_constants.CMD_SHORTS.keys():
-            cmd_split[cmd_split.index(item)] = ChaOS_constants.CMD_SHORTS[item]
-
-    try:
-        if cmd_split[1] in ['f', 'file']:
-            if '.' not in cmd_split[2]:  # when filetype is not specified, change it to .txt
-                cmd_split[2] += '.txt'
-    except IndexError:
-        pass
-
-    return cmd_split
+        print_dev(f'"{cmd.pri_arg}" is not a valid dev command. ', 'red')
 
 
 cmd_map = {'create': create_x,
@@ -583,20 +561,20 @@ cmd_map = {'create': create_x,
            'dev': access_dev_tools
            }
 
-cmd_args_map = {'create': [cmd_split],
-                'read': [cmd_split],
-                'delete': [cmd_split],
-                'burn': [cmd_split],
-                'restore': [cmd_split],
-                'edit': [cmd_split],
+cmd_args_map = {'create': [cmd_obj],
+                'read': [cmd_obj],
+                'delete': [cmd_obj],
+                'burn': [cmd_obj],
+                'restore': [cmd_obj],
+                'edit': [cmd_obj],
                 'dir': [cr_dir],
-                'echo': [cmd],
-                'help': [cmd_split],
-                'shutdown': [cmd_split],
-                'whoami': [cmd_split],
-                'ipconfig': [cmd_split],
-                'move': [cr_dir, user, cmd_split],
-                'dev': [cmd_split]
+                'echo': [cmd_obj],
+                'help': [cmd_obj],
+                'shutdown': [cmd_obj],
+                'whoami': [cmd_obj],
+                'ipconfig': [cmd_obj],
+                'move': [cr_dir, user, cmd_obj],
+                'dev': [cmd_obj]
                 }
 
 cmd_vld_arg_map = {'create': ['file', 'dir', 'user'],
