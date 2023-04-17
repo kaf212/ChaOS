@@ -9,12 +9,81 @@ from system import *
 from user import edit_user, delete_user_safe
 from cmd_definitions import cmd_def_map, cmd_usage
 import platform
+from dataclasses import dataclass
+from ChaOS_constants import CMD_SHORTS
 
 import logging
 from colors import *
 
+
+@dataclass
+class Cmd:
+    cmd: str = None
+    pri_arg: str = None
+    sec_arg: str = None
+    ter_arg: str = None
+    flags: dict = None
+    perm_arg: str = None
+
+    def interpret(self, cmd_str: str):
+        cmd_split = cmd_str.split()
+        try:
+            self.cmd = cmd_split[0]
+        except IndexError:
+            print('You must enter a valid command to interact with the system. ')
+        try:
+            self.pri_arg = cmd_split[1]
+            self.sec_arg = cmd_split[2]
+            self.ter_arg = cmd_split[3]
+            # self.flags = cmd_split[4]  # TODO: add support for flags
+            self.perm_arg = cmd_split[-1]
+        except IndexError:
+            pass
+
+    def compile(self):
+        if self.cmd in CMD_SHORTS.keys():  # compile the command from keyword to cmd
+            self.cmd = CMD_SHORTS[self.cmd]
+        for attr, value in self.__dict__.items():
+            if value and (not value.startswith('--') and '/' in value):  # loop over all attributes and if they're
+                # not a builtin and are a path, translate them
+                self.__dict__[attr] = translate_ui_2_path(value)
+            if value == 'sudo':
+                self.perm_arg = 'sudo'
+                self.__dict__[attr] = None
+
+    def validate(self):
+        if self.cmd not in cmd_map:
+            print_warning(f'The command "{self.cmd}" does not exist. ')
+            return False
+
+        for arg in [self.pri_arg, self.sec_arg, self.ter_arg]:
+            try:
+                if arg not in cmd_vld_arg_map[self.cmd]:
+                    print_warning(f'"{arg}" is not a valid statement for command "{self.cmd}". ')
+                    return False
+            except KeyError:
+                pass
+        return True
+
+    def execute(self):
+        if self.cmd in cmd_map.keys():
+            try:
+                args = cmd_args_map[self.cmd]
+            except KeyError:  # if the function doesn't take any arguments
+                args = []
+
+            func = cmd_map[self.cmd]
+            func(*args)
+        else:
+            print_warning(f'Command not found in cmd_map (Add support for non cmd_map commands!). ')
+            # TODO: add support for commands not in cmd_map
+
+
 user = login()
 cr_dir = f'A/ChaOS_Users/{user.name}'  # cr_dir = the actual current directory: A/ChaOS_Users
+cmd_split = []
+cmd = Cmd()
+print(hex(id(cmd)))
 
 
 def main():
@@ -25,133 +94,53 @@ def main():
 
 
 def command_prompt():
-
-    def validate_cmd():
-        if cmd_split[0] in cmd_vld_st_map.keys() and cmd_split[0] in cmd_map.keys():
-            # if the command's valid statements are mapped, and it actually exists:
-            try:
-                if cmd_split[1] not in cmd_vld_st_map[cmd_split[0]]:
-                    print_warning(f'"{cmd_split[1]}" is not a valid argument for command "{cmd_split[0]}". ')
-                    return False
-            except IndexError:
-                print_warning(f'You must enter a valid statement to execute command "{cmd_split[0]}". ')
-                return False
-        elif cmd_split[0] in cmd_map.keys():
-            return True
-        else:
-            print(f'The command "{cmd_split[0]}" does not exist. ')
-
+    global cmd_split
     global user
     global cr_dir
+    global cmd
     cr_dir_ui = translate_path_2_ui(cr_dir)  # cr_dir_ui = the simulated directory seen by the user = A:/Users
     while True:
         logging.basicConfig(level='debug', format=ChaOS_constants.LOGGING_FORMAT)
-        cmd = input(f'{cr_dir_ui}>')
+        cmd_str = input(f'{cr_dir_ui}>')
 
-        cmd_invalid = False
-        cmd_split = None
-        if cmd:
-            try:
-                cmd_split = cmd.split()  # splits the input command string into a list, the delimiter is a whitespace.
-            except TypeError:
-                cmd_invalid = True
+        if cmd_str:
+            cmd.interpret(cmd_str)
+            cmd.compile()
+            if cmd.validate():
+                cmd.execute()
 
-            try:
-                if cmd_split[0] == 'sudo':
-                    cmd_split.remove('sudo')
-                    cmd_split.append('')
-                    cmd_split.append('')  # yes, this is part 1 of the fix for issue #13
-                    cmd_split.append('')
-                    cmd_split.append('sudo')
-            except IndexError:
-                pass
+        #    else:
+        #        try:
+#
+        #            if cmd_split[0] == 'cd':
+        #                dir_cd = change_dir(translate_ui_2_path(cmd_split[1]),
+        #                                    cr_dir, cmd_split)
+        #                # before a dir change, the user input dir needs to be translated from ui_dir to actual dir.
+        #                if dir_cd is not None:  # if cd didn't fail
+        #                    cr_dir = dir_cd
+        #                    cr_dir_ui = translate_path_2_ui(cr_dir)
+#
+        #            elif cmd_split[0] == 'logoff':
+        #                user = login()
+        #                cr_dir = f'A/ChaOS_Users/{user.name}'
+        #                main()
+#
+        #            elif cmd_split[0] == 'dev':
+        #                if user.account_type == 'dev':
+        #                    access_dev_tools(cmd_split)
+        #                else:
+        #                    print_warning('You need developer privileges to access the DevTools. ')
+#
+        #            else:
+        #                print_warning(f'The command "{cmd_split[0]}" does not exist. \n')
+#
+        #        except TypeError:
+        #            print_warning('TypeError: You must enter a valid command to proceed, type "help" for help. ')
+        #        except IndexError:
+        #            print_warning('IndexError: You must enter a valid command to proceed, type "help" for help. ')
 
-        cmd_map = {'create': create_x,
-                   'read': read_x,
-                   'delete': delete_x,
-                   'burn': burn_x,
-                   'restore': restore_x,
-                   'edit': edit_x,
-                   'dir': list_dir,
-                   'echo': echo,
-                   'clear': clear_screen,
-                   'help': help_cmd,
-                   'shutdown': shutdown,
-                   'whoami': display_usr,
-                   'syslog': show_syslog,
-                   'ipconfig': display_ipconfig,
-                   'move': move_file
-                   }
 
-        cmd_args_map = {'create': [cmd_split],
-                        'read': [cmd_split],
-                        'delete': [cmd_split],
-                        'burn': [cmd_split],
-                        'restore': [cmd_split],
-                        'edit': [cmd_split],
-                        'dir': [cr_dir],
-                        'echo': [cmd_split],
-                        'help': [cmd_split],
-                        'shutdown': [cmd_split],
-                        'whoami': [cmd_split],
-                        'ipconfig': [cmd_split],
-                        'move': [cr_dir, user, cmd_split]
-                        }
 
-        cmd_vld_st_map = {'create': ['file', 'dir', 'user'],
-                          'read': ['file'],
-                          'delete': ['file', 'dir', 'user'],
-                          'burn': ['file', 'dir'],
-                          'restore': ['file', 'dir'],
-                          'edit': ['file', 'user'],
-                          'dev': ['reset'],
-                          'ipconfig': ['all'],
-                          'move': ['file', 'dir']
-                          }
-
-        if not cmd_invalid and cmd != '':
-            syslog('command', f'used command "{cmd}"')
-            cmd_split = translate_command(cmd_split)
-
-            if cmd_split[0] in cmd_map.keys():
-                try:
-                    args = cmd_args_map[cmd_split[0]]
-                except KeyError:  # if the function doesn't take any arguments
-                    args = []
-
-                func = cmd_map[cmd_split[0]]
-                execute_cmd(func, *args)
-
-            else:
-
-                try:
-
-                    if cmd_split[0] == 'cd':
-                        dir_cd = change_dir(translate_ui_2_path(cmd_split[1]),
-                                            cr_dir, cmd_split)
-                        # before a dir change, the user input dir needs to be translated from ui_dir to actual dir.
-                        if dir_cd is not None:  # if cd didn't fail
-                            cr_dir = dir_cd
-                            cr_dir_ui = translate_path_2_ui(cr_dir)
-
-                    elif cmd_split[0] == 'logoff':
-                        user = login()
-                        cr_dir = f'A/ChaOS_Users/{user.name}'
-                        main()
-
-                    elif cmd_split[0] == 'dev':
-                        if user.account_type == 'dev':
-                            access_dev_tools(cmd_split)
-                        else:
-                            print_warning('You need developer privileges to access the DevTools. ')
-
-                    else:
-                        print_warning(f'The command "{cmd_split[0]}" does not exist. \n')
-
-                except TypeError:
-                    print_warning('TypeError: You must enter a valid command to proceed, type "help" for help. ')
-                except IndexError:
-                    print_warning('IndexError: You must enter a valid command to proceed, type "help" for help. ')
 
 
 def execute_cmd(func, *args, **kwargs):
@@ -306,7 +295,7 @@ def restore_x(cmd_split):
     rec_bin_dir = f'{cr_dir}/Recycling bin'
     if not os.path.exists(rec_bin_dir):
         print_warning(f'There is no recycling bin in "{translate_path_2_ui(cr_dir)}". ')
-        return None   # neat way to just exit the function
+        return None  # neat way to just exit the function
 
     if validate_dir_access(cr_dir, 'Recycling bin', user, cmd_split):
         if cmd_split[1] == 'file':
@@ -481,11 +470,9 @@ def list_dir(cr_dir):
         print(f'\t{total_dirs} directories')
 
 
-def echo(cmd):
-    try:
-        print(cmd[1])
-    except IndexError:
-        print_warning('You must enter a valid statement to echo. ')
+def echo(cmd_obj):
+    print_warning(cmd_obj)
+    print(cmd_obj.pri_arg)
 
 
 def clear_screen():
@@ -577,6 +564,51 @@ def translate_command(cmd_split: list) -> list:
 
     return cmd_split
 
+
+cmd_map = {'create': create_x,
+           'read': read_x,
+           'delete': delete_x,
+           'burn': burn_x,
+           'restore': restore_x,
+           'edit': edit_x,
+           'dir': list_dir,
+           'echo': echo,
+           'clear': clear_screen,
+           'help': help_cmd,
+           'shutdown': shutdown,
+           'whoami': display_usr,
+           'syslog': show_syslog,
+           'ipconfig': display_ipconfig,
+           'move': move_file,
+           'dev': access_dev_tools
+           }
+
+cmd_args_map = {'create': [cmd_split],
+                'read': [cmd_split],
+                'delete': [cmd_split],
+                'burn': [cmd_split],
+                'restore': [cmd_split],
+                'edit': [cmd_split],
+                'dir': [cr_dir],
+                'echo': [cmd],
+                'help': [cmd_split],
+                'shutdown': [cmd_split],
+                'whoami': [cmd_split],
+                'ipconfig': [cmd_split],
+                'move': [cr_dir, user, cmd_split],
+                'dev': [cmd_split]
+                }
+
+cmd_vld_arg_map = {'create': ['file', 'dir', 'user'],
+                   'read': ['file'],
+                   'delete': ['file', 'dir', 'user'],
+                   'burn': ['file', 'dir'],
+                   'restore': ['file', 'dir'],
+                   'edit': ['file', 'user'],
+                   'dev': ['reset'],
+                   'ipconfig': ['all'],
+                   'move': ['file', 'dir']
+                   }
 
 if __name__ == '__main__':
     main()
