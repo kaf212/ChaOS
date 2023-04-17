@@ -302,7 +302,7 @@ def edit_txt(path):
     syslog('alteration', f'edited file "{translate_path_2_ui(path)}"')
 
 
-def create_dir(user, dir, name, dir_type, cmd_split=None):
+def create_dir(user, dir, name, dir_type, cmd=None):
     name_valid = True
     for char in [' ', '..', '.', '...', '/', "'", '"']:
         if char in name:
@@ -316,11 +316,10 @@ def create_dir(user, dir, name, dir_type, cmd_split=None):
         return None
 
     access_permission = user.name  # the default access permission is creator only
-    if cmd_split:
-        try:
-            access_permission = cmd_split[3]
-        except IndexError:
-            pass
+    if cmd:
+        access_permission = cmd.get_flag('-perm')
+        if access_permission is None:
+            access_permission = user.name
 
     if not dir.endswith('/'):
         path = dir + '/' + name
@@ -336,7 +335,7 @@ def create_dir(user, dir, name, dir_type, cmd_split=None):
         print_success(f'Directory "{name}" has been created in {translate_path_2_ui(path)}. ')
 
 
-def validate_dir_access(parent_dir: str, dirname: str, user, cmd_split: list) -> bool:
+def validate_dir_access(parent_dir: str, dirname: str, user, cmd) -> bool:
     fmt = ChaOS_constants.LOGGING_FORMAT
     logging.basicConfig(level=logging.DEBUG, format=fmt)
 
@@ -350,7 +349,7 @@ def validate_dir_access(parent_dir: str, dirname: str, user, cmd_split: list) ->
                   access_permission == 'all_users',
                   access_permission == user.account_type,
                   user.account_type == 'dev',
-                  cmd_split[len(cmd_split) - 1] == 'sudo' and owner_account_type != 'dev'
+                  cmd.perm_arg == 'sudo' and owner_account_type != 'dev'
                   ]
 
     for cond in conditions:

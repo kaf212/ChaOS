@@ -93,6 +93,18 @@ class Cmd:
             elif type(value) == dict:
                 self.__dict__[attr] = dict()
 
+    def flag_exists(self, flag):
+        for key in self.flags.keys():
+            if key == flag:
+                return True
+        return False
+
+    def get_flag(self, flag):
+        for key, value in self.flags.items():
+            if key == flag:
+                return value
+        return None
+
 
 user = login()
 cr_dir = f'A/ChaOS_Users/{user.name}'  # cr_dir = the actual current directory: A/ChaOS_Users
@@ -107,13 +119,11 @@ def main():
 
 
 def command_prompt():
-    global cmd_split
     global user
     global cr_dir
     global cmd_obj
-    cr_dir_ui = translate_path_2_ui(cr_dir)  # cr_dir_ui = the simulated directory seen by the user = A:/Users
     while True:
-        cmd_str = input(f'{cr_dir_ui}>')
+        cmd_str = input(f'{translate_path_2_ui(cr_dir)}>')
         cmd_obj.reset()
         if cmd_str:
             cmd_obj.interpret(cmd_str)
@@ -205,13 +215,13 @@ def create_x(cmd):
             else:
                 print_warning(f'The file "{cmd.sec_arg}" already exists. ')
     elif cmd.pri_arg == 'dir':
-        if cmd_split[-1] == 'all_users':
+        if cmd.get_flag('-perm') == 'all_users':
             dir_type = 'communist'
         else:
             dir_type = 'capitalist'
-        create_dir(user=user, dir=cr_dir, name=cmd.sec_arg, cmd_split=cmd_split, dir_type=dir_type)
+        create_dir(user=user, dir=cr_dir, name=cmd.sec_arg, cmd=cmd, dir_type=dir_type)
     elif cmd.pri_arg == 'user':
-        create_user_ui(user, cmd_split)
+        create_user_ui(user, cmd)
         # the difference between create_user() and create_user_ui() is,
         # that the latter prompts for user info in the console.
     else:
@@ -273,7 +283,7 @@ def delete_x(cmd):
             print_warning(f'The directory "{cmd.sec_arg}" does not exist. ')
             return None
 
-        if not validate_dir_access(cmd_split=cmd_split, user=user, dirname=target_dir, parent_dir=cr_dir):
+        if not validate_dir_access(cmd=cmd, user=user, dirname=target_dir, parent_dir=cr_dir):
             return None
 
         # make sure he has access permission
@@ -299,7 +309,7 @@ def restore_x(cmd):
         print_warning(f'There is no recycling bin in "{translate_path_2_ui(cr_dir)}". ')
         return None  # neat way to just exit the function
 
-    if validate_dir_access(cr_dir, 'Recycling bin', user, cmd_split):
+    if validate_dir_access(cr_dir, 'Recycling bin', user, cmd):
         if cmd.pri_arg == 'file':
             target_path = f'{rec_bin_dir}/{cmd.sec_arg}'
             if os.path.isfile(target_path):
@@ -325,7 +335,7 @@ def burn_x(cmd):
     path = f'{cr_dir}/{cmd.sec_arg}'
     if cmd.pri_arg == 'dir':
         if os.path.isdir(f'{cr_dir}/{cmd.sec_arg}'):
-            if validate_dir_access(cr_dir, cmd.sec_arg, user, cmd_split):
+            if validate_dir_access(cr_dir, cmd.sec_arg, user, cmd):
                 if cmd.sec_arg == 'Recycling bin':
                     if input_y_n(f'Burn recycling bin? > ') == 'y':
                         shutil.rmtree(path)
@@ -377,12 +387,12 @@ def edit_x(cmd):
                 print_warning(f'File "{cmd.sec_arg}" does not exist. ')
 
         elif cmd.pri_arg == 'user':
-            if cmd_split[len(cmd_split) - 1] == 'sudo':
-                edit_user(cmd_split)
+            if cmd.perm_arg == 'sudo':
+                edit_user(cmd)
             elif cmd.sec_arg != user.name and user.account_type not in ['admin', 'dev']:
                 print_warning('You need administrator privileges to edit another user. ')
             else:
-                edit_user(cmd_split)
+                edit_user(cmd)
 
 
 def change_dir(path, cr_dir, cmd):
@@ -411,11 +421,11 @@ def change_dir(path, cr_dir, cmd):
 
         if os.path.exists(full_path):
             dir = full_path
-            if validate_dir_access(parent_dir=cr_dir, user=user, cmd_split=cmd_split, dirname=path):
+            if validate_dir_access(parent_dir=cr_dir, user=user, cmd=cmd, dirname=path):
                 return dir
         elif os.path.exists(path):
             dir = path
-            if validate_dir_access(parent_dir=cr_dir, user=user, cmd_split=cmd_split, dirname=path):
+            if validate_dir_access(parent_dir=cr_dir, user=user, cmd=cmd, dirname=path):
                 # TODO if something's broken, check these arguments for corectness
                 return dir
             return dir
@@ -500,7 +510,7 @@ def shutdown(cmd):
 
 
 def display_usr(cmd):
-    if cmd_split[len(cmd_split) - 1] == 'sudo':
+    if cmd.perm_arg == 'sudo':
         print(f"{platform.uname()[1]}/bootleg_administrator")
     else:
         print(f'{"Username:":15}{user.name}')
