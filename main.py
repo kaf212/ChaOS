@@ -9,7 +9,7 @@ from system import *
 from user import edit_user, delete_user_safe
 from cmd_definitions import cmd_def_map, cmd_usage
 import platform
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from ChaOS_constants import CMD_SHORTS
 
 import logging
@@ -22,7 +22,7 @@ class Cmd:
     pri_arg: str = None
     sec_arg: str = None
     ter_arg: str = None
-    flags: dict = None
+    flags: dict = field(default_factory=dict)
     perm_arg: str = None
 
     def interpret(self, cmd_str: str):
@@ -40,6 +40,10 @@ class Cmd:
         except IndexError:
             pass
 
+        for arg in cmd_split:
+            if arg.startswith('-'):
+                self.flags[arg] = cmd_split[cmd_split.index(arg) + 1]
+
     def compile(self):
         if self.cmd in CMD_SHORTS.keys():  # compile the command from keyword to cmd
             self.cmd = CMD_SHORTS[self.cmd]
@@ -47,7 +51,7 @@ class Cmd:
             self.pri_arg = CMD_SHORTS[self.pri_arg]
 
         for attr, value in self.__dict__.items():
-            if value and (not value.startswith('--') and '/' in value):  # loop over all attributes and if they're
+            if type(value) == str and (not value.startswith('__') and '/' in value):  # loop over all attributes and if they're
                 # not a builtin and are a path, translate them
                 self.__dict__[attr] = translate_ui_2_path(value)
             if value == 'sudo':
@@ -107,7 +111,6 @@ def command_prompt():
         if cmd_str:
             cmd_obj.interpret(cmd_str)
             cmd_obj.compile()
-            print(cmd_obj)
             if cmd_obj.validate():
                 cmd_obj.execute()
 
