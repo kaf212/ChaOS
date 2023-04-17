@@ -86,6 +86,13 @@ class Cmd:
             print_warning(f'Command not found in cmd_map (Add support for non cmd_map commands!). ')
             # TODO: add support for commands not in cmd_map
 
+    def reset(self):
+        for attr, value in self.__dict__.items():
+            if type(value) == str and value.startswith('__'):
+                self.__dict__[attr] = None
+            elif type(value) == dict:
+                self.__dict__[attr] = dict()
+
 
 user = login()
 cr_dir = f'A/ChaOS_Users/{user.name}'  # cr_dir = the actual current directory: A/ChaOS_Users
@@ -106,9 +113,8 @@ def command_prompt():
     global cmd_obj
     cr_dir_ui = translate_path_2_ui(cr_dir)  # cr_dir_ui = the simulated directory seen by the user = A:/Users
     while True:
-        logging.basicConfig(level='debug', format=ChaOS_constants.LOGGING_FORMAT)
         cmd_str = input(f'{cr_dir_ui}>')
-
+        cmd_obj.reset()
         if cmd_str:
             cmd_obj.interpret(cmd_str)
             cmd_obj.compile()
