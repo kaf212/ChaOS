@@ -395,14 +395,19 @@ def edit_x(cmd):
                 edit_user(cmd)
 
 
-def change_dir(path, cr_dir, cmd):
+def change_dir(cmd):
+    path = cmd.pri_arg
+    global cr_dir
     logging.basicConfig(level=logging.DEBUG, format=ChaOS_constants.LOGGING_FORMAT)
     if path == '..':
+        print_warning(cr_dir)
         pth_spl = split_path(cr_dir)  # split the current directory into a list
         pth_spl.pop()  # remove the last directory
         pth_spl.pop()  # remove the "/"
         dir = ''.join(pth_spl)  # reconvert it into a string
-        return dir
+        cr_dir = dir
+        print_warning(f'cr_dir = {cr_dir}')
+        return None
 
     path_valid = True
     invalid_paths = ['...', '/', '.']
@@ -410,25 +415,29 @@ def change_dir(path, cr_dir, cmd):
         path_valid = False
 
     if path_valid:
-
         if os.path.isdir(path):
-            return path
+            cr_dir = path
 
         if not cr_dir.endswith('/'):
             full_path = cr_dir + '/' + path
         else:
             full_path = cr_dir + path
 
+        print_warning(f'full path = {full_path}')
+        print_warning(f'path = {path}')
         if os.path.exists(full_path):
             dir = full_path
             if validate_dir_access(parent_dir=cr_dir, user=user, cmd=cmd, dirname=path):
-                return dir
+                cr_dir = dir
+                return None
         elif os.path.exists(path):
             dir = path
             if validate_dir_access(parent_dir=cr_dir, user=user, cmd=cmd, dirname=path):
                 # TODO if something's broken, check these arguments for corectness
-                return dir
-            return dir
+                cr_dir = dir
+                return None
+            cr_dir = dir
+            return None
         else:
             print_warning(f'The directory "{translate_path_2_ui(path)}" does not exist. ')
 
@@ -577,7 +586,8 @@ cmd_map = {'create': create_x,
            'syslog': show_syslog,
            'ipconfig': display_ipconfig,
            'move': move_file,
-           'dev': access_dev_tools
+           'dev': access_dev_tools,
+           'cd': change_dir
            }
 
 cmd_args_map = {'create': [cmd_obj],
@@ -593,7 +603,8 @@ cmd_args_map = {'create': [cmd_obj],
                 'whoami': [cmd_obj],
                 'ipconfig': [cmd_obj],
                 'move': [cr_dir, user, cmd_obj],
-                'dev': [cmd_obj]
+                'dev': [cmd_obj],
+                'cd': [cmd_obj]
                 }
 
 cmd_vld_arg_map = {'create': ['file', 'dir', 'user'],
