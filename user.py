@@ -23,9 +23,9 @@ def create_user_object(username, password, account_type):
     return user
 
 
-def edit_user(cmd_split):
-    if not check_user_existence(cmd_split[2]):
-        print_warning(f'The user "{cmd_split[2]}" does not exist. ')
+def edit_user(cmd):
+    if not check_user_existence(cmd.sec_arg):
+        print_warning(f'The user "{cmd.sec_arg}" does not exist. ')
     else:
         while True:
             edit_selection = input_selection(['n', 'p', 'a', 'x'], ['name', 'password', 'account type', 'done editing'],
@@ -34,7 +34,7 @@ def edit_user(cmd_split):
             old_value = None
             if edit_selection == 'n':
                 new_value = enter_username()
-                old_value = cmd_split[2]
+                old_value = cmd.sec_arg
                 edit_selection = 'name'
             elif edit_selection == 'p':
                 while True:
@@ -60,16 +60,16 @@ def edit_user(cmd_split):
                 break
 
             if edit_selection != 'x':
-                alter_user_csv(username=cmd_split[2], attribute=edit_selection,
+                alter_user_csv(username=cmd.sec_arg, attribute=edit_selection,
                                old_value=old_value, new_value=new_value)
-                syslog('alteration', f'Edited user "{cmd_split[2]}"')
+                syslog('alteration', f'Edited user "{cmd.sec_arg}"')
 
             if edit_selection == 'name':
                 print_success(f'Successfully renamed "{old_value}" to "{new_value}". ')
             if edit_selection == 'password':
-                print_success(f'Successfully changed password of "{cmd_split[2]}". ')
+                print_success(f'Successfully changed password of "{cmd.sec_arg}". ')
             if edit_selection == 'account type':
-                print_success(f'Succcessfully chnanged account type of "{cmd_split[2]}". ')
+                print_success(f'Succcessfully chnanged account type of "{cmd.sec_arg}". ')
 
 
 def alter_user_csv(username, attribute, old_value, new_value):

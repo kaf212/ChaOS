@@ -98,7 +98,7 @@ def create_user(username: str, password: str, account_type: str):
         syslog('creation', f'created user "{username}"')
 
 
-def create_user_ui(user=None, cmd_split=None):
+def create_user_ui(user=None, cmd=None):
     input_username = enter_username()
     password_invalid = True
     input_password = None
@@ -119,7 +119,7 @@ def create_user_ui(user=None, cmd_split=None):
             if input_account_type not in ChaOS_constants.VALID_ACCOUNT_TYPES:
                 list_selection_options(input_account_type, ChaOS_constants.VALID_ACCOUNT_TYPES)
                 continue
-            if input_account_type == 'admin' and cmd_split[len(cmd_split) - 1] == 'sudo':
+            if input_account_type == 'admin' and cmd.perm_arg == 'sudo':
                 create_user(input_username, input_password, input_account_type)
                 print_success(f'User "{input_username}" was successfully created. ')
                 break
