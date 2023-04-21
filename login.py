@@ -52,7 +52,7 @@ def login():
     print(f'\n-- {username} --')
     tries = 3
     while tries > 0:
-        input_password = getpass.getpass('Password > ')
+        input_password = input('Password > ')  # for password obfuscation: getpass.getpass()
         if input_password != decrypt_str(password):
             tries -= 1
             print_warning('Wrong password, try again: ')
