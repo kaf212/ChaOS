@@ -131,36 +131,6 @@ def command_prompt():
             if cmd_obj.validate():
                 cmd_obj.execute()
 
-        #    else:
-        #        try:
-#
-        #            if cmd_split[0] == 'cd':
-        #                dir_cd = change_dir(translate_ui_2_path(cmd_split[1]),
-        #                                    cr_dir, cmd_split)
-        #                # before a dir change, the user input dir needs to be translated from ui_dir to actual dir.
-        #                if dir_cd is not None:  # if cd didn't fail
-        #                    cr_dir = dir_cd
-        #                    cr_dir_ui = translate_path_2_ui(cr_dir)
-#
-        #            elif cmd_split[0] == 'logoff':
-        #                user = login()
-        #                cr_dir = f'A/ChaOS_Users/{user.name}'
-        #                main()
-#
-        #            elif cmd_split[0] == 'dev':
-        #                if user.account_type == 'dev':
-        #                    access_dev_tools(cmd_split)
-        #                else:
-        #                    print_warning('You need developer privileges to access the DevTools. ')
-#
-        #            else:
-        #                print_warning(f'The command "{cmd_split[0]}" does not exist. \n')
-#
-        #        except TypeError:
-        #            print_warning('TypeError: You must enter a valid command to proceed, type "help" for help. ')
-        #        except IndexError:
-        #            print_warning('IndexError: You must enter a valid command to proceed, type "help" for help. ')
-
 
 def help_cmd(cmd):
     """
@@ -506,16 +476,13 @@ def shutdown(cmd):
     :param cmd_split:
     :return:
     """
-    try:
-        if 't-' in cmd.pri_arg:  # if the user has specified a countdown with "t-"_
-            sd_cd = list(cmd.pri_arg)
-            sd_cd.remove('t')
-            sd_cd.remove('-')  # remove "t-"
-            sd_cd = ''.join(sd_cd)
-            time.sleep(int(sd_cd))
-            exit()
-    except IndexError:
-        exit()
+    if cmd.flag_exists('-t'):
+        try:
+            time.sleep(int(cmd.get_flag('-t')))
+        except ValueError:
+            print_warning(f'Invalid countdown time given "{cmd.get_flag("-t")}"')
+            return None
+    exit()
 
 
 def display_usr(cmd):
@@ -526,6 +493,14 @@ def display_usr(cmd):
         print(f'{"Account type:":15}{user.account_type}')
         print(f'{"Hostname:":15}{platform.uname()[1]}')
         print(f'{"IPv4:":15}{socket.gethostbyname(socket.gethostname())}')
+
+
+def logoff():
+    global cr_dir
+    global user
+    user = login()
+    cr_dir = f'A/ChaOS_Users/{user.name}'
+    main()
 
 
 def access_dev_tools(cmd):
@@ -546,25 +521,24 @@ def access_dev_tools(cmd):
         else:
             print(f'[DEVTOOL]: {output}')
 
+    if user.account_type != 'dev':
+        print_warning('You need developer privileges to access the DevTools. ')
+        return None
+
     if cmd.pri_arg == 'reset':
         if cmd.sec_arg == 'user_csv' or cmd.sec_arg == 'users_csv':
-            try:
-                if cmd.ter_arg == '-hard':
-                    reset_user_csv('-hard')
-            except IndexError:
+            if cmd.flag_exists('-hard'):
+                reset_user_csv('-hard')
+                print_dev('User CSV was reset HARD successfully. ', 'green')
+            else:
                 reset_user_csv(None)
-            try:
-                if cmd.ter_arg == '-hard':
-                    print_dev('User CSV was reset HARD successfully. ', 'green')
-            except IndexError:
                 print_dev('User CSV was reset successfully. ', 'green')
 
         elif cmd.sec_arg == 'user_dirs':
-            try:
-                if cmd.ter_arg == '-hard':
-                    reset_user_dirs('-hard')
-                    print_dev('User directories were reset HARD successfully. ', 'green')
-            except IndexError:
+            if cmd.flag_exists('-hard'):
+                reset_user_dirs('-hard')
+                print_dev('User directories were reset HARD successfully. ', 'green')
+            else:
                 reset_user_dirs()
                 print_dev('User directories were reset successfully. ', 'green')
     else:
@@ -587,7 +561,9 @@ cmd_map = {'create': create_x,
            'ipconfig': display_ipconfig,
            'move': move_file,
            'dev': access_dev_tools,
-           'cd': change_dir
+           'cd': change_dir,
+           'logoff': logoff,
+           'sd': shutdown
            }
 
 cmd_args_map = {'create': [cmd_obj],
@@ -604,7 +580,7 @@ cmd_args_map = {'create': [cmd_obj],
                 'ipconfig': [cmd_obj],
                 'move': [cr_dir, user, cmd_obj],
                 'dev': [cmd_obj],
-                'cd': [cmd_obj]
+                'cd': [cmd_obj],
                 }
 
 cmd_vld_arg_map = {'create': ['file', 'dir', 'user'],
