@@ -7,7 +7,7 @@ from login import login, create_user_ui
 from ChaOS_DevTools import *
 from system import *
 from user import edit_user, delete_user_safe
-from cmd_definitions import cmd_def_map, cmd_usage
+from cmd_definitions import cmd_usage
 import platform
 from dataclasses import dataclass, field
 from ChaOS_constants import CMD_SHORTS
@@ -88,7 +88,7 @@ class Cmd:
 
     def reset(self):
         for attr, value in self.__dict__.items():
-            if type(value) == str and value.startswith('__'):
+            if type(value) == str and not value.startswith('__'):
                 self.__dict__[attr] = None
             elif type(value) == dict:
                 self.__dict__[attr] = dict()
@@ -135,7 +135,7 @@ def command_prompt():
 def help_cmd(cmd):
     """
     I think this is self-explanatory:
-    takes cmd_split as an argument and goes through the dictionary beneath and lists
+    takes the cmd as an argument and goes through the dictionary beneath and lists
     the command usage.
     :param cmd:
     :return None:
@@ -166,7 +166,7 @@ def help_cmd(cmd):
 def create_x(cmd):
     """
     The top-level command interpreter for anything starting with "create".
-    :param cmd_split:
+    :param cmd:
     :return None:
     """
     logging.basicConfig(format=ChaOS_constants.LOGGING_FORMAT, level=logging.DEBUG)
@@ -202,7 +202,7 @@ def read_x(cmd):
     """
     The top-level command interpreter for anything starting with "read".
     Currently only works for txts.
-    :param cmd_split:
+    :param cmd:
     :return None:
     """
     if not os.path.isfile(f'{cr_dir}/{cmd.sec_arg}'):
@@ -224,7 +224,7 @@ def delete_x(cmd):
     """
     The top-level command interpreter for anything starting with "delete".
     Currently only works for txts.
-    :param cmd_split:
+    :param cmd:
     :return None:
     """
     logging.basicConfig(level=logging.DEBUG, format=ChaOS_constants.LOGGING_FORMAT)
@@ -299,7 +299,7 @@ def restore_x(cmd):
 def burn_x(cmd):
     """
     Contrary to deleting, burning removes data from its pathetic existence with no steps inbetween.
-    :param cmd_split:
+    :param cmd:
     :return:
     """
     path = f'{cr_dir}/{cmd.sec_arg}'
@@ -339,7 +339,7 @@ def edit_x(cmd):
     """
     The top-level command interpreter dor anything starting with "edit".
     Supports both txts and users.
-    :param cmd_split:
+    :param cmd:
     :return None:
     """
 
@@ -366,16 +366,15 @@ def edit_x(cmd):
 
 
 def change_dir(cmd):
-    path = cmd.pri_arg
     global cr_dir
+    path = cmd.pri_arg
     logging.basicConfig(level=logging.DEBUG, format=ChaOS_constants.LOGGING_FORMAT)
     if path == '..':
         print_warning(cr_dir)
         pth_spl = split_path(cr_dir)  # split the current directory into a list
         pth_spl.pop()  # remove the last directory
         pth_spl.pop()  # remove the "/"
-        dir = ''.join(pth_spl)  # reconvert it into a string
-        cr_dir = dir
+        cr_dir = ''.join(pth_spl)  # reconvert it into a string
         print_warning(f'cr_dir = {cr_dir}')
         return None
 
@@ -395,18 +394,17 @@ def change_dir(cmd):
 
         print_warning(f'full path = {full_path}')
         print_warning(f'path = {path}')
-        if os.path.exists(full_path):
-            dir = full_path
+
+        if os.path.exists(translate_ui_2_path(full_path)):
             if validate_dir_access(parent_dir=cr_dir, user=user, cmd=cmd, dirname=path):
-                cr_dir = dir
+                cr_dir = full_path
                 return None
-        elif os.path.exists(path):
-            dir = path
+        elif os.path.exists(translate_ui_2_path(path)):
             if validate_dir_access(parent_dir=cr_dir, user=user, cmd=cmd, dirname=path):
                 # TODO if something's broken, check these arguments for corectness
-                cr_dir = dir
+                cr_dir = path
                 return None
-            cr_dir = dir
+            cr_dir = full_path
             return None
         else:
             print_warning(f'The directory "{translate_path_2_ui(path)}" does not exist. ')
@@ -415,13 +413,13 @@ def change_dir(cmd):
         print_warning(f'The directory "{translate_path_2_ui(path)}" does not exist. ')
 
 
-def list_dir(cr_dir):
+def list_dir():
     """
     Is called when cmd "dir" is executed.
     Lists every file and subdirectory in a given directory.
-    :param cr_dir:
     :return None:
     """
+    global cr_dir
     equivalents = ChaOS_constants.PATH_2_UI_TRANSLATIONS  # the equivalents are the ui_path to actual path translations
 
     dirs = os.listdir(cr_dir)
@@ -473,7 +471,7 @@ def clear_screen():
 def shutdown(cmd):
     """
     No explanation needed.
-    :param cmd_split:
+    :param cmd:
     :return:
     """
     if cmd.flag_exists('-t'):
@@ -506,7 +504,7 @@ def logoff():
 def access_dev_tools(cmd):
     """
     The gateway to the land of dangerous and user-unfriendly operations.
-    :param cmd_split:
+    :param cmd:
     :return:
     """
 
@@ -572,7 +570,6 @@ cmd_args_map = {'create': [cmd_obj],
                 'burn': [cmd_obj],
                 'restore': [cmd_obj],
                 'edit': [cmd_obj],
-                'dir': [cr_dir],
                 'echo': [cmd_obj],
                 'help': [cmd_obj],
                 'shutdown': [cmd_obj],

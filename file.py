@@ -149,6 +149,10 @@ def initialize_user_directories():
     except FileExistsError:
         pass
 
+    system42 = create_user_object('System42', 'Klaatu Barada Nikto', 'dev')
+
+    log_dir_metadata(system42, 'Users', 'all_users', 'A', 'communist')
+
     usernames = return_user_names()
 
     all_users = return_users()
