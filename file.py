@@ -5,10 +5,91 @@ import os
 from datetime import datetime
 import ChaOS_constants
 from input import input_y_n
-from user import create_user_object
+from user import create_user_object, User
 import logging
 from system import syslog
 from colors import *
+from dataclasses import dataclass, field
+
+
+@dataclass
+class File:
+    name: str = None
+    path: str = None  # fully qualified path to the file (A/ChaOS_Users/kaf221122/Desktop/file.txt)
+    location: str = None   # path of the parent dir (A/ChaOS_Users/kaf221122/Desktop)
+    owner: str = None
+    access_perm: list = field(default_factory=list)
+
+    @property
+    def path_ui(self):
+        return translate_path_2_ui(self.path)
+
+    @property
+    def location_ui(self):
+        return translate_path_2_ui(self.location)
+
+    def create(self, cmd, user: User, cr_dir: str):
+        self.name = cmd.sec_arg
+        self.path = f'{cr_dir}/{self.name}'
+        self.location = cr_dir
+        self.owner = user.name
+        if cmd.flag_exists:
+            self.access_perm = cmd.get_flag('-p')
+
+        if not self.validate():
+            self.reset()
+            return False
+
+        return True
+
+    def validate(self):
+        if os.path.exists(self.path):
+            print_warning(f'The file or directory "{self.name}" already exists. ')
+            return False
+
+        illegal_chars = ['..', '/', ' ', "'", '"']
+        for char in illegal_chars:
+            if char in self.name:
+                print_warning(f'The file- or directory name cannot contain "{char}". ')
+                return False
+
+        if self.name in ChaOS_constants.SYSTEM_DIR_NAMES or self.name in ChaOS_constants.SYSTEN_FILE_NAMES:
+            print_warning(f"The file- or directory name cannot be a standard system name. ")
+            return False
+
+        for perm in self.access_perm:
+            if perm not in return_user_names() and perm not in ChaOS_constants.VALID_ACCOUNT_TYPES:
+                print_warning(f'The user or account type "{perm}" does not exist. ')
+                return False
+
+        return True
+
+    def reset(self):
+        for attr, value in self.__dict__.items():
+            if type(value) == str and not value.startswith('__'):
+                self.__dict__[attr] = None
+            elif type(value) == list:
+                self.__dict__[attr] = list()
+
+    def load_metadata(self):
+        if not os.path.exists('A/System42/metadata/metadata.csv'):
+            raise FileNotFoundError('System metadata directory could not be found. ')
+
+        with open('A/System42/metadata/file_metadata.csv', 'r') as f:
+            reader = csv.DictReader(f, fieldnames=ChaOS_constants.METADATA_CSV_ATTRIBUTES)
+            metadata = None
+            for line in reader:
+                if line['path'] == self.path:
+                    metadata = line
+            if metadata is None:
+                raise Exception(f'Metadata for "{self.path}" could not be found. ')
+
+        self.name = metadata['name']
+        self.path = metadata['path']
+        self.location = metadata['location']
+        self.owner = metadata['owner']
+        self.access_perm = metadata['access_perm']
+
 
 
 def find_file(user):
@@ -59,8 +140,6 @@ def create_file(dir, name, user):
 
 
 def log_dir_metadata(user, dirname: str, access_permission: str, parent_dir: str, dir_type: str) -> None:
-    logging_format = '[%(levelname)s] %(message)s'
-    logging.basicConfig(level=logging.DEBUG, format=logging_format)
     """
     Path for metadata always is: parent_dir/metadata.csv, 
     for example the metadata for A/ChaOS_Users/kaf221122 is in A/ChaOS_Users/metadata.csv
@@ -89,6 +168,15 @@ def log_dir_metadata(user, dirname: str, access_permission: str, parent_dir: str
             csv_writer.writerow({'dirname': dirname, 'owner': user.name, 'owner_account_type': user.account_type,
                                  'access_permission': access_permission, 'dir_type': dir_type})
             md_csv.close()
+
+
+def log_file_metadata(user, file) -> None:
+    with open('A/System42/metadata/metadata.csv', 'a+') as md_csv:
+        attributes = ChaOS_constants.METADATA_CSV_ATTRIBUTES
+        csv_writer = csv.DictWriter(md_csv, fieldnames=attributes)
+        csv_writer.writerow({'dirname': file.name, 'owner': user.name, 'owner_account_type': user.account_type,
+                             'access_permission': access_permission, 'dir_type': dir_type})
+        md_csv.close()
 
 
 def read_dir_metadata(dirname: str, parent_dir: str) -> dict:
@@ -146,6 +234,16 @@ def initialize_user_directories():
     logging.basicConfig(level=logging.DEBUG, format=logging_format)
     try:
         os.makedirs('A/ChaOS_Users', 0o777)
+    except FileExistsError:
+        pass
+    try:
+        os.makedirs('A/System42/metadata')
+    except FileExistsError:
+        pass
+
+    try:
+        f = open('A/System42/metadata/metadata.csv', 'w')
+        f.close()
     except FileExistsError:
         pass
 
