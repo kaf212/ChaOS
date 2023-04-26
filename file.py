@@ -139,21 +139,21 @@ def create_file(dir, name, user):
         print_warning(f'{name} contains illegal characters. ')
 
 
-def log_dir_metadata(user, dirname: str, access_permission: str, parent_dir: str, dir_type: str) -> None:
+def log_dir_metadata(user, file) -> None:
     """
     Path for metadata always is: parent_dir/metadata.csv, 
     for example the metadata for A/ChaOS_Users/kaf221122 is in A/ChaOS_Users/metadata.csv
     """
+    for perm in file.access_perm:
+        if perm not in [user.name, 'all_users', 'admins', 'devs']:
+            raise ValueError(f'Invalid access permission "{file.access_perm}" given. ')
 
-    if access_permission not in [user.name, 'all_users', 'admins', 'devs']:
-        raise ValueError(f'Invalid access permission "{access_permission}" given. ')
+    if not os.path.isdir(file.location):
+        raise NotADirectoryError(f'{file.location} is not a directory. ')
 
-    if not os.path.isdir(parent_dir):
-        raise NotADirectoryError(f'{parent_dir} is not a directory. ')
+    dirname = file.name.lower()
 
-    dirname = dirname.lower()
-
-    md_path = f'{parent_dir}/metadata.csv'
+    md_path = f'{file.location}/metadata.csv'
     if not os.path.exists(md_path):
         with open(md_path, 'w') as md_csv:
             attributes = ChaOS_constants.METADATA_CSV_ATTRIBUTES
@@ -161,22 +161,13 @@ def log_dir_metadata(user, dirname: str, access_permission: str, parent_dir: str
             csv_writer.writeheader()
             md_csv.close()
 
-    if not check_metadata_existence(user, dirname, access_permission, parent_dir, dir_type):
+    if not check_metadata_existence(user, file):
         with open(md_path, 'a+') as md_csv:
             attributes = ChaOS_constants.METADATA_CSV_ATTRIBUTES
             csv_writer = csv.DictWriter(md_csv, fieldnames=attributes)
-            csv_writer.writerow({'dirname': dirname, 'owner': user.name, 'owner_account_type': user.account_type,
-                                 'access_permission': access_permission, 'dir_type': dir_type})
+            csv_writer.writerow({'name': dirname, 'path': file.path, 'location': user.account_type, 'access_perm': file.access_perm})
             md_csv.close()
 
-
-def log_file_metadata(user, file) -> None:
-    with open('A/System42/metadata/metadata.csv', 'a+') as md_csv:
-        attributes = ChaOS_constants.METADATA_CSV_ATTRIBUTES
-        csv_writer = csv.DictWriter(md_csv, fieldnames=attributes)
-        csv_writer.writerow({'dirname': file.name, 'owner': user.name, 'owner_account_type': user.account_type,
-                             'access_permission': access_permission, 'dir_type': dir_type})
-        md_csv.close()
 
 
 def read_dir_metadata(dirname: str, parent_dir: str) -> dict:
@@ -204,18 +195,14 @@ def read_dir_metadata(dirname: str, parent_dir: str) -> dict:
         raise FileNotFoundError(f'metadata.csv not found in {md_path}. ')
 
 
-def check_metadata_existence(user, dirname: str, access_permission: str, path: str, dir_type: str) -> bool:
-    dirname = dirname.lower()
-
-    md_path = f'{path}/metadata.csv'
+def check_metadata_existence(user, file: File) -> bool:
+    md_path = f'A/System42/metadata/file_metadata.csv'
     with open(md_path, 'r') as md_csv:
         attributes = ChaOS_constants.METADATA_CSV_ATTRIBUTES
-        next(md_csv)
+        # next(md_csv)
         csv_reader = csv.DictReader(md_csv, fieldnames=attributes)
         for line in csv_reader:
-            if line == {'dirname': dirname, 'owner': user.name, 'owner_account_type': user.account_type,
-                        'access_permission': access_permission, 'dir_type': dir_type}:
-                md_csv.close()
+            if line['path'] == file.path:
                 return True
         return False
 
@@ -242,14 +229,16 @@ def initialize_user_directories():
         pass
 
     try:
-        f = open('A/System42/metadata/metadata.csv', 'w')
+        f = open('A/System42/metadata/file_metadata.csv', 'w')
         f.close()
     except FileExistsError:
         pass
 
     system42 = create_user_object('System42', 'Klaatu Barada Nikto', 'dev')
 
-    log_dir_metadata(system42, 'Users', 'all_users', 'A', 'communist')
+    dir_obj = File('ChaOS_Users', 'A/ChaOS_Users', 'A', 'System42', ['all_users'])
+
+    log_dir_metadata(system42, dir_obj)
 
     usernames = return_user_names()
 
@@ -313,8 +302,7 @@ def initialize_user_dir_metadata(username):
         if line['name'] == username:
             temp_user_obj = create_user_object(username=line['name'], password='None',
                                                account_type=line['account type'])
-            log_dir_metadata(user=temp_user_obj, dirname=temp_user_obj.name, parent_dir='A/ChaOS_Users',
-                             access_permission=temp_user_obj.name, dir_type='personal')
+            log_dir_metadata(user=temp_user_obj, file=File(username, f'A/ChaOS_Users/{username}', 'A/ChaOS_Users', username, [username]))
 
 
 def create_md_file(location):
