@@ -29,7 +29,35 @@ class File:
     def location_ui(self):
         return translate_path_2_ui(self.location)
 
+    def isdir(self):
+        if self.type == 'dir':
+            return True
+        return False
+
+    def isfile(self):
+        if self.type == 'file':
+            return True
+        return False
+
+    def is_communist(self):
+        if 'all_users' in self.access_perm:
+            return True
+        return False
+
+    def is_capitalist(self):
+        """
+        Checks if any other people other than the owner are permitted to access the file.
+        """
+        for perm in self.access_perm:
+            if perm != self.owner:  # if the permitted person is not the owner himself
+                return False
+        return True
+
     def create(self, cmd, user: User, cr_dir: str):
+        """
+        Initializes the empty object with data from the cmd, validates it and if validated, physically creates the file in
+        the desired location.
+        """
         self.name = cmd.sec_arg
         self.type = cmd.pri_arg
         self.path = f'{cr_dir}/{self.name}'
@@ -43,7 +71,7 @@ class File:
             return False
 
         if self.validate():
-            if '.' in self.name:  # if the object is a file:
+            if self.isfile():  # if the object is a file:
                 f = open(self.path, 'w')
                 f.close()
             else:
@@ -90,12 +118,17 @@ class File:
                 self.__dict__[attr] = list()
 
     def select(self, cr_dir, trg_name):
+        """
+        Gets the fully qualified path of the target and loads the metadata.
+        """
         trg_name = translate_ui_2_path(trg_name)
         if os.path.exists(trg_name):
             self.path = trg_name
+            self.load_metadata()
             return True
         if os.path.exists(f'{cr_dir}/{trg_name}'):
             self.path = f'{cr_dir}/{trg_name}'
+            self.load_metadata()
             return True
         print_warning(f'The file or directory "{trg_name}" does not exist in "{cr_dir}". ')
         return False
@@ -119,6 +152,34 @@ class File:
         self.location = metadata['location']
         self.owner = metadata['owner']
         self.access_perm = metadata['access_perm']
+
+    def delete_metadata(self):
+        md_path = 'A/System42/metadata/file_metadata.csv'
+        with open(md_path, 'r') as md_csv:
+            attributes = ChaOS_constants.METADATA_CSV_ATTRIBUTES
+            next(md_csv)
+            csv_reader = csv.DictReader(md_csv, fieldnames=attributes)
+            temp_dict_list = []
+            for line in csv_reader:
+                if not line['path'] == self.path:
+                    temp_dict_list.append(line)
+
+        with open(md_path, 'w') as md_csv:
+            attributes = ChaOS_constants.METADATA_CSV_ATTRIBUTES
+            csv_writer = csv.DictWriter(md_csv, fieldnames=attributes)
+            csv_writer.writeheader()
+            for line in temp_dict_list:
+                csv_writer.writerow(line)
+
+    def delete(self):
+        self.delete_metadata()
+        if self.isdir():
+            shutil.rmtree(self.path)
+        else:
+            os.remove(self.path)
+
+    def recycle(self):
+        pass
 
 
 def find_file(user):
@@ -286,23 +347,25 @@ def initialize_A_drive():
 
 
 def reset_user_dirs(reset_flag=None):
-    logging.basicConfig(level=logging.DEBUG, format=ChaOS_constants.LOGGING_FORMAT)
     """
     Contrary to initialize_user_dirs(), this function deletes everything except standard direcotries of
-    existent users and communist
+    existing users.
     :return:
     """
     if reset_flag is None:
         initialize_A_drive()
-        for dir in os.listdir('A/ChaOS_Users'):
-            if os.path.isdir(f'A/ChaOS_Users/{dir}') and f'A/ChaOS_Users/{dir}' not in ChaOS_constants.SYSTEM_DIR_NAMES:
-                metadata = read_file_metadata(dir, 'A/ChaOS_Users')
-                if metadata['dir_type'] in ['personal', 'capitalist'] and metadata['owner'] not in return_user_names():
-                    shutil.rmtree(f'A/ChaOS_Users/{dir}')
-                    delete_metadata(dir, 'A/ChaOS_Users')
+        for d in os.listdir('A/ChaOS_Users'):
+            if os.path.isdir(f'A/ChaOS_Users/{d}') and f'A/ChaOS_Users/{d}' not in ChaOS_constants.SYSTEM_DIR_NAMES:
+                dir_obj = File()
+                dir_obj.select('A/ChaOS_Users', d)
+                if dir_obj.owner not in return_user_names() and not dir_obj.is_communist():
+                    dir_obj.delete()
+
+
+
     if reset_flag == '-hard':
-        for dir in os.listdir('A/ChaOS_Users'):
-            path = f'A/ChaOS_Users/{dir}'
+        for d in os.listdir('A/ChaOS_Users'):
+            path = f'A/ChaOS_Users/{d}'
             if os.path.isdir(path):
                 shutil.rmtree(path)
             else:
@@ -474,7 +537,6 @@ def create_dir(user, dir, name, dir_type, cmd=None):
 def validate_file_access(user, path):
     file = File()
     file.select(cr_dir=None, trg_name=path)  # path exists, so cr_dir is obsolete for selection
-    file.load_metadata()
 
     conditions = ['all_users' in file.access_perm,
                   user.name in file.access_perm,
