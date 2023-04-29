@@ -5,7 +5,7 @@ ChaOS_constants.py
 CHAOS_VERSION = '1.0.0 Beta'
 VALID_ACCOUNT_TYPES = ['standard', 'admin', 'dev']
 USER_CSV_ATTRIBUTES = ['name', 'password', 'account type']
-METADATA_CSV_ATTRIBUTES = ['name', 'path', 'location', 'owner', 'access_perm']
+METADATA_CSV_ATTRIBUTES = ['name', 'type', 'path', 'location', 'owner', 'access_perm']
 VALID_DIR_TYPES = ['personal', 'capitalist', 'communist']
 SYSLOG_CSV_ATTRIBUTES = ['ID', 'time', 'category', 'msg']
 SYSLOG_CATEGORIES = ['command', 'creation', 'deletion', 'alteration']

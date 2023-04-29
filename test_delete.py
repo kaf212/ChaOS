@@ -24,7 +24,7 @@ def test_delete_dir():
     delete_dir('testdir', 'unit_testing')
     if not os.path.isdir('unit_testing/testdir'):
         try:
-            read_dir_metadata('testdir', 'unit_testing')
+            read_file_metadata('testdir', 'unit_testing')
         except Exception:
             assert True
         else:
@@ -38,7 +38,7 @@ def test_delete_dir():
 
 def test_delete_metadata():
     if not check_metadata_existence(user, 'md_testdir', user.name, 'unit_testing', 'capitalist'):
-        log_dir_metadata(user, 'md_testdir', user.name, 'unit_testing', 'capitalist')
+        log_file_metadata(user, 'md_testdir', user.name, 'unit_testing', 'capitalist')
 
     delete_metadata('md_testdir', 'unit_testing')
 

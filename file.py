@@ -15,6 +15,7 @@ from dataclasses import dataclass, field
 @dataclass
 class File:
     name: str = None
+    type: str = None
     path: str = None  # fully qualified path to the file (A/ChaOS_Users/kaf221122/Desktop/file.txt)
     location: str = None   # path of the parent dir (A/ChaOS_Users/kaf221122/Desktop)
     owner: str = None
@@ -30,6 +31,7 @@ class File:
 
     def create(self, cmd, user: User, cr_dir: str):
         self.name = cmd.sec_arg
+        self.type = cmd.pri_arg
         self.path = f'{cr_dir}/{self.name}'
         self.location = cr_dir
         self.owner = user.name
@@ -40,7 +42,15 @@ class File:
             self.reset()
             return False
 
-        return True
+        if self.validate():
+            if '.' in self.name:  # if the object is a file:
+                f = open(self.path, 'w')
+                f.close()
+            else:
+                os.makedirs(self.name)
+
+            return True
+        return False
 
     def validate(self):
         if os.path.exists(self.path):
@@ -52,6 +62,14 @@ class File:
             if char in self.name:
                 print_warning(f'The file- or directory name cannot contain "{char}". ')
                 return False
+
+        if '.' in self.name and self.type == 'dir':
+            print_warning(f'A directory name cannot contain a decimal point. ')
+            return False
+
+        if self.type not in ['file', 'dir']:
+            print_warning(f'"{self.type}" is not a valid type (try "file" or "dir"). ')
+            return False
 
         if self.name in ChaOS_constants.SYSTEM_DIR_NAMES or self.name in ChaOS_constants.SYSTEN_FILE_NAMES:
             print_warning(f"The file- or directory name cannot be a standard system name. ")
@@ -71,8 +89,19 @@ class File:
             elif type(value) == list:
                 self.__dict__[attr] = list()
 
+    def select(self, cr_dir, trg_name):
+        trg_name = translate_ui_2_path(trg_name)
+        if os.path.exists(trg_name):
+            self.path = trg_name
+            return True
+        if os.path.exists(f'{cr_dir}/{trg_name}'):
+            self.path = f'{cr_dir}/{trg_name}'
+            return True
+        print_warning(f'The file or directory "{trg_name}" does not exist in "{cr_dir}". ')
+        return False
+
     def load_metadata(self):
-        if not os.path.exists('A/System42/metadata/metadata.csv'):
+        if not os.path.exists('A/System42/metadata/file_metadata.csv'):
             raise FileNotFoundError('System metadata directory could not be found. ')
 
         with open('A/System42/metadata/file_metadata.csv', 'r') as f:
@@ -85,11 +114,11 @@ class File:
                 raise Exception(f'Metadata for "{self.path}" could not be found. ')
 
         self.name = metadata['name']
+        self.type = metadata['type']
         self.path = metadata['path']
         self.location = metadata['location']
         self.owner = metadata['owner']
         self.access_perm = metadata['access_perm']
-
 
 
 def find_file(user):
@@ -139,11 +168,9 @@ def create_file(dir, name, user):
         print_warning(f'{name} contains illegal characters. ')
 
 
-def log_dir_metadata(user, file) -> None:
-    """
-    Path for metadata always is: parent_dir/metadata.csv, 
-    for example the metadata for A/ChaOS_Users/kaf221122 is in A/ChaOS_Users/metadata.csv
-    """
+def log_file_metadata(user, file) -> None:
+
+    print(hex(id(file)))
     for perm in file.access_perm:
         if perm not in [user.name, 'all_users', 'admins', 'devs']:
             raise ValueError(f'Invalid access permission "{file.access_perm}" given. ')
@@ -153,7 +180,7 @@ def log_dir_metadata(user, file) -> None:
 
     dirname = file.name.lower()
 
-    md_path = f'{file.location}/metadata.csv'
+    md_path = f'A/System42/metadata/file_metadata.csv'
     if not os.path.exists(md_path):
         with open(md_path, 'w') as md_csv:
             attributes = ChaOS_constants.METADATA_CSV_ATTRIBUTES
@@ -165,30 +192,22 @@ def log_dir_metadata(user, file) -> None:
         with open(md_path, 'a+') as md_csv:
             attributes = ChaOS_constants.METADATA_CSV_ATTRIBUTES
             csv_writer = csv.DictWriter(md_csv, fieldnames=attributes)
-            csv_writer.writerow({'name': dirname, 'path': file.path, 'location': user.account_type, 'access_perm': file.access_perm})
+            csv_writer.writerow({'name': dirname, 'type': file.type, 'path': file.path, 'location': user.account_type, 'access_perm': file.access_perm})
             md_csv.close()
 
 
-
-def read_dir_metadata(dirname: str, parent_dir: str) -> dict:
-    logging.basicConfig(level=logging.DEBUG, format=ChaOS_constants.LOGGING_FORMAT)
-    if not os.path.isdir(parent_dir):
-        raise NotADirectoryError(f'"{parent_dir}" is not a directory. ')
-
-    dirname = dirname.lower()
-
-    md_path = f'{parent_dir}/metadata.csv'
+def read_file_metadata(file: File) -> dict:
+    md_path = 'A/System42/metadata/file_metadata.csv'
     if os.path.exists(md_path):
         with open(md_path, 'r') as md_csv:
             attributes = ChaOS_constants.METADATA_CSV_ATTRIBUTES
             csv_reader = csv.DictReader(md_csv, fieldnames=attributes)
             dir_metadata = None
             for line in csv_reader:
-                if line['dirname'] == dirname:
+                if line['path'] == file.path:
                     dir_metadata = line
             if not dir_metadata:
-                raise Exception(f'No metadata found for "{dirname}"')
-            md_csv.close()
+                raise Exception(f'No metadata found for "{file.path}"')
 
             return dir_metadata
     else:
@@ -216,7 +235,7 @@ def read_txt(dir, name):
         f.close()
 
 
-def initialize_user_directories():
+def initialize_A_drive():
     logging_format = '[%(levelname)s] %(message)s'
     logging.basicConfig(level=logging.DEBUG, format=logging_format)
     try:
@@ -236,9 +255,9 @@ def initialize_user_directories():
 
     system42 = create_user_object('System42', 'Klaatu Barada Nikto', 'dev')
 
-    dir_obj = File('ChaOS_Users', 'A/ChaOS_Users', 'A', 'System42', ['all_users'])
+    dir_obj = File('ChaOS_Users', 'dir', 'A/ChaOS_Users', 'A', 'System42', ['all_users'])
 
-    log_dir_metadata(system42, dir_obj)
+    log_file_metadata(system42, dir_obj)
 
     usernames = return_user_names()
 
@@ -256,10 +275,9 @@ def initialize_user_directories():
 
         for subdir in ChaOS_constants.STANDARD_USER_SUBDIRS:
             try:
-                os.mkdir(path + '/' + subdir)
-                log_dir_metadata(temp_user_obj, subdir, username, path, 'personal')
-                if subdir == 'Recycling bin':
-                    create_md_file(f'{path}/{subdir}')
+                usr_subdir_obj = File(name=subdir, type='dir', path=f'A/ChaOS_Users/{temp_user_obj.name}/{subdir}',
+                                      location=f'A/ChaOS_Users/{temp_user_obj.name}', owner=temp_user_obj.name, access_perm=[temp_user_obj.name])
+                log_file_metadata(temp_user_obj, usr_subdir_obj)
             except FileExistsError:
                 pass
 
@@ -275,10 +293,10 @@ def reset_user_dirs(reset_flag=None):
     :return:
     """
     if reset_flag is None:
-        initialize_user_directories()
+        initialize_A_drive()
         for dir in os.listdir('A/ChaOS_Users'):
             if os.path.isdir(f'A/ChaOS_Users/{dir}') and f'A/ChaOS_Users/{dir}' not in ChaOS_constants.SYSTEM_DIR_NAMES:
-                metadata = read_dir_metadata(dir, 'A/ChaOS_Users')
+                metadata = read_file_metadata(dir, 'A/ChaOS_Users')
                 if metadata['dir_type'] in ['personal', 'capitalist'] and metadata['owner'] not in return_user_names():
                     shutil.rmtree(f'A/ChaOS_Users/{dir}')
                     delete_metadata(dir, 'A/ChaOS_Users')
@@ -289,7 +307,7 @@ def reset_user_dirs(reset_flag=None):
                 shutil.rmtree(path)
             else:
                 os.remove(path)
-        initialize_user_directories()
+        initialize_A_drive()
 
 
 def initialize_user_dir_metadata(username):
@@ -302,7 +320,7 @@ def initialize_user_dir_metadata(username):
         if line['name'] == username:
             temp_user_obj = create_user_object(username=line['name'], password='None',
                                                account_type=line['account type'])
-            log_dir_metadata(user=temp_user_obj, file=File(username, f'A/ChaOS_Users/{username}', 'A/ChaOS_Users', username, [username]))
+            log_file_metadata(user=temp_user_obj, file=File(username, 'dir', f'A/ChaOS_Users/{username}', 'A/ChaOS_Users', username, [username]))
 
 
 def create_md_file(location):
@@ -417,7 +435,7 @@ def create_dir(user, dir, name, dir_type, cmd=None):
         path = dir + name
     try:
         os.mkdir(path, 0o777)
-        log_dir_metadata(user, name, access_permission, dir, dir_type=dir_type)
+        log_file_metadata(user, name, access_permission, dir, dir_type=dir_type)
         syslog('creation', f'created directory "{translate_path_2_ui(path)}"')
     except FileExistsError:
         print_warning(f'The directory "{name}" already exists. ')
@@ -425,42 +443,51 @@ def create_dir(user, dir, name, dir_type, cmd=None):
         print_success(f'Directory "{name}" has been created in {translate_path_2_ui(path)}. ')
 
 
-def validate_dir_access(parent_dir: str, dirname: str, user, cmd) -> bool:
-    fmt = ChaOS_constants.LOGGING_FORMAT
-    logging.basicConfig(level=logging.DEBUG, format=fmt)
+#def validate_dir_access(parent_dir: str, dirname: str, user, cmd) -> bool:
+#
+#    metadata = read_file_metadata(file=None)
+#    owner = metadata['owner']
+#    owner_account_type = metadata['owner_account_type']
+#    access_permission = metadata['access_permission']
+#
+#    conditions = [f'{parent_dir}/{dirname}' in ['A/', 'A', 'A/ChaOS_Users'],
+#                  access_permission == user.name,
+#                  access_permission == 'all_users',
+#                  access_permission == user.account_type,
+#                  user.account_type == 'dev',
+#                  cmd.perm_arg == 'sudo' and owner_account_type != 'dev'
+#                  ]
+#
+#    for cond in conditions:
+#        if cond:
+#            return True
+#
+#    if user.account_type != 'dev' and owner_account_type == 'dev':
+#        print_warning("You need developer privileges to access another dev's directory. ")
+#        return False
+#
+#    if user.account_type not in ['admin', 'dev'] and owner != user.name:
+#        print_warning("You need administrator privileges to access another user's directory. ")
+#        return False
 
-    metadata = read_dir_metadata(dirname, parent_dir)
-    owner = metadata['owner']
-    owner_account_type = metadata['owner_account_type']
-    access_permission = metadata['access_permission']
 
-    conditions = [f'{parent_dir}/{dirname}' in ['A/', 'A', 'A/ChaOS_Users'],
-                  access_permission == user.name,
-                  access_permission == 'all_users',
-                  access_permission == user.account_type,
-                  user.account_type == 'dev',
-                  cmd.perm_arg == 'sudo' and owner_account_type != 'dev'
-                  ]
+def validate_file_access(user, path):
+    file = File()
+    file.select(cr_dir=None, trg_name=path)  # path exists, so cr_dir is obsolete for selection
+    file.load_metadata()
 
-    for cond in conditions:
-        if cond:
+    conditions = ['all_users' in file.access_perm,
+                  user.name in file.access_perm,
+                  user.account_type in file.access_perm]
+
+    for condition in conditions:
+        if condition:
             return True
 
-    if user.account_type != 'dev' and owner_account_type == 'dev':
-        print_warning("You need developer privileges to access another dev's directory. ")
-        return False
-
-    if user.account_type not in ['admin', 'dev'] and owner != user.name:
-        print_warning("You need administrator privileges to access another user's directory. ")
-        return False
+    print_warning(f'Access denied to "{file.path}". ')
+    return False
 
 
-def validate_file_access(filename, user):
-    if filename in ChaOS_constants.SYSTEN_FILE_NAMES and user.account_type != 'dev':
-        print_warning('You need developer privileges to access a system file or directory. ')
-        return False
-    else:
-        return True
 
 
 def validate_file_alteration(filename, user):
@@ -550,7 +577,7 @@ def translate_path_2_ui(path):
     return ui_path
 
 
-def recycle(target_name: str, location: str, ):
+def recycle(user: User, target_name: str, location: str):
     if os.path.exists(f'{location}/Recycling bin/{target_name}'):
         try:
             os.remove(f'{location}/Recycling bin/{target_name}')
@@ -560,18 +587,13 @@ def recycle(target_name: str, location: str, ):
 
     shutil.move(f'{location}/{target_name}', f'{location}/Recycling bin')
 
-    if os.path.isdir(f'{location}/Recycling bin/{target_name}'):  # if the recycled object is a directory:
-        # log metadata in rec bin.
-        metadata = read_dir_metadata(target_name, location)
-        delete_metadata(target_name, location)
-        temp_user_obj = create_user_object(metadata['owner'], None, metadata['owner_account_type'])
-        log_dir_metadata(temp_user_obj, target_name, metadata['access_permission'], f'{location}/Recycling bin',
-                         metadata['dir_type'])
-        syslog('alteration', f'recycled dir "{translate_path_2_ui(location)}"')
-        print_success(f'Directory "{location}/{target_name}" recycled successfully. ')
-    else:
-        print_success(f'File "{location}/{target_name}" recycled successfully. ')
-        syslog('alteration', f'recycled file "{translate_path_2_ui(location)}"')
+    # log metadata in rec bin.
+    metadata = read_file_metadata(target_name, location)
+    delete_metadata(target_name, location)
+    temp_user_obj = create_user_object(metadata['owner'], None, metadata['owner_account_type'])
+    log_file_metadata(user)
+    syslog('alteration', f'recycled dir "{translate_path_2_ui(location)}"')
+    print_success(f'Directory "{location}/{target_name}" recycled successfully. ')
 
 
 def restore_file(filename, rec_bin_dir):
@@ -611,7 +633,7 @@ def move_file(cr_dir, user, cmd_split):
         return None
 
     for path in [source, destination]:
-        if os.path.isdir(path) and not validate_dir_access(cr_dir, trg_dirname, user, cmd_split):
+        if not validate_file_access(user, path):
             return None
 
     if os.path.exists(f'{destination}') or os.path.exists('INSERT PATH'):
@@ -634,8 +656,7 @@ def move_file(cr_dir, user, cmd_split):
     shutil.move(source, destination)
 
 
-def select_file(user, cr_dir, trg_name, cmd_split, mode):
-    trg_path = None
+def select_file(user, cr_dir, trg_name):
     if os.path.exists(trg_name):
         trg_path = trg_name
     elif os.path.exists(f'{cr_dir}/{trg_name}'):
@@ -643,17 +664,12 @@ def select_file(user, cr_dir, trg_name, cmd_split, mode):
     else:
         print_warning(f'The file or directory "{trg_name}" does not exist. ')
         return False
-    if os.path.isdir(trg_path):
-        parent_dir = split_path(trg_path)
-        parent_dir.pop(-1)
-        parent_dir.pop(-2)
-        parent_dir = ''.join(parent_dir)
-        if validate_dir_access(parent_dir, trg_name, user, cmd_split):
-            return trg_path
-        else:
-            return False
-    else:
+
+    if validate_file_access(user, trg_path):
         return trg_path
+    else:
+        return False
+
 
 
 

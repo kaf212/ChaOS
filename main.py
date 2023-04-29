@@ -112,7 +112,7 @@ cmd_obj = Cmd()
 
 
 def main():
-    initialize_user_directories()
+    initialize_A_drive()
     reset_syslog()
     os.system('cls')
     command_prompt()
@@ -163,7 +163,7 @@ def help_cmd(cmd):
         print()
 
 
-def create_x(cmd):
+def create_x_old(cmd):
     """
     The top-level command interpreter for anything starting with "create".
     :param cmd:
@@ -198,6 +198,17 @@ def create_x(cmd):
         print_warning(f'"{cmd.pri_arg}" is not a valid statement for command "{cmd.cmd}"\n')
 
 
+def create_x(cmd):
+    if cmd.pri_arg == 'file':
+        file = File()
+        file.create(cmd, user, cr_dir)
+
+    if cmd.pri_arg == 'dir':
+        directory = File()
+        directory.create(cmd, user, cr_dir)
+
+
+
 def read_x(cmd):
     """
     The top-level command interpreter for anything starting with "read".
@@ -227,14 +238,6 @@ def delete_x(cmd):
     :param cmd:
     :return None:
     """
-    logging.basicConfig(level=logging.DEBUG, format=ChaOS_constants.LOGGING_FORMAT)
-    try:
-        if cmd.perm_arg == 'sudo':
-            print_warning(f'You must enter a valid {cmd.pri_arg}name to proceed. ')
-            return None
-    except IndexError:
-        pass
-    # check if the user didn't forget the name and "sudo" is misinterpreted as the name.
 
     if cmd.pri_arg == 'file':
         if not os.path.isfile(cr_dir + "/" + cmd.sec_arg):
@@ -253,7 +256,7 @@ def delete_x(cmd):
             print_warning(f'The directory "{cmd.sec_arg}" does not exist. ')
             return None
 
-        if not validate_dir_access(cmd=cmd, user=user, dirname=target_dir, parent_dir=cr_dir):
+        if not validate_file_access():
             return None
 
         # make sure he has access permission
@@ -279,7 +282,7 @@ def restore_x(cmd):
         print_warning(f'There is no recycling bin in "{translate_path_2_ui(cr_dir)}". ')
         return None  # neat way to just exit the function
 
-    if validate_dir_access(cr_dir, 'Recycling bin', user, cmd):
+    if validate_file_access(cr_dir, 'Recycling bin', user, cmd):
         if cmd.pri_arg == 'file':
             target_path = f'{rec_bin_dir}/{cmd.sec_arg}'
             if os.path.isfile(target_path):
@@ -305,7 +308,7 @@ def burn_x(cmd):
     path = f'{cr_dir}/{cmd.sec_arg}'
     if cmd.pri_arg == 'dir':
         if os.path.isdir(f'{cr_dir}/{cmd.sec_arg}'):
-            if validate_dir_access(cr_dir, cmd.sec_arg, user, cmd):
+            if validate_file_access(cr_dir, cmd.sec_arg, user, cmd):
                 if cmd.sec_arg == 'Recycling bin':
                     if input_y_n(f'Burn recycling bin? > ') == 'y':
                         shutil.rmtree(path)
@@ -396,11 +399,11 @@ def change_dir(cmd):
         print_warning(f'path = {path}')
 
         if os.path.exists(translate_ui_2_path(full_path)):
-            if validate_dir_access(parent_dir=cr_dir, user=user, cmd=cmd, dirname=path):
+            if validate_file_access(user=user, path=full_path):
                 cr_dir = full_path
                 return None
         elif os.path.exists(translate_ui_2_path(path)):
-            if validate_dir_access(parent_dir=cr_dir, user=user, cmd=cmd, dirname=path):
+            if validate_file_access(user=user, path=path):
                 # TODO if something's broken, check these arguments for corectness
                 cr_dir = path
                 return None

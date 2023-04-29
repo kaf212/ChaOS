@@ -4,7 +4,7 @@ import time
 
 import ChaOS_constants
 from encryption import encrypt_str, decrypt_str
-from file import create_dir, log_dir_metadata, translate_path_2_ui
+from file import create_dir, log_file_metadata, translate_path_2_ui
 from system import syslog
 from user import create_user_object, enter_username
 from input import list_selection_options
@@ -83,8 +83,8 @@ def create_user(username: str, password: str, account_type: str):
         for subdir in ChaOS_constants.STANDARD_USER_SUBDIRS:
             if subdir == 'Recycling bin':
                 os.mkdir(f'A/ChaOS_Users/{username}/Recycling bin')
-                log_dir_metadata(user=temp_user_obj, dirname='Recycling bin', access_permission=username,
-                                 parent_dir=f'A/ChaOS_Users/{username}', dir_type='personal')
+                log_file_metadata(user=temp_user_obj, dirname='Recycling bin', access_permission=username,
+                                  parent_dir=f'A/ChaOS_Users/{username}', dir_type='personal')
                 print_success(f'Directory "{username}" has been created in '
                               f'{translate_path_2_ui(f"A/ChaOS_Users/{username}")}')
             else:
