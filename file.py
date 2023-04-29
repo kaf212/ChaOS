@@ -58,6 +58,7 @@ class File:
         Initializes the empty object with data from the cmd, validates it and if validated, physically creates the file in
         the desired location.
         """
+        self.reset()
         self.name = cmd.sec_arg
         self.type = cmd.pri_arg
         self.path = f'{cr_dir}/{self.name}'
@@ -121,6 +122,7 @@ class File:
         """
         Gets the fully qualified path of the target and loads the metadata.
         """
+        self.reset()
         trg_name = translate_ui_2_path(trg_name)
         if os.path.exists(trg_name):
             self.path = trg_name
@@ -177,6 +179,7 @@ class File:
             shutil.rmtree(self.path)
         else:
             os.remove(self.path)
+        self.reset()
 
     def recycle(self):
         pass
