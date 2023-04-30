@@ -71,42 +71,50 @@ class File:
             self.reset()
             return False
 
-        if self.validate():
-            if self.isfile():  # if the object is a file:
-                f = open(self.path, 'w')
-                f.close()
-            else:
-                os.makedirs(self.name)
+        self.create_phys()
 
-            return True
-        return False
+    def create_phys(self):
+        """
+        Physically creates the file without any prior validation, be careful using it!
+        """
+        if self.isfile():  # if the object is a file:
+            f = open(self.path, 'w')
+            f.close()
+        else:
+            os.makedirs(self.path)
 
-    def validate(self):
+    def validate(self, mode=None):
         if os.path.exists(self.path):
-            print_warning(f'The file or directory "{self.name}" already exists. ')
+            if mode != 'silent':
+                print_warning(f'The file or directory "{self.name}" already exists. ')
             return False
 
         illegal_chars = ['..', '/', ' ', "'", '"']
         for char in illegal_chars:
             if char in self.name:
-                print_warning(f'The file- or directory name cannot contain "{char}". ')
+                if mode != 'silent':
+                    print_warning(f'The file- or directory name cannot contain "{char}". ')
                 return False
 
         if '.' in self.name and self.type == 'dir':
-            print_warning(f'A directory name cannot contain a decimal point. ')
+            if mode != 'silent':
+                print_warning(f'A directory name cannot contain a decimal point. ')
             return False
 
         if self.type not in ['file', 'dir']:
-            print_warning(f'"{self.type}" is not a valid type (try "file" or "dir"). ')
+            if mode != 'silent':
+                print_warning(f'"{self.type}" is not a valid type (try "file" or "dir"). ')
             return False
 
         if self.name in ChaOS_constants.SYSTEM_DIR_NAMES or self.name in ChaOS_constants.SYSTEN_FILE_NAMES:
-            print_warning(f"The file- or directory name cannot be a standard system name. ")
+            if mode != 'silent':
+                print_warning(f"The file- or directory name cannot be a standard system name. ")
             return False
 
         for perm in self.access_perm:
             if perm not in return_user_names() and perm not in ChaOS_constants.VALID_ACCOUNT_TYPES:
-                print_warning(f'The user or account type "{perm}" does not exist. ')
+                if mode != 'silent':
+                    print_warning(f'The user or account type "{perm}" does not exist. ')
                 return False
 
         return True
@@ -338,12 +346,11 @@ def initialize_A_drive():
             os.mkdir(path)
 
         for subdir in ChaOS_constants.STANDARD_USER_SUBDIRS:
-            try:
-                usr_subdir_obj = File(name=subdir, type='dir', path=f'A/ChaOS_Users/{temp_user_obj.name}/{subdir}',
-                                      location=f'A/ChaOS_Users/{temp_user_obj.name}', owner=temp_user_obj.name, access_perm=[temp_user_obj.name])
-                log_file_metadata(temp_user_obj, usr_subdir_obj)
-            except FileExistsError:
-                pass
+            usr_subdir_obj = File(name=subdir, type='dir', path=f'A/ChaOS_Users/{temp_user_obj.name}/{subdir}',
+                                  location=f'A/ChaOS_Users/{temp_user_obj.name}', owner=temp_user_obj.name, access_perm=[temp_user_obj.name])
+            log_file_metadata(temp_user_obj, usr_subdir_obj)
+            if usr_subdir_obj.validate(mode='silent'):
+                usr_subdir_obj.create_phys()
 
     for username in usernames:
         initialize_user_dir_metadata(username)
@@ -363,8 +370,6 @@ def reset_user_dirs(reset_flag=None):
                 dir_obj.select('A/ChaOS_Users', d)
                 if dir_obj.owner not in return_user_names() and not dir_obj.is_communist():
                     dir_obj.delete()
-
-
 
     if reset_flag == '-hard':
         for d in os.listdir('A/ChaOS_Users'):

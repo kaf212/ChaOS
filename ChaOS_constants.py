@@ -32,11 +32,11 @@ CMD_SHORTS = {'cr': 'create',
               'd': 'dir',
               'u': 'user',
 
-              'rec': 'Recycling bin'
+              'rec': 'Recycling_bin'
 
               }
 
-STANDARD_USER_SUBDIRS = ['Documents', 'Desktop', 'Recycling bin']
+STANDARD_USER_SUBDIRS = ['Documents', 'Desktop', 'Recycling_bin']
 
 SYSTEN_FILE_NAMES = ['metadata.csv']
 
