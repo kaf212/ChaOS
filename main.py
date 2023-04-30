@@ -244,9 +244,9 @@ def delete_x(cmd):
             print_warning(f'The file "{cr_dir + "/" + cmd.sec_arg}" is not a file or does not exist. ')
             return None
         if validate_file_alteration(cmd.sec_arg, user):  # make sure the user isn't deleting any system files
-            # delete_file_ui(cr_dir + "/" + cmd.sec_arg)
-            recycle(cmd.sec_arg, cr_dir)
-
+            file = File()
+            file.select(cr_dir, cmd.sec_arg)
+            file.recycle()
     elif cmd.pri_arg == 'user':
         delete_user_safe(user, cmd.sec_arg)
 

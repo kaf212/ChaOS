@@ -111,11 +111,12 @@ class File:
                 print_warning(f"The file- or directory name cannot be a standard system name. ")
             return False
 
-        for perm in self.access_perm:
-            if perm not in return_user_names() and perm not in ChaOS_constants.VALID_ACCOUNT_TYPES:
-                if mode != 'silent':
-                    print_warning(f'The user or account type "{perm}" does not exist. ')
-                return False
+        if self.access_perm:
+            for perm in self.access_perm:
+                if perm not in return_user_names() and perm not in ChaOS_constants.VALID_ACCOUNT_TYPES:
+                    if mode != 'silent':
+                        print_warning(f'The user or account type "{perm}" does not exist. ')
+                    return False
 
         return True
 
@@ -162,6 +163,40 @@ class File:
         self.location = metadata['location']
         self.owner = metadata['owner']
         self.access_perm = metadata['access_perm']
+
+    def log_metadata(self):
+        for perm in self.access_perm:
+            if perm not in [return_user_names(), 'all_users', ChaOS_constants.VALID_ACCOUNT_TYPES]:
+                raise ValueError(f'Invalid access permission "{self.access_perm}" given. ')
+
+        if not os.path.isdir(self.location):
+            raise NotADirectoryError(f'{self.location} is not a directory. ')
+
+        md_path = f'A/System42/metadata/file_metadata.csv'
+        if not os.path.exists(md_path):
+            with open(md_path, 'w') as md_csv:
+                attributes = ChaOS_constants.METADATA_CSV_ATTRIBUTES
+                csv_writer = csv.DictWriter(md_csv, fieldnames=attributes)
+                csv_writer.writeheader()
+
+        if not self.check_metadata_existence():
+            with open(md_path, 'a+') as md_csv:
+                attributes = ChaOS_constants.METADATA_CSV_ATTRIBUTES
+                csv_writer = csv.DictWriter(md_csv, fieldnames=attributes)
+                csv_writer.writerow(
+                    {'name': self.name.lower(), 'type': self.type, 'path': self.path,
+                     'location': self.location, 'access_perm': self.access_perm})
+
+    def check_metadata_existence(self):
+        md_path = f'A/System42/metadata/file_metadata.csv'
+        with open(md_path, 'r') as md_csv:
+            attributes = ChaOS_constants.METADATA_CSV_ATTRIBUTES
+            next(md_csv)
+            csv_reader = csv.DictReader(md_csv, fieldnames=attributes)
+            for line in csv_reader:
+                if line['path'] == self.path:
+                    return True
+            return False
 
     def delete_metadata(self):
         md_path = 'A/System42/metadata/file_metadata.csv'
@@ -240,32 +275,7 @@ def create_file(dir, name, user):
         print_warning(f'{name} contains illegal characters. ')
 
 
-def log_file_metadata(user, file) -> None:
 
-    print(hex(id(file)))
-    for perm in file.access_perm:
-        if perm not in [user.name, 'all_users', 'admins', 'devs']:
-            raise ValueError(f'Invalid access permission "{file.access_perm}" given. ')
-
-    if not os.path.isdir(file.location):
-        raise NotADirectoryError(f'{file.location} is not a directory. ')
-
-    dirname = file.name.lower()
-
-    md_path = f'A/System42/metadata/file_metadata.csv'
-    if not os.path.exists(md_path):
-        with open(md_path, 'w') as md_csv:
-            attributes = ChaOS_constants.METADATA_CSV_ATTRIBUTES
-            csv_writer = csv.DictWriter(md_csv, fieldnames=attributes)
-            csv_writer.writeheader()
-            md_csv.close()
-
-    if not check_metadata_existence(user, file):
-        with open(md_path, 'a+') as md_csv:
-            attributes = ChaOS_constants.METADATA_CSV_ATTRIBUTES
-            csv_writer = csv.DictWriter(md_csv, fieldnames=attributes)
-            csv_writer.writerow({'name': dirname, 'type': file.type, 'path': file.path, 'location': user.account_type, 'access_perm': file.access_perm})
-            md_csv.close()
 
 
 def read_file_metadata(file: File) -> dict:
@@ -285,17 +295,6 @@ def read_file_metadata(file: File) -> dict:
     else:
         raise FileNotFoundError(f'metadata.csv not found in {md_path}. ')
 
-
-def check_metadata_existence(user, file: File) -> bool:
-    md_path = f'A/System42/metadata/file_metadata.csv'
-    with open(md_path, 'r') as md_csv:
-        attributes = ChaOS_constants.METADATA_CSV_ATTRIBUTES
-        # next(md_csv)
-        csv_reader = csv.DictReader(md_csv, fieldnames=attributes)
-        for line in csv_reader:
-            if line['path'] == file.path:
-                return True
-        return False
 
 
 def read_txt(dir, name):
@@ -325,14 +324,9 @@ def initialize_A_drive():
     except FileExistsError:
         pass
 
-    system42 = create_user_object('System42', 'Klaatu Barada Nikto', 'dev')
-
     dir_obj = File('ChaOS_Users', 'dir', 'A/ChaOS_Users', 'A', 'System42', ['all_users'])
-
-    log_file_metadata(system42, dir_obj)
-
+    dir_obj.log_metadata()
     usernames = return_user_names()
-
     all_users = return_users()
 
     for username in usernames:
@@ -348,7 +342,7 @@ def initialize_A_drive():
         for subdir in ChaOS_constants.STANDARD_USER_SUBDIRS:
             usr_subdir_obj = File(name=subdir, type='dir', path=f'A/ChaOS_Users/{temp_user_obj.name}/{subdir}',
                                   location=f'A/ChaOS_Users/{temp_user_obj.name}', owner=temp_user_obj.name, access_perm=[temp_user_obj.name])
-            log_file_metadata(temp_user_obj, usr_subdir_obj)
+            usr_subdir_obj.log_metadata()
             if usr_subdir_obj.validate(mode='silent'):
                 usr_subdir_obj.create_phys()
 
