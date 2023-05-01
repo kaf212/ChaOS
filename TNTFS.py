@@ -95,6 +95,11 @@ class File:
             if mode != 'silent':
                 print_warning(output)
 
+        for attr in [self.name, self.type, self.path, self.location, self.owner, self.access_perm]:
+            if attr is None:
+                print_warning(f'Cannot create file with undefined attributes. ')
+                return False
+
         if os.path.exists(self.path):
             print_warning_silent(f'The file or directory "{self.name}" already exists. ')
             return False
@@ -353,8 +358,11 @@ def initialize_A_drive():
     except FileExistsError:
         pass
 
-    dir_obj = File('ChaOS_Users', 'dir', 'A/ChaOS_Users', 'A', 'System42', ['all_users'])
-    dir_obj.log_metadata()
+    a_drive = File('A', 'dir', 'A', 'A', 'System42', ['all_users'])
+    users_dir = File('ChaOS_Users', 'dir', 'A/ChaOS_Users', 'A', 'System42', ['all_users'])
+    users_dir.log_metadata()
+    a_drive.log_metadata()
+
     usernames = return_user_names()
     all_users = return_users()
 

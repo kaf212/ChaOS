@@ -292,13 +292,16 @@ def change_dir(cmd):
         else:
             full_path = cr_dir + path
 
-        if os.path.exists(translate_ui_2_path(full_path)):
+        full_path = translate_ui_2_path(full_path)
+        path = translate_ui_2_path(path)
+
+        if os.path.exists(full_path):
             dir_obj = File()
             dir_obj.select(full_path, cr_dir)
             if dir_obj.validate_access(user):
                 cr_dir = full_path
                 return None
-        elif os.path.exists(translate_ui_2_path(path)):
+        elif os.path.exists(path):
             dir_obj = File()
             dir_obj.select(path, cr_dir)
             if dir_obj.validate_access(user):

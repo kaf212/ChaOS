@@ -4,7 +4,7 @@ import time
 
 import ChaOS_constants
 from encryption import encrypt_str, decrypt_str
-from TNTFS import create_dir, translate_path_2_ui, File
+from TNTFS import translate_path_2_ui, File
 from system import syslog
 from user import create_user_object, enter_username
 from input import list_selection_options
