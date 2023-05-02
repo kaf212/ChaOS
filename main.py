@@ -60,6 +60,8 @@ class Cmd:
             if type(value) == str and (not value.startswith('__') and '/' in value):
                 # loop over all attributes and if they're not a builtin and are a path, translate them
                 self.__dict__[attr] = translate_ui_2_path(value)
+        if self.pri_arg == 'file' and '.' not in self.sec_arg:  # automatically adds ".txt" to files with no extension.
+            self.sec_arg += '.txt'
 
     def validate(self):
         if self.cmd not in cmd_map:

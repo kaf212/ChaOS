@@ -38,8 +38,12 @@ CMD_SHORTS = {'cr': 'create',
 
 STANDARD_USER_SUBDIRS = ['Documents', 'Desktop', 'Recycling_bin']
 
-SYSTEN_FILE_NAMES = ['metadata.csv']
+SYSTEM_FILE_NAMES = ['metadata.csv', 'syslog.csv']
 
-SYSTEM_DIR_NAMES = ['A', 'ChaOS_Users']
+SYSTEM_DIR_NAMES = ['A', 'ChaOS_Users', 'System42', 'metadata', 'logging']
+
+SYSTEM_DIRS = ['A/ChaOS_Users', 'A/System42/metadata', 'A/System42/logging']
+
+SYSTEM_FILES = ['A/System42/metadata/metadata.csv', 'A/System42/logging/syslog.csv']
 
 LOGGING_FORMAT = '[%(levelname)s] %(message)s'

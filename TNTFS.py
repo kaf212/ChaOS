@@ -68,8 +68,6 @@ class File:
         self.reset()
         self.name = cmd.sec_arg
         self.type = cmd.pri_arg
-        if self.isfile() and self.filetype == '':   # if filetype is undefined, make it a txt.
-            self.name += '.txt'
         self.path = f'{cr_dir}/{self.name}'
         self.location = cr_dir
         self.owner = user.name
@@ -93,9 +91,9 @@ class File:
         else:
             syslog('creation', f'Created dir "{self.path}"')
 
-    def validate(self, mode=None, valid_filetypes=None):
+    def validate(self, modes: list = None, valid_filetypes=None):
         def print_warning_silent(output):
-            if mode != 'silent':
+            if 'silent' not in modes:
                 print_warning(output)
 
         for attr in [self.name, self.path, self.location, self.owner, self.access_perm]:
@@ -125,13 +123,14 @@ class File:
             print_warning_silent(f'"{self.type}" is not a valid type (try "file" or "dir"). ')
             return False
 
-        if self.name in ChaOS_constants.SYSTEM_DIR_NAMES or self.name in ChaOS_constants.SYSTEN_FILE_NAMES:
-            print_warning_silent(f"The file- or directory name cannot be a standard system name. ")
-            return False
+        if 'sys' not in modes:
+            if self.name in ChaOS_constants.SYSTEM_DIR_NAMES or self.name in ChaOS_constants.SYSTEM_FILE_NAMES:
+                print_warning_silent(f"The file- or directory name cannot be a standard system name. ")
+                return False
 
         if self.access_perm:
             for perm in self.access_perm:
-                if perm not in return_user_names() and perm not in ChaOS_constants.VALID_ACCOUNT_TYPES and perm != 'all_users':
+                if perm not in return_user_names() and perm not in ChaOS_constants.VALID_ACCOUNT_TYPES and perm not in ['all_users', 'System42']:
                     print_warning_silent(f'The user or account type "{perm}" does not exist. ')
                     return False
 
@@ -171,7 +170,7 @@ class File:
         print_warning(f'The file or directory "{trg_name}" does not exist in "{location}". ')
         return False
 
-    def validate_access(self, user):   # TODO: looks incomplete
+    def validate_access(self, user):  # TODO: looks incomplete
         pos_conditions = ['all_users' in self.access_perm,
                           user.name in self.access_perm,
                           user.account_type in self.access_perm]
@@ -205,7 +204,7 @@ class File:
 
     def log_metadata(self):
         for perm in self.access_perm:
-            if perm != 'all_users' and perm not in return_user_names() \
+            if perm not in ['all_users', 'System42'] and perm not in return_user_names() \
                     and perm not in ChaOS_constants.VALID_ACCOUNT_TYPES:
                 raise ValueError(f'Invalid access permission "{perm}" given. ')
 
@@ -276,7 +275,7 @@ class File:
             file = File()
             file.select(trg_name=filename, location=self.path)
             file.delete()
-            del file   # To definitely avoid interference amongst all the file objects in the loop.
+            del file  # To definitely avoid interference amongst all the file objects in the loop.
 
     def recycle(self):
         if os.path.exists(f'{self.location}/Recycling_bin/{self.name}'):
@@ -335,32 +334,30 @@ class File:
         syslog('alteration', f'edited file "{translate_path_2_ui(self.path)}"')
 
 
-def read_txt(directory, name):
-    path = directory + '/' + name
-    with open(path, 'r') as f:
-        print(f'-- {name} --\n')
-        print(f.read())
-        print(f'\n-- {name} --\n')
-        f.close()
-
-
 def initialize_A_drive():
-    logging_format = '[%(levelname)s] %(message)s'
-    logging.basicConfig(level=logging.DEBUG, format=logging_format)
-    try:
-        os.makedirs('A/ChaOS_Users', 0o777)
-    except FileExistsError:
-        pass
-    try:
-        os.makedirs('A/System42/metadata')
-    except FileExistsError:
-        pass
+    for sysdir in ChaOS_constants.SYSTEM_DIRS:
+        try:
+            name = split_path(sysdir)[-1]
+            loc = split_path(sysdir)
+            loc.pop()
+            loc.pop()
+            perm = ['System42', 'dev']
+            if name == 'ChaOS_Users':
+                perm = ['all_users']
+            sysdir_obj = File(name=name, type='dir', path=sysdir, location=''.join(loc), owner='System42',
+                              access_perm=perm)
+            if sysdir_obj.validate(modes=['sys']):
+                sysdir_obj.log_metadata()
+                sysdir_obj.create_phys()
+        except FileExistsError:
+            pass
 
-    try:
-        f = open('A/System42/metadata/file_metadata.csv', 'w')
-        f.close()
-    except FileExistsError:
-        pass
+    for sysfile in ChaOS_constants.SYSTEM_FILES:
+        try:
+            f = open(sysfile, 'w')   # system files are not logged in metadata.csv
+            f.close()
+        except FileExistsError:
+            pass
 
     a_drive = File('A', 'dir', 'A', 'A', 'System42', ['all_users'])
     users_dir = File('ChaOS_Users', 'dir', 'A/ChaOS_Users', 'A', 'System42', ['all_users'])
@@ -385,11 +382,20 @@ def initialize_A_drive():
                                   location=f'A/ChaOS_Users/{temp_user_obj.name}', owner=temp_user_obj.name,
                                   access_perm=[temp_user_obj.name])
             usr_subdir_obj.log_metadata()
-            if usr_subdir_obj.validate(mode='silent'):
+            if usr_subdir_obj.validate(modes=['silent']):
                 usr_subdir_obj.create_phys()
 
     for username in usernames:
         initialize_user_dir_metadata(username)
+
+
+def read_txt(directory, name):
+    path = directory + '/' + name
+    with open(path, 'r') as f:
+        print(f'-- {name} --\n')
+        print(f.read())
+        print(f'\n-- {name} --\n')
+        f.close()
 
 
 def reset_user_dirs(reset_flag=None):

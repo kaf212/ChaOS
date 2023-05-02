@@ -83,7 +83,7 @@ def validate_dir_access(parent_dir: str, dirname: str, user, cmd) -> bool:
 
 
 def validate_file_alteration(filename, user):
-    if filename not in ChaOS_constants.SYSTEN_FILE_NAMES:
+    if filename not in ChaOS_constants.SYSTEM_FILE_NAMES:
         return True
 
     if user.account_type != 'dev':
