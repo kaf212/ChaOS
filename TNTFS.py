@@ -30,7 +30,10 @@ class File:
     @property
     def filetype(self):
         if self.isfile():
-            return self.name.partition(".")[2]
+            try:
+                return self.name.partition(".")[2]
+            except IndexError:
+                return None
         else:
             raise Exception('Tried accessing filetype of directory object. ')
 
@@ -65,15 +68,15 @@ class File:
         self.reset()
         self.name = cmd.sec_arg
         self.type = cmd.pri_arg
+        if self.isfile() and self.filetype == '':   # if filetype is undefined, make it a txt.
+            self.name += '.txt'
         self.path = f'{cr_dir}/{self.name}'
         self.location = cr_dir
         self.owner = user.name
-        if cmd.flag_exists:
-            self.access_perm = cmd.get_flag('-p')
-
-        if not self.validate():
-            self.reset()
-            return False
+        if cmd.flag_exists('-p'):
+            self.access_perm = [cmd.get_flag('-p')]
+        else:
+            self.access_perm = [user.name]
 
     def create_phys(self):
         """
@@ -95,7 +98,7 @@ class File:
             if mode != 'silent':
                 print_warning(output)
 
-        for attr in [self.name, self.type, self.path, self.location, self.owner, self.access_perm]:
+        for attr in [self.name, self.path, self.location, self.owner, self.access_perm]:
             if attr is None:
                 print_warning(f'Cannot create file with undefined attributes. ')
                 return False
@@ -115,7 +118,7 @@ class File:
             return False
 
         if self.name.count('.') > 1:
-            print_warning_silent(f'The filename cannot contain > 1 decimal points. ')
+            print_warning_silent(f'A filename cannot contain > 1 decimal points. ')
             return False
 
         if self.type not in ['file', 'dir']:
@@ -128,7 +131,7 @@ class File:
 
         if self.access_perm:
             for perm in self.access_perm:
-                if perm not in return_user_names() and perm not in ChaOS_constants.VALID_ACCOUNT_TYPES:
+                if perm not in return_user_names() and perm not in ChaOS_constants.VALID_ACCOUNT_TYPES and perm != 'all_users':
                     print_warning_silent(f'The user or account type "{perm}" does not exist. ')
                     return False
 
@@ -155,7 +158,8 @@ class File:
         Gets the fully qualified path of the target and loads the metadata.
         """
         self.reset()
-        trg_name = translate_ui_2_path(trg_name)
+        trg_name = translate_ui_2_path(trg_name).lower()
+        location = translate_ui_2_path(location).lower()
         if os.path.exists(trg_name):
             self.path = trg_name
             self.load_metadata()
@@ -187,7 +191,7 @@ class File:
             reader = csv.DictReader(f, fieldnames=ChaOS_constants.METADATA_CSV_ATTRIBUTES)
             metadata = None
             for line in reader:
-                if line['path'] == self.path:
+                if line['path'] == self.path.lower():
                     metadata = line
             if metadata is None:
                 raise Exception(f'Metadata for "{self.path}" could not be found. ')
@@ -220,8 +224,8 @@ class File:
                 attributes = ChaOS_constants.METADATA_CSV_ATTRIBUTES
                 csv_writer = csv.DictWriter(md_csv, fieldnames=attributes)
                 csv_writer.writerow(
-                    {'name': self.name.lower(), 'type': self.type, 'path': self.path,
-                     'location': self.location, 'access_perm': self.access_perm})
+                    {'name': self.name.lower(), 'type': self.type, 'path': self.path.lower(),
+                     'location': self.location.lower(), 'access_perm': self.access_perm})
 
     def check_metadata_existence(self):
         md_path = f'A/System42/metadata/file_metadata.csv'

@@ -169,6 +169,7 @@ def create_x(cmd):
         file = File()
         file.init(cmd, user, cr_dir)
         if file.validate(valid_filetypes=['txt']):
+            file.log_metadata()
             file.create_phys()
         del file
 
@@ -176,6 +177,7 @@ def create_x(cmd):
         directory = File()
         directory.init(cmd, user, cr_dir)
         if directory.validate():
+            directory.log_metadata()
             directory.create_phys()
         del directory
 

@@ -78,21 +78,20 @@ def create_user(username: str, password: str, account_type: str):
     if os.path.isdir(f'A/ChaOS_Users/{username}'):
         print_warning(f'Cannot create user, directory name already taken. ')
     else:
-        os.mkdir(f'A/ChaOS_Users/{username}')
-        temp_user_obj = create_user_object(username, password, account_type)
-        for subdir in ChaOS_constants.STANDARD_USER_SUBDIRS:
-            subdir_obj = File(name='Recycling_bin', type='dir', path=f'A/ChaOS_Users/{username}/Recycling bin', location=f'A/ChaOS_Users/{username}', owner=username,
-                           access_perm=[username])
-            subdir_obj.log_metadata()
-            subdir_obj.create_phys()
-            print_success(f'Directory "{username}" has been created in '
-                          f'{translate_path_2_ui(f"A/ChaOS_Users/{username}")}')
-
         with open('users.csv', 'a+', encoding="utf-8") as csv_file:
             attributes = ['username', 'password', 'account type']
             csv_writer = csv.DictWriter(csv_file, fieldnames=attributes)
             csv_writer.writerow({'username': username, 'password': encrypt_str(password), 'account type': account_type})
             csv_file.close()
+
+        os.mkdir(f'A/ChaOS_Users/{username}')
+        temp_user_obj = create_user_object(username, password, account_type)
+        for subdir in ChaOS_constants.STANDARD_USER_SUBDIRS:
+            subdir_obj = File(name=subdir, type='dir', path=f'A/ChaOS_Users/{username}/{subdir}', location=f'A/ChaOS_Users/{username}', owner=username,
+                           access_perm=[username])
+            subdir_obj.log_metadata()
+            subdir_obj.create_phys()
+
         syslog('creation', f'created user "{username}"')
 
 
