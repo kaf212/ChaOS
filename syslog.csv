@@ -1,6 +1,0 @@
-ID,time,category,msg
-0,16:12,command,"used command ""cd .."""
-1,16:12,command,"used command ""cd Manu"""
-2,16:12,command,"used command ""sudo cd manu"""
-3,16:12,command,"used command ""cd desktop"""
-4,16:12,command,"used command ""sudo cd desktop"""

@@ -369,10 +369,8 @@ def initialize_A_drive():
     # log metadata for A and A/ChaOS_Users directories
     a_drive = File('A', 'dir', 'A', 'A', 'System42', ['all_users'])
     users_dir = File('ChaOS_Users', 'dir', 'A/ChaOS_Users', 'A', 'System42', ['all_users'])
-    if not users_dir.metadata_exists():
-        users_dir.log_metadata()
-    if not a_drive.metadata_exists():
-        a_drive.log_metadata()
+    users_dir.log_metadata()  # log_metadata() checks for metadata existence automatically
+    a_drive.log_metadata()
 
     # create and log metadata for user directories
     usernames = return_user_names()
