@@ -42,7 +42,7 @@ SYSTEM_FILE_NAMES = ['metadata.csv', 'syslog.csv']
 
 SYSTEM_DIR_NAMES = ['A', 'ChaOS_Users', 'System42', 'metadata', 'logging']
 
-SYSTEM_DIRS = ['A/ChaOS_Users', 'A/System42/metadata', 'A/System42/logging']
+SYSTEM_DIRS = ['A/ChaOS_Users', 'A/System42/metadata', 'A/System42/logging', 'A/System42/programs']
 
 SYSTEM_FILES = ['A/System42/metadata/metadata.csv', 'A/System42/logging/syslog.csv']
 

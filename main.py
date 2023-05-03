@@ -12,6 +12,7 @@ from cmd_definitions import cmd_usage
 import platform
 from dataclasses import dataclass, field
 from ChaOS_constants import CMD_SHORTS
+from ChaOS_pm import pm_install
 
 import logging
 from colors import *
@@ -408,6 +409,25 @@ def logoff():
     main()
 
 
+def access_pm(cmd):
+    if cmd.pri_arg == 'install':
+        pm_install(cmd)
+
+
+def run_program(cmd):
+    program_name = cmd.pri_arg
+    if program_name not in os.listdir('A/System42/programs'):
+        print_warning(f'The program "{program_name}" is not installed. ')
+        return None
+
+    module_name = f"A.System42.programs.{program_name}.{program_name}_main"
+    function_name = f'{program_name}_main'
+
+    impmodule = __import__(module_name, fromlist=[function_name])
+    func = getattr(impmodule, function_name)
+    func()
+
+
 def access_dev_tools(cmd):
     """
     The gateway to the land of dangerous and user-unfriendly operations.
@@ -468,7 +488,9 @@ cmd_map = {'create': create_x,
            'dev': access_dev_tools,
            'cd': change_dir,
            'logoff': logoff,
-           'sd': shutdown
+           'sd': shutdown,
+           'pm': access_pm,
+           'run': run_program
            }
 
 cmd_args_map = {'create': [cmd_obj],
@@ -485,6 +507,8 @@ cmd_args_map = {'create': [cmd_obj],
                 'move': [cr_dir, user, cmd_obj],
                 'dev': [cmd_obj],
                 'cd': [cmd_obj],
+                'pm': [cmd_obj],
+                'run': [cmd_obj]
                 }
 
 cmd_vld_arg_map = {'create': ['file', 'dir', 'user'],
@@ -495,7 +519,8 @@ cmd_vld_arg_map = {'create': ['file', 'dir', 'user'],
                    'edit': ['file', 'user'],
                    'dev': ['reset'],
                    'ipconfig': ['all'],
-                   'move': ['file', 'dir']
+                   'move': ['file', 'dir'],
+                   'pm': ['install']
                    }
 
 if __name__ == '__main__':
