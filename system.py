@@ -6,7 +6,7 @@ import os
 
 
 def reset_syslog():
-    with open('syslog.csv', 'w', encoding='utf-8') as csv_file:
+    with open('A/System42/logging/syslog.csv', 'w', encoding='utf-8') as csv_file:
         attributes = ChaOS_constants.SYSLOG_CSV_ATTRIBUTES
         csv_writer = csv.DictWriter(csv_file, fieldnames=attributes)
         csv_writer.writeheader()
@@ -17,9 +17,9 @@ def syslog(category, msg):
     if category not in ChaOS_constants.SYSLOG_CATEGORIES:
         raise ValueError(f'Invalid syslog category "{category}" given. ')
 
-    with open('syslog.csv', 'r', encoding='utf-8') as csv_file:
+    with open('A/System42/logging/syslog.csv', 'r', encoding='utf-8') as csv_file:
         attributes = ChaOS_constants.SYSLOG_CSV_ATTRIBUTES
-        next(csv_file)
+        # next(csv_file)
         csv_reader = csv.DictReader(csv_file, fieldnames=attributes)
         log_list = []
         for line in csv_reader:
@@ -30,7 +30,7 @@ def syslog(category, msg):
         except IndexError:
             index = 0
     now = get_formatted_time()
-    with open('syslog.csv', 'a+', encoding='utf-8') as csv_file:
+    with open('A/System42/logging/syslog.csv', 'a+', encoding='utf-8') as csv_file:
         attributes = ChaOS_constants.SYSLOG_CSV_ATTRIBUTES
         csv_writer = csv.DictWriter(csv_file, fieldnames=attributes)
         csv_writer.writerow({'ID': index, 'time': now, 'category': category, 'msg': msg})
@@ -46,7 +46,7 @@ def get_formatted_time() -> str:
 
 
 def show_syslog():
-    with open('syslog.csv', 'r', encoding='utf-8') as csv_file:
+    with open('A/System42/logging/syslog.csv', 'r', encoding='utf-8') as csv_file:
         attributes = ChaOS_constants.SYSLOG_CSV_ATTRIBUTES
         next(csv_file)
         csv_reader = csv.DictReader(csv_file, fieldnames=attributes)

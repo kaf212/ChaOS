@@ -5,7 +5,7 @@ ChaOS_constants.py
 CHAOS_VERSION = '1.0.0 Beta'
 VALID_ACCOUNT_TYPES = ['standard', 'admin', 'dev']
 USER_CSV_ATTRIBUTES = ['name', 'password', 'account type']
-METADATA_CSV_ATTRIBUTES = ['dirname', 'owner', 'owner_account_type', 'access_permission', 'dir_type']
+METADATA_CSV_ATTRIBUTES = ['name', 'type', 'path', 'location', 'owner', 'access_perm']
 VALID_DIR_TYPES = ['personal', 'capitalist', 'communist']
 SYSLOG_CSV_ATTRIBUTES = ['ID', 'time', 'category', 'msg']
 SYSLOG_CATEGORIES = ['command', 'creation', 'deletion', 'alteration']
@@ -32,14 +32,18 @@ CMD_SHORTS = {'cr': 'create',
               'd': 'dir',
               'u': 'user',
 
-              'rec': 'Recycling bin'
+              'rec': 'Recycling_bin'
 
               }
 
-STANDARD_USER_SUBDIRS = ['Documents', 'Desktop', 'Recycling bin']
+STANDARD_USER_SUBDIRS = ['Documents', 'Desktop', 'Recycling_bin']
 
-SYSTEN_FILE_NAMES = ['metadata.csv']
+SYSTEM_FILE_NAMES = ['metadata.csv', 'syslog.csv']
 
-SYSTEM_DIR_NAMES = ['A', 'ChaOS_Users']
+SYSTEM_DIR_NAMES = ['A', 'ChaOS_Users', 'System42', 'metadata', 'logging']
+
+SYSTEM_DIRS = ['A/ChaOS_Users', 'A/System42/metadata', 'A/System42/logging']
+
+SYSTEM_FILES = ['A/System42/metadata/metadata.csv', 'A/System42/logging/syslog.csv']
 
 LOGGING_FORMAT = '[%(levelname)s] %(message)s'

@@ -4,7 +4,7 @@ import time
 
 import ChaOS_constants
 from encryption import encrypt_str, decrypt_str
-from file import create_dir, log_dir_metadata, translate_path_2_ui
+from TNTFS import translate_path_2_ui, File
 from system import syslog
 from user import create_user_object, enter_username
 from input import list_selection_options
@@ -78,23 +78,20 @@ def create_user(username: str, password: str, account_type: str):
     if os.path.isdir(f'A/ChaOS_Users/{username}'):
         print_warning(f'Cannot create user, directory name already taken. ')
     else:
-        os.mkdir(f'A/ChaOS_Users/{username}')
-        temp_user_obj = create_user_object(username, password, account_type)
-        for subdir in ChaOS_constants.STANDARD_USER_SUBDIRS:
-            if subdir == 'Recycling bin':
-                os.mkdir(f'A/ChaOS_Users/{username}/Recycling bin')
-                log_dir_metadata(user=temp_user_obj, dirname='Recycling bin', access_permission=username,
-                                 parent_dir=f'A/ChaOS_Users/{username}', dir_type='personal')
-                print_success(f'Directory "{username}" has been created in '
-                              f'{translate_path_2_ui(f"A/ChaOS_Users/{username}")}')
-            else:
-                create_dir(user=temp_user_obj, name=subdir, dir=f'A/ChaOS_Users/{username}', dir_type='personal')
-
         with open('users.csv', 'a+', encoding="utf-8") as csv_file:
             attributes = ['username', 'password', 'account type']
             csv_writer = csv.DictWriter(csv_file, fieldnames=attributes)
             csv_writer.writerow({'username': username, 'password': encrypt_str(password), 'account type': account_type})
             csv_file.close()
+
+        os.mkdir(f'A/ChaOS_Users/{username}')
+        temp_user_obj = create_user_object(username, password, account_type)
+        for subdir in ChaOS_constants.STANDARD_USER_SUBDIRS:
+            subdir_obj = File(name=subdir, type='dir', path=f'A/ChaOS_Users/{username}/{subdir}', location=f'A/ChaOS_Users/{username}', owner=username,
+                           access_perm=[username])
+            subdir_obj.log_metadata()
+            subdir_obj.create_phys()
+
         syslog('creation', f'created user "{username}"')
 
 

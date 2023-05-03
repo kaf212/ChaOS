@@ -1,7 +1,7 @@
 import os
 import shutil
 
-from file import create_file, create_dir, return_user_names
+from TNTFS import return_user_names, File
 from login import create_user
 from user import User
 from ChaOS_DevTools import reset_user_csv
@@ -18,38 +18,28 @@ def clean_unit_testing_dir():
                 shutil.rmtree(f'unit_testing/{file}')
 
 
-def test_create_file():
-    try:
-        create_file('unit_testing', 'test_create_file.txt', user)
-    except FileExistsError:
-        os.remove('unit_testing/test_create_file.txt')
-        create_file('unit_testing', 'test_create_file.txt', user)
-    filenames = []
-    for file in os.listdir('unit_testing'):
-        filenames.append(file)
-
-    assert 'test_create_file.txt' in filenames
-
+def test_create_f():
     clean_unit_testing_dir()
+    testfile = File('testfile.txt', 'file', 'unit_testing/testfile', 'unit_testing', 'System42', ['System42'])
+    testfile.create(['silent'])
+    assert testfile.metadata_exists()
+    assert testfile.isfile()
+    assert testfile.filetype == 'txt'
+    assert not testfile.validate_access(user)
 
 
-def test_create_directory():
-
-    if not os.path.exists('unit_testing'):
-        os.mkdir('unit_testing')
-
+def test_create_dir():
+    testdir = File('testdir', 'dir', 'unit_testing/testdir', 'unit_testing', 'System42', ['System42'])
+    testdir.create(['silent'])
+    assert testdir.metadata_exists()
+    assert testdir.isdir()
     try:
-        create_dir(user, 'unit_testing', 'test_create_dir', 'capitalist')
-    except FileExistsError:
-        os.remove('unit_testing/test_create_dir')
-        create_dir(user, 'unit_testing', 'test_create_dir', 'capitalist')
-    dirnames = []
-    for file in os.listdir('unit_testing'):
-        dirnames.append(file)
-
-    assert 'test_create_dir' in dirnames
-
-    clean_unit_testing_dir()
+        print(testdir.filetype)
+    except Exception:
+        assert True
+    else:
+        assert False
+    assert not testdir.validate_access(user)
 
 
 def test_create_user():
