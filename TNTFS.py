@@ -76,6 +76,11 @@ class File:
         else:
             self.access_perm = [user.name]
 
+    def create(self, modes: list=None):
+        if self.validate(modes):
+            self.log_metadata()
+            self.create_phys()
+
     def create_phys(self):
         """
         Physically creates the file without any prior validation, be careful using it!
@@ -123,10 +128,11 @@ class File:
             print_warning_silent(f'"{self.type}" is not a valid type (try "file" or "dir"). ')
             return False
 
-        if 'sys' not in modes:
-            if self.name in ChaOS_constants.SYSTEM_DIR_NAMES or self.name in ChaOS_constants.SYSTEM_FILE_NAMES:
-                print_warning_silent(f"The file- or directory name cannot be a standard system name. ")
-                return False
+        if modes:
+            if 'sys' not in modes:
+                if self.name in ChaOS_constants.SYSTEM_DIR_NAMES or self.name in ChaOS_constants.SYSTEM_FILE_NAMES:
+                    print_warning_silent(f"The file- or directory name cannot be a standard system name. ")
+                    return False
 
         if self.access_perm:
             for perm in self.access_perm:
@@ -157,8 +163,8 @@ class File:
         Gets the fully qualified path of the target and loads the metadata.
         """
         self.reset()
-        trg_name = translate_ui_2_path(trg_name).lower()
-        location = translate_ui_2_path(location).lower()
+        trg_name = translate_ui_2_path(trg_name) # .lower()
+        location = translate_ui_2_path(location) # .lower()
         if os.path.exists(trg_name):
             self.path = trg_name
             self.load_metadata()
@@ -179,7 +185,7 @@ class File:
             if condition:
                 return True
 
-        print_warning(f'Access denied to "{self.path}". ')
+        print_warning(f'Access denied to "{self.path_ui}". ')
         return False
 
     def load_metadata(self):
@@ -190,7 +196,7 @@ class File:
             reader = csv.DictReader(f, fieldnames=ChaOS_constants.METADATA_CSV_ATTRIBUTES)
             metadata = None
             for line in reader:
-                if line['path'] == self.path.lower():
+                if line['path'].lower() == self.path.lower():
                     metadata = line
             if metadata is None:
                 raise Exception(f'Metadata for "{self.path}" could not be found. ')
@@ -218,15 +224,15 @@ class File:
                 csv_writer = csv.DictWriter(md_csv, fieldnames=attributes)
                 csv_writer.writeheader()
 
-        if not self.check_metadata_existence():
+        if not self.metadata_exists():
             with open(md_path, 'a+') as md_csv:
                 attributes = ChaOS_constants.METADATA_CSV_ATTRIBUTES
                 csv_writer = csv.DictWriter(md_csv, fieldnames=attributes)
                 csv_writer.writerow(
-                    {'name': self.name.lower(), 'type': self.type, 'path': self.path.lower(),
-                     'location': self.location.lower(), 'access_perm': self.access_perm})
+                    {'name': self.name, 'type': self.type, 'path': self.path,
+                     'location': self.location, 'access_perm': self.access_perm})
 
-    def check_metadata_existence(self):
+    def metadata_exists(self):
         md_path = f'A/System42/metadata/file_metadata.csv'
         with open(md_path, 'r') as md_csv:
             attributes = ChaOS_constants.METADATA_CSV_ATTRIBUTES
@@ -335,58 +341,54 @@ class File:
 
 
 def initialize_A_drive():
-    for sysdir in ChaOS_constants.SYSTEM_DIRS:
-        try:
-            name = split_path(sysdir)[-1]
-            loc = split_path(sysdir)
-            loc.pop()
-            loc.pop()
-            perm = ['System42', 'dev']
-            if name == 'ChaOS_Users':
-                perm = ['all_users']
-            sysdir_obj = File(name=name, type='dir', path=sysdir, location=''.join(loc), owner='System42',
-                              access_perm=perm)
-            if sysdir_obj.validate(modes=['sys']):
-                sysdir_obj.log_metadata()
-                sysdir_obj.create_phys()
-        except FileExistsError:
-            pass
+    def create_system_dirs():
+        for sysdir in ChaOS_constants.SYSTEM_DIRS:
+            try:
+                name = split_path(sysdir)[-1]
+                loc = split_path(sysdir)
+                loc.pop()
+                loc.pop()
+                perm = ['System42', 'dev']
+                perm = ['all_users'] if name == 'ChaOS_Users' else perm
 
-    for sysfile in ChaOS_constants.SYSTEM_FILES:
-        try:
-            f = open(sysfile, 'w')   # system files are not logged in metadata.csv
-            f.close()
-        except FileExistsError:
-            pass
+                sysdir_obj = File(name=name, type='dir', path=sysdir, location=''.join(loc), owner='System42',
+                                  access_perm=perm)
+                sysdir_obj.create(modes=['silent', 'sys'])
+            except FileExistsError:
+                pass
 
+        for sysfile in ChaOS_constants.SYSTEM_FILES:
+            try:
+                f = open(sysfile, 'w')  # system files are not logged in metadata.csv
+                f.close()
+            except FileExistsError:
+                pass
+
+    create_system_dirs()
+
+    # log metadata for A and A/ChaOS_Users directories
     a_drive = File('A', 'dir', 'A', 'A', 'System42', ['all_users'])
     users_dir = File('ChaOS_Users', 'dir', 'A/ChaOS_Users', 'A', 'System42', ['all_users'])
-    users_dir.log_metadata()
-    a_drive.log_metadata()
+    if not users_dir.metadata_exists():
+        users_dir.log_metadata()
+    if not a_drive.metadata_exists():
+        a_drive.log_metadata()
 
+    # create and log metadata for user directories
     usernames = return_user_names()
     all_users = return_users()
 
     for username in usernames:
-        path = 'A/ChaOS_Users/' + username
-        temp_user_obj = None
-        for line in all_users:
-            if line['name'] == username:
-                temp_user_obj = create_user_object(username=line['name'], password='None',  # create a temporary user
-                                                   account_type=line['account type'])
-        if not os.path.exists(path):  # create the primary user dir if not exists already
-            os.mkdir(path)
+        # f'A/ChaOS_Users/{username}'
+        usr_home_dir = File(name=username, type='dir', path=f'A/ChaOS_Users/{username}', location=f'A/ChaOS_Users', owner=username, access_perm=[username])
+        if usr_home_dir.validate(modes=['sys', 'silent']):
+            usr_home_dir.create_phys()
 
         for subdir in ChaOS_constants.STANDARD_USER_SUBDIRS:
-            usr_subdir_obj = File(name=subdir, type='dir', path=f'A/ChaOS_Users/{temp_user_obj.name}/{subdir}',
-                                  location=f'A/ChaOS_Users/{temp_user_obj.name}', owner=temp_user_obj.name,
-                                  access_perm=[temp_user_obj.name])
-            usr_subdir_obj.log_metadata()
-            if usr_subdir_obj.validate(modes=['silent']):
-                usr_subdir_obj.create_phys()
-
-    for username in usernames:
-        initialize_user_dir_metadata(username)
+            usr_subdir_obj = File(name=subdir, type='dir', path=f'{usr_home_dir.path}/{subdir}',
+                                  location=f'A/ChaOS_Users/{username}', owner=username,
+                                  access_perm=[username])
+            usr_subdir_obj.create(modes=['sys', 'silent'])
 
 
 def read_txt(directory, name):

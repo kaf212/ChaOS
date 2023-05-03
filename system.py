@@ -19,7 +19,7 @@ def syslog(category, msg):
 
     with open('A/System42/logging/syslog.csv', 'r', encoding='utf-8') as csv_file:
         attributes = ChaOS_constants.SYSLOG_CSV_ATTRIBUTES
-        next(csv_file)
+        # next(csv_file)
         csv_reader = csv.DictReader(csv_file, fieldnames=attributes)
         log_list = []
         for line in csv_reader:
