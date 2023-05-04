@@ -76,6 +76,7 @@ class Cmd:
             pass
         return True
 
+    """
     def execute(self):
         if self.cmd in cmd_map.keys():
             try:
@@ -89,6 +90,20 @@ class Cmd:
         else:
             print_warning(f'Command not found in cmd_map (Add support for non cmd_map commands!). ')
             # TODO: add support for commands not in cmd_map
+    """
+
+    def execute(self):
+        for cmd_dict in cmd_map_new:
+            if cmd_dict['cmd'] == self.cmd:
+                func = cmd_dict['func']
+                try:
+                    args = cmd_dict['args']
+                except KeyError:
+                    args = []
+
+                func(*args)
+
+
 
     def reset(self):
         for attr, value in self.__dict__.items():
@@ -470,58 +485,28 @@ def access_dev_tools(cmd):
         print_dev(f'"{cmd.pri_arg}" is not a valid dev command. ', 'red')
 
 
-cmd_map = {'create': create_x,
-           'read': read_x,
-           'delete': delete_x,
-           'burn': burn_x,
-           'restore': restore_x,
-           'edit': edit_x,
-           'dir': list_dir,
-           'echo': echo,
-           'clear': clear_screen,
-           'help': help_cmd,
-           'shutdown': shutdown,
-           'whoami': display_usr,
-           'syslog': show_syslog,
-           'ipconfig': display_ipconfig,
-           'move': move_x,
-           'dev': access_dev_tools,
-           'cd': change_dir,
-           'logoff': logoff,
-           'sd': shutdown,
-           'pm': access_pm,
-           'run': run_program
-           }
+cmd_map_new = [
+               {'cmd': 'create', 'func': create_x, 'args': [cmd_obj], 'vld_cmd_args': ['file', 'dir', 'user']},
+               {'cmd': 'read', 'func': read_x, 'args': [cmd_obj], 'vld_cmd_args': ['file']},
+               {'cmd': 'delete', 'func': delete_x, 'args': [cmd_obj], 'vld_cmd_args': ['file', 'dir', 'user']},
+               {'cmd': 'burn', 'func': burn_x, 'args': [cmd_obj], 'vld_cmd_args': ['file', 'dir']},
+               {'cmd': 'restore', 'func': restore_x, 'args': [cmd_obj], 'vld_cmd_args': ['file', 'dir']},
+               {'cmd': 'edit', 'func': edit_x, 'args': [cmd_obj], 'vld_cmd_args': ['file', 'user']},
+               {'cmd': 'dir', 'func': list_dir},
+               {'cmd': 'echo', 'func': echo, 'args': [cmd_obj]},
+               {'cmd': 'clear', 'func': clear_screen(), 'args': []},
+               {'cmd': 'help', 'func': help_cmd, 'args': [cmd_obj]},
+               {'cmd': 'shutdown', 'func': shutdown, 'args': [cmd_obj]},
+               {'cmd': 'whoami', 'func': display_usr, 'args': [cmd_obj]},
+               {'cmd': 'syslog', 'func': show_syslog, 'args': [cmd_obj]},
+               {'cmd': 'ipconfig', 'func': display_ipconfig, 'args': [cmd_obj]},
+               {'cmd': 'move', 'func': move_x, 'args': [cr_dir, user, cmd_obj], 'vld_cmd_args': ['file', 'dir']},
+               {'cmd': 'dev', 'func': access_dev_tools, 'args': [cmd_obj], 'vld_cmd_args': ['reset']},
+               {'cmd': 'cd', 'func': change_dir, 'args': [cmd_obj]},
+               {'cmd': 'pm', 'func': access_pm, 'args': [cmd_obj]},
+               {'cmd': 'run', 'func': run_program, 'args': [cmd_obj]},
+               ]
 
-cmd_args_map = {'create': [cmd_obj],
-                'read': [cmd_obj],
-                'delete': [cmd_obj],
-                'burn': [cmd_obj],
-                'restore': [cmd_obj],
-                'edit': [cmd_obj],
-                'echo': [cmd_obj],
-                'help': [cmd_obj],
-                'shutdown': [cmd_obj],
-                'whoami': [cmd_obj],
-                'ipconfig': [cmd_obj],
-                'move': [cr_dir, user, cmd_obj],
-                'dev': [cmd_obj],
-                'cd': [cmd_obj],
-                'pm': [cmd_obj],
-                'run': [cmd_obj]
-                }
-
-cmd_vld_arg_map = {'create': ['file', 'dir', 'user'],
-                   'read': ['file'],
-                   'delete': ['file', 'dir', 'user'],
-                   'burn': ['file', 'dir'],
-                   'restore': ['file', 'dir'],
-                   'edit': ['file', 'user'],
-                   'dev': ['reset'],
-                   'ipconfig': ['all'],
-                   'move': ['file', 'dir'],
-                   'pm': ['install']
-                   }
 
 if __name__ == '__main__':
     main()
