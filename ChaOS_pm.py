@@ -1,5 +1,6 @@
 import shutil
-from colors import print_warning
+from colors import print_warning, print_blue, print_success
+import pip
 
 AVAILABLE_PACKAGES = {'calc'}
 
@@ -12,5 +13,7 @@ def pm_install(cmd):
             print_warning(f'The system failed to locate resources for package "{cmd.sec_arg}", '
                           f'consider contacting a developer.')
 
-
-
+def install_python_package(py_pack, chaos_pack):
+    print_blue(f'Installing resources for {chaos_pack}... ')
+    pip.main(['-m install', py_pack])
+    print_success(f'Successfully installed resources for {chaos_pack}. ')
