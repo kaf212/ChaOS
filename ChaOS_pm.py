@@ -1,9 +1,17 @@
 import shutil
 from colors import print_warning, print_blue, print_success
 import pip
-from dataclasses import dataclass, field
 
 AVAILABLE_PACKAGES = {'calc', 'dms3'}
+
+
+def import_functions(module_name: str, function_names: list) -> tuple:
+    functions = []
+    for func_name in function_names:
+        impmodule = __import__(module_name, fromlist=[func_name])
+        functions.append(getattr(impmodule, func_name))
+
+    return tuple(functions)
 
 
 def pm_install(cmd):

@@ -3,11 +3,12 @@ from datetime import datetime, timedelta
 import os
 from random import randint
 from dataclasses import dataclass
-
-from colours import *
-from player import Player
-from item import find_item, initialize_items
+from ChaOS_pm import import_functions
+from ChaOS_packages.dms3. player import Player
 import csv
+player = __import__('ChaOS_packages.dms3.player')
+print_success, print_red, print_green = import_functions('A.System42.programs.dms3.colours', ['print_success', 'print_red', 'print_green'])
+find_item, initialize_items = import_functions('A.System42.programs.dms3.item', ['find_item', 'initialize_items'])
 
 # --------- item stuff ----------------
 
@@ -464,7 +465,8 @@ def print_skill_lv_bar(exit_to=None):
     xp_untill_level_up = 100 - player.xp
     print(f'\n           XP bis zu Skill-Level {player.skill_lv + 1}:  {xp_untill_level_up}           ')
     try:
-        exit_to()
+        if exit_to:
+            exit_to()
     except:
         raise TypeError(f'Invalid exit target function fiven "{exit_to}". ')
 
@@ -1086,7 +1088,7 @@ def handle_critical_dm_property(death_messages, player_xp_change):
 # ------------------------------------ main ----------------------------------------------------
 
 
-def main():
+def dms3_main():
     print('Willkomme zum Dini Mueter Simulator v3.0! (DEV Edition Alpha Phase)')
     main_menu()
 
@@ -1350,13 +1352,9 @@ def end_program(optional_message):
     if optional_message is not None:
         input(optional_message)
         input(f'© {current_year} Atzgerware Ltd. - Alli Rächt vorbehalte (mis Programm) ')
-        exit()
     else:
         input('Danke, dass du de Dini Mueter Simulator v3.0 gsillt häsch. ')
         input(f'© {current_year} Atzgerware Ltd. - Alli Rächt vorbehalte (mis Programm) ')
-        exit()
 
-
-main()
 
 # ------------------------------------ main ----------------------------------------------------

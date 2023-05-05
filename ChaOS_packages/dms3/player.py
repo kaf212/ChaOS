@@ -1,8 +1,9 @@
 from dataclasses import dataclass
 from datetime import datetime
-from item import initialize_items
-from achievement import initialize_achievements
-from item import Item, find_item
+from ChaOS_pm import import_functions
+
+initialize_items, = import_functions('A.System42.programs.dms3.item', ['initialize_items'])
+initialize_achievements, = import_functions('A.System42.programs.dms3.achievement', ['initialize_achievements'])
 
 all_items = initialize_items()
 all_achievements = initialize_achievements()
