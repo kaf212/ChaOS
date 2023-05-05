@@ -65,15 +65,15 @@ class Cmd:
             self.sec_arg += '.txt'
 
     def validate(self):
-        if self.cmd not in cmd_map:
+        if self.cmd not in return_all_commands():
             print_warning(f'The command "{self.cmd}" does not exist. ')
             return False
-        try:
-            if self.pri_arg not in cmd_vld_arg_map[self.cmd]:
+
+        vld_args = return_cmd_dict(self.cmd, 'vld_cmd_args')
+        if vld_args:
+            if self.pri_arg not in vld_args:
                 print_warning(f'"{self.pri_arg}" is not a valid statement for command "{self.cmd}". ')
                 return False
-        except KeyError:
-            pass
         return True
 
     """
@@ -93,7 +93,7 @@ class Cmd:
     """
 
     def execute(self):
-        for cmd_dict in cmd_map_new:
+        for cmd_dict in cmd_map:
             if cmd_dict['cmd'] == self.cmd:
                 func = cmd_dict['func']
                 try:
@@ -102,8 +102,6 @@ class Cmd:
                     args = []
 
                 func(*args)
-
-
 
     def reset(self):
         for attr, value in self.__dict__.items():
@@ -485,7 +483,26 @@ def access_dev_tools(cmd):
         print_dev(f'"{cmd.pri_arg}" is not a valid dev command. ', 'red')
 
 
-cmd_map_new = [
+def return_cmd_dict(trg: str, key: str = None):
+    for cmd_dict in cmd_map:
+        if cmd_dict['cmd'] == trg:
+            if key:
+                try:
+                    return cmd_dict[key]
+                except (KeyError, TypeError):
+                    return None
+            else:
+                return cmd_dict
+
+
+def return_all_commands():
+    all_cmds = []
+    for cmd_dict in cmd_map:
+        all_cmds.append(cmd_dict['cmd'])
+    return all_cmds
+
+
+cmd_map = [
                {'cmd': 'create', 'func': create_x, 'args': [cmd_obj], 'vld_cmd_args': ['file', 'dir', 'user']},
                {'cmd': 'read', 'func': read_x, 'args': [cmd_obj], 'vld_cmd_args': ['file']},
                {'cmd': 'delete', 'func': delete_x, 'args': [cmd_obj], 'vld_cmd_args': ['file', 'dir', 'user']},
