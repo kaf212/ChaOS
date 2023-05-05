@@ -3,7 +3,7 @@ from colors import print_warning, print_blue, print_success
 import pip
 from dataclasses import dataclass, field
 
-AVAILABLE_PACKAGES = {'calc'}
+AVAILABLE_PACKAGES = {'calc', 'dms3'}
 
 
 def pm_install(cmd):
@@ -26,7 +26,7 @@ def pm_uninstall(cmd):
     except FileNotFoundError:
         print_warning(f'The system failed to locate resources for package "{cmd.sec_arg}", '
                       f'consider contacting a developer.')
-        
+
 
 def pm_reinstall(cmd):
     if cmd.sec_arg not in AVAILABLE_PACKAGES:

@@ -438,7 +438,9 @@ def run_program(cmd):
 
     impmodule = __import__(module_name, fromlist=[function_name])
     func = getattr(impmodule, function_name)
+    print(f'About to run function "{func}" in run_program(). ')
     func()
+    return None
 
 
 def access_dev_tools(cmd):
