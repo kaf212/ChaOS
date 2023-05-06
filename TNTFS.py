@@ -78,10 +78,10 @@ class File:
 
     def create(self, modes: list=None):
         if self.validate(modes):
+            self.create_phys(modes)
             self.log_metadata()
-            self.create_phys()
 
-    def create_phys(self):
+    def create_phys(self, modes: list = None):
         """
         Physically creates the file without any prior validation, be careful using it!
         """
@@ -364,13 +364,27 @@ def initialize_A_drive():
             except FileExistsError:
                 pass
 
+    def create_initial_sysfiles():
+        try:  # first create all logging and metadata files for later file creations.
+            os.makedirs('A/System42/logging')
+            os.makedirs('A/System42/metadata')
+            f = open('A/System42/metadata/file_metadata.csv', 'w')
+            f2 = open('A/System42/logging/syslog.csv', 'w')
+            f.close()
+            f2.close()
+        except FileExistsError:
+            pass
+
+    create_initial_sysfiles()
     create_system_dirs()
 
     # log metadata for A and A/ChaOS_Users directories
     a_drive = File('A', 'dir', 'A', 'A', 'System42', ['all_users'])
     users_dir = File('ChaOS_Users', 'dir', 'A/ChaOS_Users', 'A', 'System42', ['all_users'])
+    sys42_dir = File('System42', 'dir', 'A/System42', 'A', 'System42', ['System42', 'dev'])
     users_dir.log_metadata()  # log_metadata() checks for metadata existence automatically
     a_drive.log_metadata()
+    sys42_dir.log_metadata()
 
     # create and log metadata for user directories
     usernames = return_user_names()
