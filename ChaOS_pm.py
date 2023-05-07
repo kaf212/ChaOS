@@ -50,5 +50,5 @@ def pm_reinstall(cmd):
 
 def install_python_package(py_pack, chaos_pack):
     print_blue(f'Installing resources for {chaos_pack}... ')
-    pip.main(['-m install', py_pack])
+    pip.main(['install', py_pack])
     print_success(f'Successfully installed resources for {chaos_pack}. ')
