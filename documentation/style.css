@@ -1,0 +1,43 @@
+body {
+    margin: 0;
+}
+
+nav {
+    width: 300px;
+    height: 100%;
+    background-color: rgb(125, 125, 125);
+    display: inline-block;
+    padding: 30px;
+}
+
+nav a {
+    color: black;
+}
+
+nav a:hover {
+    color: rgba(200,200,200,0.5)
+
+}
+
+nav ul {
+    margin-top: 0;
+    list-style: none;
+    padding: 0;
+}
+
+nav ul li a {
+    text-decoration: none;
+    font-size: 24px
+}
+
+nav ul li ul a {
+    font-size: 20px;
+}
+
+nav ul li ul {
+    padding-left: 20px
+}
+
+nav ul li a ul li a {
+    color: red;
+}
