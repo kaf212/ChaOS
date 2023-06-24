@@ -38,6 +38,10 @@ nav ul li ul {
     padding-left: 20px
 }
 
-nav ul li a ul li a {
-    color: red;
+nav ul li ul li ul a {
+    font-size: 18px
+}
+
+nav ul li ul li ul li a {
+    font-size: 16px
 }
