@@ -3,11 +3,12 @@ body {
 }
 
 nav {
-    width: 300px;
+    width: 250px;
     height: 100%;
     background-color: rgb(125, 125, 125);
     display: inline-block;
     padding: 30px;
+    flex: 0 0 auto;
 }
 
 nav a {
@@ -16,7 +17,6 @@ nav a {
 
 nav a:hover {
     color: rgba(200,200,200,0.5)
-
 }
 
 nav ul {
@@ -44,4 +44,29 @@ nav ul li ul li ul a {
 
 nav ul li ul li ul li a {
     font-size: 16px
+}
+
+body {
+    display: flex;
+}
+
+main {
+    padding: 50px
+}
+
+main section article h1 {
+    font-size: 30px
+}
+
+main section article h2 {
+    font-size: 24px
+}
+
+main section article h3 {
+    font-size: 20px
+}
+
+.cmd-snippet {
+    background-color: black;
+    color: white;
 }
