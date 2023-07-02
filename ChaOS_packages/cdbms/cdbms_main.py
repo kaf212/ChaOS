@@ -1,4 +1,7 @@
+import mysql.connector.errors
+
 from ChaOS_pm import install_python_package, import_functions
+from colors import print_warning
 
 
 def cdbms_main():
@@ -6,9 +9,9 @@ def cdbms_main():
     print('**** Welcome to the ChaOS Database Management System! ****')
     print('----------------------------------------------------------')
 
-    inp_username = None  # input('Username > ')
-    inp_password = None  # input('Password > ')
-    inp_database = None  # input('Database > ')
+    inp_username = input('Username > ')
+    inp_password = input('Password > ')
+    inp_database = input('Database > ')
 
     cnx = connect_to_db(inp_username, inp_password, inp_database)
 
@@ -16,13 +19,17 @@ def cdbms_main():
 
     query = None
     while query != 'exit':
-        print('about to prompt query')
-        query = input('Query > ')
-        cursor.execute(query)
+        query = input(f'CDBMS [{inp_database}] > ')
+        if query == 'exit':
+            return None
 
-        print_result(cursor)
-
-        input('Press enter to continue...')
+        try:
+            cursor.execute(query)
+            print_result(cursor)
+        except mysql.connector.errors.ProgrammingError:
+            print_warning("Syntax Error")
+        except TypeError:
+            print_warning("Syntax Error")
 
     cursor.close()
     cnx.close()
@@ -40,9 +47,9 @@ def connect_to_db(username, password, database):
         errorcode = import_functions('mysql.connector', ['errorcode'])[0]
 
     try:
-        cnx = mysql.connector.connect(user='root', password='1234',
+        cnx = mysql.connector.connect(user=username, password=password,
                                       host='127.0.0.1',
-                                      database='sakila')
+                                      database=database)
     except mysql.connector.Error as err:
         if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
             print("Something is wrong with your user name or password.")
@@ -86,7 +93,6 @@ def print_result(result_table):
             charlength += len(str(value))
         if charlength > max_record_length:
             max_record_length = charlength
-            print(f'new max_record_length = {max_record_length}')
 
     maximum_field_lengths = []
     for i in range(len(result_table[0])):
@@ -94,11 +100,8 @@ def print_result(result_table):
 
     for record_1 in result_table:
         for field_index, field in enumerate(record_1):
-            print(str(field_index))
             if len(str(field)) > maximum_field_lengths[field_index]:
                 maximum_field_lengths[field_index] = len(str(field))
-
-        print(maximum_field_lengths)
 
     print_table_header()
     print_vertical_separator_line()
