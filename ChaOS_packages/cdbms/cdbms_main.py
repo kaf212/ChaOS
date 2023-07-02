@@ -1,5 +1,4 @@
 from ChaOS_pm import install_python_package, import_functions
-import os
 
 
 def cdbms_main():
@@ -66,9 +65,20 @@ def print_result(result_table):
                 print('-', end="")
         print('+')
 
-    print(type(result_table))
+    def print_table_header():
+        for index, column in enumerate(column_names):
+            if len(column) + 2 > maximum_field_lengths[index]:
+                maximum_field_lengths[index] = len(column) + 2
+        print_vertical_separator_line()
+        print("|", end="")
+        for index, column in enumerate(column_names):
+            for i in range(int( (maximum_field_lengths[index] - len(str(column)))) + 1 ):
+                print(" ", end="")
+            print(column, end=" |")
+        print()
+
+    column_names = [column[0] for column in result_table.description]
     result_table = list(result_table)
-    print(type(result_table))
     max_record_length = 0
     for record in result_table:  # get the maximum char length of the record set
         charlength = 0
@@ -77,7 +87,6 @@ def print_result(result_table):
         if charlength > max_record_length:
             max_record_length = charlength
             print(f'new max_record_length = {max_record_length}')
-
 
     maximum_field_lengths = []
     for i in range(len(result_table[0])):
@@ -91,8 +100,8 @@ def print_result(result_table):
 
         print(maximum_field_lengths)
 
+    print_table_header()
     print_vertical_separator_line()
-
 
     for record in result_table:
         print("|", end="")
@@ -105,11 +114,3 @@ def print_result(result_table):
         print("")
     print_vertical_separator_line()
 
-    """
-    for i in range(max_char_length + (len(res_tuple) * 2)):
-        print('-', end="")
-    """
-
-
-
-cdbms_main()
