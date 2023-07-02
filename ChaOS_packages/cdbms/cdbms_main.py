@@ -60,9 +60,11 @@ def connect_to_db(username, password, database):
 
 def print_result(result_table):
     def print_vertical_separator_line():
-        for i in range(max_record_length + ((len(result_table[0])) * 2)):  # print vertical separator line
-            print('-', end="")
-        print("")
+        for index, i in enumerate(maximum_field_lengths):
+            print('+', end="")
+            for j in range(maximum_field_lengths[index] + 2):
+                print('-', end="")
+        print('+')
 
     print(type(result_table))
     result_table = list(result_table)
@@ -90,8 +92,9 @@ def print_result(result_table):
         print(maximum_field_lengths)
 
     print_vertical_separator_line()
-    for record in result_table:
 
+
+    for record in result_table:
         print("|", end="")
         for field_index, field in enumerate(record):
             for i in range(int( (maximum_field_lengths[field_index] - len(str(field)))) + 1 ):
