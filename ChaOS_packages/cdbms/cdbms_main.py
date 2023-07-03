@@ -9,11 +9,16 @@ def cdbms_main():
     print('**** Welcome to the ChaOS Database Management System! ****')
     print('----------------------------------------------------------')
 
-    inp_username = input('Username > ')
-    inp_password = input('Password > ')
-    inp_database = input('Database > ')
+    cnx = None
+    inp_database = None
+    while cnx is None:
+        inp_username = input('Username > ')
+        if inp_username == 'exit':
+            return None
+        inp_password = input('Password > ')
+        inp_database = input('Database > ')
 
-    cnx = connect_to_db(inp_username, inp_password, inp_database)
+        cnx = connect_to_db(inp_username, inp_password, inp_database)
 
     cursor = cnx.cursor(buffered=True)
 
