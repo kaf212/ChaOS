@@ -2,7 +2,7 @@ import shutil
 from colors import print_warning, print_blue, print_success
 import pip
 
-AVAILABLE_PACKAGES = {'calc', 'dms3'}
+AVAILABLE_PACKAGES = {'calc', 'dms3', 'cdbms'}
 
 
 def import_functions(module_name: str, function_names: list) -> tuple:
