@@ -12,7 +12,7 @@ from cmd_definitions import cmd_usage
 import platform
 from dataclasses import dataclass, field
 from ChaOS_constants import CMD_SHORTS
-from ChaOS_pm import pm_install
+from ChaOS_pm import pm_install, pm_uninstall
 
 import logging
 from colors import *
@@ -425,6 +425,8 @@ def logoff():
 def access_pm(cmd):
     if cmd.pri_arg == 'install':
         pm_install(cmd)
+    if cmd.pri_arg == 'uninstall':
+        pm_uninstall(cmd)
 
 
 def run_program(cmd):
@@ -516,7 +518,7 @@ cmd_map = [
                {'cmd': 'help', 'func': help_cmd, 'args': [cmd_obj]},
                {'cmd': 'shutdown', 'func': shutdown, 'args': [cmd_obj]},
                {'cmd': 'whoami', 'func': display_usr, 'args': [cmd_obj]},
-               {'cmd': 'syslog', 'func': show_syslog, 'args': [cmd_obj]},
+               {'cmd': 'syslog', 'func': show_syslog, 'args': []},
                {'cmd': 'ipconfig', 'func': display_ipconfig, 'args': [cmd_obj]},
                {'cmd': 'move', 'func': move_x, 'args': [cr_dir, user, cmd_obj], 'vld_cmd_args': ['file', 'dir']},
                {'cmd': 'dev', 'func': access_dev_tools, 'args': [cmd_obj], 'vld_cmd_args': ['reset']},
