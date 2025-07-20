@@ -184,6 +184,9 @@ def enter_username() -> str:
         if not name_valid or input_username == '':
             print_warning('This username contains illegal characters. ')
             continue
+        if input_username in ChaOS_constants.VALID_ACCOUNT_TYPES:
+            print_warning('Username cannot be an account type (admin, dev, standard). ')
+            continue
         if os.path.isdir(f'A/ChaOS_Users/{input_username}'):
             print_warning(f'There is already a directory called "{input_username}" in A:/Users')
             continue

@@ -1,6 +1,7 @@
 import csv
 import ChaOS_constants
 from encryption import *
+from TNTFS import File
 
 
 def reset_user_csv(reset_flag):
@@ -46,3 +47,26 @@ def reset_user_csv(reset_flag):
             for line in temp_dict_list:
                 csv_writer.writerow(line)
             csv_file.close()
+
+def initialize_user_dir_metadata():
+    """
+    Creates metadata entries for existing user directories that are missing them.
+    Does not modify any existing metadata or directories.
+    """
+    with open('users.csv', 'r', encoding='utf-8') as csv_file:
+        attributes = ChaOS_constants.USER_CSV_ATTRIBUTES
+        csv_reader = csv.DictReader(csv_file, fieldnames=attributes)
+        next(csv_file)  # Skip header
+        for line in csv_reader:
+            username = line['name']
+            # Create metadata for main user directory
+            user_dir = File(
+                name=username,
+                type='dir',
+                path=f'A/ChaOS_Users/{username}',
+                location='A/ChaOS_Users',
+                owner=username,
+                access_perm=[username]
+            )
+            if not user_dir.metadata_exists():
+                user_dir.log_metadata()

@@ -35,6 +35,8 @@ DEF_SYSLOG = 'Is used to display all performed actions (executed commands, creat
 
 DEF_IPCONFIG = 'Is used to display information about the current network and client. '
 
+DEF_WINTERS = 'The package manager handler. Can be used with the argument debug to enter the winters debug shell or with the argument reset to fix issues.'
+
 cmd_def_map = {'create': CREATE_DEF,
                'read': READ_DEF,
                'delete': DELETE_DEF,
@@ -44,7 +46,8 @@ cmd_def_map = {'create': CREATE_DEF,
                'echo': ECHO_DEF,
                'clear': CLEAR_DEF,
                'syslog': DEF_SYSLOG,
-               'ipconfig': DEF_IPCONFIG
+               'ipconfig': DEF_IPCONFIG,
+               'winters': DEF_WINTERS,
                }
 
 cmd_usage = {'create': 'cr <object> <name>',
@@ -60,5 +63,6 @@ cmd_usage = {'create': 'cr <object> <name>',
              'help': 'help <target cmd> (-def)',
              'shutdown': 'sd (t- <seconds>)',
              'syslog': 'syslog',
-             'ipconfig': 'ipconfig (/all)'
+             'ipconfig': 'ipconfig (/all)',
+             'winters': 'winters (debug/reset)'
              }

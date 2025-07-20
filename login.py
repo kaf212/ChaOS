@@ -72,23 +72,44 @@ def login():
 def create_user(username: str, password: str, account_type: str):
     if account_type not in ChaOS_constants.VALID_ACCOUNT_TYPES:
         raise ValueError('Invalid user account type given. ')
+    if username in ChaOS_constants.VALID_ACCOUNT_TYPES:
+        raise ValueError('Username cannot be an account type.')
 
     if username in ['..', '...']:
         raise Exception('Invalid username, stop doing the "..." thing. ')
     if os.path.isdir(f'A/ChaOS_Users/{username}'):
         print_warning(f'Cannot create user, directory name already taken. ')
     else:
+        # Create user entry in users.csv
         with open('users.csv', 'a+', encoding="utf-8") as csv_file:
             attributes = ['username', 'password', 'account type']
             csv_writer = csv.DictWriter(csv_file, fieldnames=attributes)
             csv_writer.writerow({'username': username, 'password': encrypt_str(password), 'account type': account_type})
             csv_file.close()
 
-        os.mkdir(f'A/ChaOS_Users/{username}')
+        # Create main user directory with proper metadata
+        user_dir = File(
+            name=username,
+            type='dir',
+            path=f'A/ChaOS_Users/{username}',
+            location='A/ChaOS_Users',
+            owner=username,
+            access_perm=[username]
+        )
+        user_dir.log_metadata()
+        user_dir.create_phys()  # This replaces the os.mkdir call
+
+        # Create user object and subdirectories
         temp_user_obj = create_user_object(username, password, account_type)
         for subdir in ChaOS_constants.STANDARD_USER_SUBDIRS:
-            subdir_obj = File(name=subdir, type='dir', path=f'A/ChaOS_Users/{username}/{subdir}', location=f'A/ChaOS_Users/{username}', owner=username,
-                           access_perm=[username])
+            subdir_obj = File(
+                name=subdir,
+                type='dir',
+                path=f'A/ChaOS_Users/{username}/{subdir}',
+                location=f'A/ChaOS_Users/{username}',
+                owner=username,
+                access_perm=[username]
+            )
             subdir_obj.log_metadata()
             subdir_obj.create_phys()
 
