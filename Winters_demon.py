@@ -27,6 +27,11 @@ def init_dependencies():
             init_dependencies()
         return
     try:
+        print("Checking if pip is alive...")
+        if importlib.util.find_spec("pip") is None:
+            print("ERR: Pip is missing from your python installation. Please install it to use Winters.")
+            print("ERR: Winters will continue to run for debug purposes, but any attempts to install packages will fail.")
+            return
         print("Checking Winters init dependencies...")
         if importlib.util.find_spec("requests") is None:
             print("Installing requests module...")
@@ -43,8 +48,9 @@ def init_dependencies():
             import requests
             import packaging
             return
-    except ModuleNotFoundError as e:
-        print("ERR: pip seems to be missing. Please install it manually.")
+
+    except ImportError as e:
+        print("ERR: Import error occurred while installing dependencies.")
         print("ERR: Failed to install Winters dependencies. Please install packaging and requests manually.")
         print("INFO: Winters will continue to run for debug purposes, but any attempts to install packages will fail.")
         print(f"Error details: {e}")
@@ -56,9 +62,7 @@ def init_dependencies():
         print("INFO: Winters will continue to run for debug purposes, but any attempts to install packages will fail.")
         print(f"Error details: {e}")
         return
-    except:
-        print("ERR: An unknown error occurred while installing dependencies.")
-        print("INFO: Winters will continue to run for debug purposes, but any attempts to install packages will fail.")
+
 
 def register_inst_chaospack():
     print("Registering Installed Chaospack...STUB!!!!")
