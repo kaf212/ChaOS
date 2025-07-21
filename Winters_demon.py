@@ -10,6 +10,7 @@ p_count = 0
 reqdepsfailed = False
 easteregg_toggle = False
 running_standalone = False
+exit_now = False
 
 
 
@@ -378,8 +379,13 @@ def fail_repdeps():
 
 def exit_shell():
     print("Exiting Winters debug shell... Don't go stabbing anyone...")
-    time.sleep(3)
-    exit()
+    time.sleep(1)
+    global running_standalone, exit_now
+    if not running_standalone:
+        exit_now = True
+        return
+    else:
+        exit()
 
 def print_loaded_imports():
     top_level_imports = set()  # Use a set to avoid duplicates
@@ -419,6 +425,10 @@ def winters_shell_loop():
     print("Use the help command to see a list of available commands.")
     while True:
         try:
+            global exit_now
+            if exit_now:
+                exit_now = False
+                break
             command = input("Winters> ").strip()
             if not command:
                 continue
