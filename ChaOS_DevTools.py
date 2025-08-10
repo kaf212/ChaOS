@@ -30,6 +30,7 @@ def reset_user_csv(reset_flag):
             csv_writer.writerow(
                 {'name': 'Manu', 'password': 'ÙÞÆßÞÐÃ', 'account type': 'standard'})
             csv_file.close()
+            return
     else:
         temp_dict_list = []
         with open('users.csv', 'r', encoding='utf-8') as csv_file:   # read in every user in users.csv and add it to a temp dict if it doesnt contain "test"

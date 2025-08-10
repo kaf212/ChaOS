@@ -6,6 +6,9 @@ import time
 import subprocess
 import hashlib
 import importlib
+
+from packaging import specifiers
+
 p_count = 0
 reqdepsfailed = False
 easteregg_toggle = False
@@ -13,24 +16,50 @@ running_standalone = False
 exit_now = False
 
 
+def dependency_installer(pack_data):
+    deps = pack_data.get("dependencies", {})
+    if not deps:
+        print("No dependencies to check.")
+        return
+    pip_list = "A/System42/pm_winters/pm_cache/pipcache.json"
+    with open(pip_list) as file:
+        pipcache_list = json.load(file)
+        pipcache = {pkg["name"]: pkg["version"] for pkg in pipcache_list}
+        for dep_name, dep_version_req in pack_data["dependencies"].items():
+            installed_version = pipcache.get(dep_name)
+            if installed_version is None:
+                subprocess.run([sys.executable, "-m", "pip", "install", dep_name])
+                print("DEBUG: reached end of block")
+
+            required_specifier = SpecifierSet(dep_version_req)
+            installed_ver = Version(installed_version)
+
+            if installed_ver not in required_specifier:
+                print(f"Dependency {dep_name} version {installed_version} does not meet requirement {dep_version_req}")
+                # Handle upgrade, error, etc
+            else:
+                print(f"Dependency {dep_name} version {installed_version} meets requirement {dep_version_req}")
+
+    return
 
 def init_dependencies():
     marker_file = "A/System42/pm_winters/.deps_checked"
     global reqdepsfailed
     if os.path.exists(marker_file) and not reqdepsfailed:
         try:
-            global requests, packaging
+            global requests, Version, SpecifierSet
             import requests
-            import packaging
+            from packaging.specifiers import SpecifierSet
+            from packaging.version import Version
         except:
-            reqdepsfailed = True
-            init_dependencies()
+            fail_repdeps()
         return
     try:
         print("Checking if pip is alive...")
         if importlib.util.find_spec("pip") is None:
             print("ERR: Pip is missing from your python installation. Please install it to use Winters.")
-            print("ERR: Winters will continue to run for debug purposes, but any attempts to install packages will fail.")
+            print("ERR: Winters will continue to run for debug purposes, but any attempts to install packages will fail or could cause unexpected results.")
+            print("INFO: You're on your own buddy :)")
             return
         print("Checking Winters init dependencies...")
         if importlib.util.find_spec("requests") is None:
@@ -50,12 +79,13 @@ def init_dependencies():
             return
 
     except ImportError as e:
-        print("ERR: Import error occurred while installing dependencies.")
-        print("ERR: Failed to install Winters dependencies. Please install packaging and requests manually.")
+        print("ERR: Import error occurred while importing dependencies. Installation may have failed")
+        print("ERR: Failed to satisfy dependencies for Winters. Please install packaging and requests manually.")
         print("INFO: Winters will continue to run for debug purposes, but any attempts to install packages will fail.")
         print(f"Error details: {e}")
         print(f"Return code: {e.returncode}")
         print(f"stderr: {e.stderr}")
+        return
 
     except subprocess.CalledProcessError as e:
         print("ERR: An error occurred while installing dependencies.")
@@ -123,21 +153,9 @@ def chaospack_downloader(target_name):
                 break
         if found:
             break
-
-
     if not found:
         print("ERR: Package not found!")
         return
-
-# def dependeny_installer(pack_data):
-#     pip_list = "A/System42/pm_winters/pm_cache/pipcache.json"
-#
-#     try:
-#         for dependency in pack_data["dependencies"]:
-#             print("Dependency:", dependency)
-#
-#
-#     return
 
 
 def list_repo():
@@ -190,6 +208,7 @@ def checksum(pack_data):
 
     if sha_256 == pack_checksum:
         print("DBG: SHA256 checksum matches.")
+        dependency_installer(pack_data)
         return
     else:
         print("ERR: SHA256 checksum does not match.")
@@ -379,7 +398,6 @@ def fail_repdeps():
     global reqdepsfailed
     reqdepsfailed = True
     init_dependencies()
-    return
 
 def exit_shell():
     print("Exiting Winters debug shell... Don't go stabbing anyone...")

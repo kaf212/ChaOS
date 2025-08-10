@@ -1,7 +1,7 @@
 import csv
 import os
 import time
-
+import ChaOS_DevTools
 import ChaOS_constants
 from encryption import encrypt_str, decrypt_str
 from TNTFS import translate_path_2_ui, File
@@ -35,19 +35,27 @@ def login():
         if input_username == '/register':
             create_user_ui()
 
-        with open('users.csv', 'r', encoding='utf-8') as csv_file:
-            attributes = ChaOS_constants.USER_CSV_ATTRIBUTES
-            next(csv_file)  # skip attribute header
-            csv_reader = csv.DictReader(csv_file, fieldnames=attributes)
+        try:
+            with open('users.csv', 'r', encoding='utf-8') as csv_file:
+                attributes = ChaOS_constants.USER_CSV_ATTRIBUTES
+                next(csv_file)  # skip attribute header
+                csv_reader = csv.DictReader(csv_file, fieldnames=attributes)
+                for line in csv_reader:
+                    if line['name'] == input_username:
+                        username = line['name']
+                        password = line['password']
+                        account_type = line['account type']
 
-            for line in csv_reader:
-                if line['name'] == input_username:
-                    username = line['name']
-                    password = line['password']
-                    account_type = line['account type']
+                if username is None:
+                    print_warning('User not found, try again: ')
+        #TODO:Fix this later
+        except FileNotFoundError:
+            print_warning('No users.csv found. ')
+            reset_flag = "-hard"
+            ChaOS_DevTools.reset_user_csv(reset_flag)
+            login()
+            return
 
-            if username is None:
-                print_warning('User not found, try again: ')
 
     print(f'\n-- {username} --')
     tries = 3
