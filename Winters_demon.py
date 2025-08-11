@@ -7,40 +7,92 @@ import subprocess
 import hashlib
 import importlib
 
-from packaging import specifiers
-
 p_count = 0
 reqdepsfailed = False
 easteregg_toggle = False
 running_standalone = False
 exit_now = False
 
-
 def dependency_installer(pack_data):
-    deps = pack_data.get("dependencies", {})
+    deps = (pack_data or {}).get("dependencies") or {}
     if not deps:
         print("No dependencies to check.")
         return
-    pip_list = "A/System42/pm_winters/pm_cache/pipcache.json"
-    with open(pip_list) as file:
-        pipcache_list = json.load(file)
-        pipcache = {pkg["name"]: pkg["version"] for pkg in pipcache_list}
-        for dep_name, dep_version_req in pack_data["dependencies"].items():
-            installed_version = pipcache.get(dep_name)
-            if installed_version is None:
-                subprocess.run([sys.executable, "-m", "pip", "install", dep_name])
-                print("DEBUG: reached end of block")
 
-            required_specifier = SpecifierSet(dep_version_req)
-            installed_ver = Version(installed_version)
+    to_install = []
 
-            if installed_ver not in required_specifier:
-                print(f"Dependency {dep_name} version {installed_version} does not meet requirement {dep_version_req}")
-                # Handle upgrade, error, etc
-            else:
-                print(f"Dependency {dep_name} version {installed_version} meets requirement {dep_version_req}")
+    for name, spec in deps.items():
+        name = str(name).strip()
+        spec = (str(spec).strip() if spec else "")
+        requirement = f"{name}{spec}" if spec else name
 
-    return
+        show = subprocess.run([sys.executable, "-m", "pip", "show", name],capture_output=True,text=True)
+        if show.returncode != 0:
+            # Not installed
+            to_install.append(requirement)
+            continue
+
+        if not spec:
+            # Installed and no version requirement
+            continue
+
+        # We have a version requirement; try to check it
+        installed_version = None
+        for line in show.stdout.splitlines():
+            if line.lower().startswith("version:"):
+                installed_version = line.split(":", 1)[1].strip()
+                break
+
+        needs_update = False
+        if installed_version:
+            try:
+                # Abort immediately if version tools are unavailable
+                if "SpecifierSet" not in globals() or "Version" not in globals():
+                    print("ERROR: Required runtime dependency 'packaging' is missing. Aborting dependency installation.")
+                    fail_repdeps()
+                    print("Dependency installation cancelled.")
+                    return
+
+                # Normal path: compare installed version with spec
+                needs_update = (Version(installed_version) not in SpecifierSet(spec))
+
+            except Exception as e:
+                # Any parsing/comparison error → abort and invoke repair
+                print(f"ERROR: Version check failed ({e}). Aborting dependency installation.")
+                fail_repdeps()
+                print("Dependency installation cancelled.")
+                return
+        else:
+            needs_update = True
+
+        if needs_update:
+            to_install.append(requirement)
+
+    if not to_install:
+        print("All dependencies are already satisfied.")
+        return
+
+    print("The following dependencies will be installed/updated:")
+    for req in to_install:
+        print(f" - {req}")
+
+    while True:
+        choice = input("Proceed? (y/n): ").strip().lower()
+        if choice in ("y", "n", "z", "j"):
+            break
+        print('Please enter "y" or "n".')
+
+    if choice == "n":
+        print("Aborted by user. No changes made.")
+        return
+
+    cmd = [sys.executable, "-m", "pip", "install"] + to_install
+    result = subprocess.run(cmd)
+    if result.returncode != 0:
+        print("ERROR: One or more installations failed.")
+        return
+
+    print("Dependency installation complete.")
 
 def init_dependencies():
     marker_file = "A/System42/pm_winters/.deps_checked"
@@ -99,6 +151,7 @@ def register_inst_chaospack():
     return
 
 def install_chaospack(target_name=None):
+    piplist_update()
     if not target_name:
         target_name = input("Enter the name of the package to install: ").strip()
     if not target_name:
