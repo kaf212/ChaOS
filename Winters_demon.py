@@ -6,6 +6,8 @@ import time
 import subprocess
 import hashlib
 import importlib
+import zipfile
+import io
 
 p_count = 0
 reqdepsfailed = False
@@ -13,11 +15,26 @@ easteregg_toggle = False
 running_standalone = False
 exit_now = False
 
+def chaos_extractor(pack_data):
+    print("Extracting ChaosPack...")
+    program_path = "A/System42/programs/" + pack_data["name"]
+    try:
+        with zipfile.ZipFile(io.BytesIO(pack_data["chaospack"])) as chaospack_file:
+            chaospack_file.extractall(program_path)
+            print("Extracted ChaosPack to:", program_path)
+            #register_inst_chaospack()
+            return
+    except Exception as e:
+        print(f"ERR: Failed to extract ChaosPack: {e}")
+        return
+
 def dependency_installer(pack_data):
     deps = (pack_data or {}).get("dependencies") or {}
     if not deps:
         print("No dependencies to check.")
+        chaos_extractor(pack_data)
         return
+
 
     to_install = []
 
@@ -70,6 +87,7 @@ def dependency_installer(pack_data):
 
     if not to_install:
         print("All dependencies are already satisfied.")
+        chaos_extractor(pack_data)
         return
 
     print("The following dependencies will be installed/updated:")
@@ -93,6 +111,8 @@ def dependency_installer(pack_data):
         return
 
     print("Dependency installation complete.")
+    chaos_extractor(pack_data)
+    return
 
 def init_dependencies():
     marker_file = "A/System42/pm_winters/.deps_checked"
@@ -186,6 +206,7 @@ def chaospack_downloader(target_name):
                     print("DEBUG: Pack data:", pack_data["dependencies"])
                     checksum(pack_data)
                     #Pass that shit to checksum.
+                    return
                 except requests.exceptions.RequestException as e:
                     print(f"ERR: Network request failed: {str(e)}")
                     return

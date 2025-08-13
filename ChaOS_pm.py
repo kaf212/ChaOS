@@ -12,10 +12,6 @@ import requests
 #
 #     return tuple(functions)
 
-def weather_report():
-
-    return
-
 
 # def pm_install(cmd):
 #     if cmd.sec_arg not in AVAILABLE_PACKAGES:

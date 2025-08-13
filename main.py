@@ -492,10 +492,9 @@ def winters(cmd):
         return
 
 def access_pm(cmd):
-    print("Weather PM stub...")
-    print("Current weather report: it's pissing.")
+    print("Winters PM stub...")
     return
-#TODO:Once Weather is done, make sure to add functionality. Please.
+
 
 def run_program(cmd):
     program_name = cmd.pri_arg
