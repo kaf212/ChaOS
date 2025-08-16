@@ -22,7 +22,7 @@ def chaos_extractor(pack_data):
         with zipfile.ZipFile(io.BytesIO(pack_data["chaospack"])) as chaospack_file:
             chaospack_file.extractall(program_path)
             print("Extracted ChaosPack to:", program_path)
-            #register_inst_chaospack()
+            register_inst_chaospack(pack_data)
             return
     except Exception as e:
         print(f"ERR: Failed to extract ChaosPack: {e}")
@@ -166,12 +166,40 @@ def init_dependencies():
         return
 
 
-def register_inst_chaospack():
-    print("Registering Installed Chaospack...STUB!!!!")
+def register_inst_chaospack(pack_data):
+    register_path = "A/System42/pm_winters/registered_packs.json"
+    
+    if not os.path.exists(register_path):
+        os.makedirs(os.path.dirname(register_path), exist_ok=True)
+        with open(register_path, "w", encoding="utf-8") as f:
+            json.dump({"registered_packs": []}, f, indent=2)
+            print("WARN: Registered packs list created.")
+    try:
+        with open(register_path, "r", encoding="utf-8") as f:
+            rpack_data = json.load(f)
+
+        new_entry = {
+            "chaospack_name": pack_data["name"],
+            "version": pack_data["packversion"],
+            "description": pack_data["description"]
+        }
+
+        rpack_data["registered_packs"].append(new_entry)
+        
+        with open(register_path, "w", encoding="utf-8") as f:
+            json.dump(rpack_data, f, indent=2)
+            
+        print("INFO: Successfully registered chaospack.")
+        return
+    except KeyError as e:
+        print(f"ERR: Missing required field in pack data: {e}")
+    except json.JSONDecodeError:
+        print("ERR: Cache file is malformed")
+    except Exception as e:
+        print(f"ERR: Unexpected error: {type(e).__name__}: {str(e)} Hit in Register function")
     return
 
 def install_chaospack(target_name=None):
-    piplist_update()
     if not target_name:
         target_name = input("Enter the name of the package to install: ").strip()
     if not target_name:
@@ -189,7 +217,9 @@ def chaospack_downloader(target_name):
         for package in repo["packages"]:
             if package["name"] == target_name:
                 print("Found it!")
+                piplist_update()
                 version = (package["version"])
+                description = (package["description"])
                 print("Pack URL:", package["packurl"])
                 print("SHA URL:", package["sha256url"])
                 try:
@@ -202,11 +232,13 @@ def chaospack_downloader(target_name):
                         "chaospack": chaospack_zip,
                         "checksum": shafile,
                         "dependencies": dependencies,
+                        "description":  description,
+                        "is_update": False,
                     }
                     print("DEBUG: Pack data:", pack_data["dependencies"])
-                    checksum(pack_data)
-                    #Pass that shit to checksum.
-                    return
+                    cancel_upgrade = update_check(pack_data)
+                    if cancel_upgrade:
+                        return
                 except requests.exceptions.RequestException as e:
                     print(f"ERR: Network request failed: {str(e)}")
                     return
@@ -220,11 +252,9 @@ def chaospack_downloader(target_name):
                     fail_repdeps()
                     return
                 except Exception as e:
-                    print(f"ERR: Unexpected error: {type(e).__name__}: {str(e)}")
+                    print(f"ERR: Unexpected error: {type(e).__name__}: {str(e)} Hit in Chaospack Downloader function")
                     return
 
-                found = True
-                break
         if found:
             break
     if not found:
@@ -232,7 +262,26 @@ def chaospack_downloader(target_name):
         return
 
 
-def list_repo():
+def update_check(pack_data):
+    with open("A/System42/pm_winters/registered_packs.json", "r", encoding="utf-8") as f:
+        check_packexists = json.load(f)
+        for entry in check_packexists["registered_packs"]:
+            if entry["chaospack_name"] == pack_data["name"]:
+                print("DEBUG: Found registered pack.")
+                if entry["version"] == pack_data["packversion"]:
+                    print("DEBUG: Version matches.")
+                    pack_data["is_update"] = True
+                    prompt_upgrade = input("A newer version of this package is available. Would you like to upgrade? (Y/N): ").strip().lower()
+                    if prompt_upgrade in ("yes", "y", "z", "j"):
+                        checksum(pack_data)
+                    else:
+                        cancel_upgrade = True
+                        return cancel_upgrade
+            else:
+                return
+
+
+def list_packs():
     cache_path = "A/System42/pm_winters/pm_cache/chaos_cache.json"
 
     if not os.path.exists(cache_path):
@@ -360,7 +409,7 @@ def reset_json(reset_arg=None):
         if not choice:
             print("Err: No input, Cancelling....")
             return
-        if choice in ("yes", "y", "z", "hell yeah", "nuke it"):
+        if choice in ("yes", "y", "z", "j", "hell yeah", "nuke it"):
             reset_is_a_go = True
 
         if reset_is_a_go:
@@ -412,18 +461,29 @@ def remove_source(cpkg_name=None):
         return
     if not cpkg_name:
         cpkg_name = input("Enter the package name to remove: ").strip()
-    print("user tried removing:" + cpkg_name)
     if not cpkg_name:
         print("Err: No package name provided.")
         return
-#TODO:DO THIS NEXT!!!!!!
-####################################################
+
+    try:
+        with open(source_path, "r", encoding="utf-8") as file:
+            json_data = json.load(file)
+            for i, repo in enumerate(json_data["repo_sources"]):
+                if cpkg_name == repo["name"]:
+                    del json_data["repo_sources"][i]
+                    with open(source_path, "w", encoding="utf-8") as outfile:
+                        json.dump(json_data, outfile, indent=2)
+                    print(f"Repository '{cpkg_name}' removed successfully.")
+                    return
+            print(f"Repository '{cpkg_name}' not found.")
+    except (json.JSONDecodeError, KeyError):
+        print("ERR: Source file is corrupted. Try using the reset command.")
 
 
 def add_source():
     source_path = "A/System42/pm_winters/repo_source.json"
 
-        # Ensure file and directory exist
+    # Ensure file and directory exist
     if not os.path.exists(source_path):
         os.makedirs(os.path.dirname(source_path), exist_ok=True)
         with open(source_path, "w", encoding="utf-8") as f:
@@ -435,9 +495,46 @@ def add_source():
             data = json.load(file)
 
         # Get user input
-        user_name = input("Friendly name for repo (used for lookup): ").strip()
-        repo_url = input("URL to repolist.json: ").strip()
-        repo_sha = input("URL to SHA checksum file: ").strip()
+        while True:
+            user_name = input("Friendly name for repo (used for lookup): ").strip()
+            
+            # Check if the name is empty
+            if not user_name:
+                print("ERR: Repository name cannot be empty.")
+                continue
+                
+            # Check if the name already exists
+            name_exists = any(repo["name"] == user_name for repo in data["repo_sources"])
+            if name_exists:
+                print(f"ERR: Repository name '{user_name}' already exists. Please choose a different name.")
+                continue
+                
+            break  # Exit the loop if the name is valid and unique
+
+
+        while True:
+            repo_url = input("URL to repolist.json: ").strip()
+            if not repo_url:
+                print("ERR: URL cannot be empty.")
+                continue
+
+            drepo_url = any(repo["repo_url"] == repo_url for repo in data["repo_sources"])
+            if drepo_url:
+                print(f"ERR: URL '{repo_url}' is a duplicate.")
+                continue
+            break
+
+        while True:
+            repo_sha = input("URL to SHA256 checksum file: ").strip()
+            if not repo_sha:
+                print("ERR: SHA256 cannot be empty.")
+                continue
+            
+            drepo_sha = any(repo["repo_sha"] == repo_sha for repo in data["repo_sources"])
+            if drepo_sha:
+                print(f"ERR: SHA256 '{repo_sha}' is a duplicate. That can't be right.")
+                continue
+            break
 
         # Make new entry
         new_entry = {
@@ -462,7 +559,7 @@ def add_source():
 
 def winters_version():
     print("Winters package manager demon")
-    print("Version 1.0 for ChaOS")
+    print("Version 1.0.0 for ChaOS")
     if running_standalone:
         print("Env: Running in standalone mode!")
     else:
@@ -496,7 +593,7 @@ def print_loaded_imports():
 # A mapping of string commands to actual functions
 COMMANDS = {
     "update": update_sources,
-    "info": list_repo,
+    "info": list_packs,
     "add": add_source,
     "exit": exit_shell,
     "pet": chatter,
@@ -507,7 +604,7 @@ COMMANDS = {
     "eggtoggle": enable_eastereggs,
     "debug_repdeps": fail_repdeps,
     "install": install_chaospack,
-    "debug_imports": print_loaded_imports
+    "imports": print_loaded_imports
 }
 
 def winters_shell_loop():
