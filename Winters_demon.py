@@ -217,6 +217,7 @@ def chaospack_downloader(target_name):
         for package in repo["packages"]:
             if package["name"] == target_name:
                 print("Found it!")
+                found= True
                 piplist_update()
                 version = (package["version"])
                 description = (package["description"])
@@ -237,6 +238,7 @@ def chaospack_downloader(target_name):
                     }
                     print("DEBUG: Pack data:", pack_data["dependencies"])
                     cancel_upgrade = update_check(pack_data)
+
                     if cancel_upgrade:
                         return
                 except requests.exceptions.RequestException as e:
@@ -263,22 +265,44 @@ def chaospack_downloader(target_name):
 
 
 def update_check(pack_data):
-    with open("A/System42/pm_winters/registered_packs.json", "r", encoding="utf-8") as f:
+    register_path = "A/System42/pm_winters/registered_packs.json"
+
+    # If file doesn't exist or is empty, skip update check
+    if not os.path.exists(register_path) or os.path.getsize(register_path) == 0:
+        # No registered packs yet → just continue to checksum
+        checksum(pack_data)
+        return
+
+    with open(register_path, "r", encoding="utf-8") as f:
         check_packexists = json.load(f)
         for entry in check_packexists["registered_packs"]:
             if entry["chaospack_name"] == pack_data["name"]:
                 print("DEBUG: Found registered pack.")
+
                 if entry["version"] == pack_data["packversion"]:
-                    print("DEBUG: Version matches.")
+                    print("INFO: Same version is already installed.")
+                    prompt_reinstall = input("Would you like to reinstall the package? (Y/N): ").strip().lower()
+                    if prompt_reinstall in ("yes", "y", "z", "j"):
+                        pack_data["is_update"] = True
+                        checksum(pack_data)
+                        return
+                    else:
+                        return True  # cancel_upgrade
+
+                elif entry["version"] < pack_data["packversion"]:
+                    print("DEBUG: Newer version available.")
                     pack_data["is_update"] = True
-                    prompt_upgrade = input("A newer version of this package is available. Would you like to upgrade? (Y/N): ").strip().lower()
+                    prompt_upgrade = input(
+                        "A newer version of this package is available. Would you like to upgrade? (Y/N): ").strip().lower()
                     if prompt_upgrade in ("yes", "y", "z", "j"):
                         checksum(pack_data)
+                        return
                     else:
-                        cancel_upgrade = True
-                        return cancel_upgrade
-            else:
-                return
+                        return True  # cancel_upgrade
+
+        # 🔥 If loop completes with no matches → treat as fresh install
+        print("DEBUG: Package not registered, proceeding with install.")
+        checksum(pack_data)
 
 
 def list_packs():
