@@ -183,14 +183,19 @@ def register_inst_chaospack(pack_data):
             "version": pack_data["packversion"],
             "description": pack_data["description"]
         }
+        if pack_data["is_update"] or pack_data["is_reinstall"]:
+            for i, pack in enumerate(rpack_data["registered_packs"]):
+                if pack["chaospack_name"] == pack_data["name"]:
+                    rpack_data["registered_packs"][i] = new_entry
+                    print("INFO: Successfully updated/reinstalled existing chaospack.")
+                    break
+        else:
+            rpack_data["registered_packs"].append(new_entry)
+            print("INFO: Successfully installed new chaospack.")
 
-        rpack_data["registered_packs"].append(new_entry)
-        
         with open(register_path, "w", encoding="utf-8") as f:
             json.dump(rpack_data, f, indent=2)
-            
-        print("INFO: Successfully registered chaospack.")
-        return
+
     except KeyError as e:
         print(f"ERR: Missing required field in pack data: {e}")
     except json.JSONDecodeError:
@@ -235,6 +240,7 @@ def chaospack_downloader(target_name):
                         "dependencies": dependencies,
                         "description":  description,
                         "is_update": False,
+                        "is_reinstall": False,
                     }
                     print("DEBUG: Pack data:", pack_data["dependencies"])
                     cancel_upgrade = update_check(pack_data)
@@ -267,9 +273,7 @@ def chaospack_downloader(target_name):
 def update_check(pack_data):
     register_path = "A/System42/pm_winters/registered_packs.json"
 
-    # If file doesn't exist or is empty, skip update check
     if not os.path.exists(register_path) or os.path.getsize(register_path) == 0:
-        # No registered packs yet → just continue to checksum
         checksum(pack_data)
         return
 
@@ -280,10 +284,10 @@ def update_check(pack_data):
                 print("DEBUG: Found registered pack.")
 
                 if entry["version"] == pack_data["packversion"]:
+                    pack_data["is_reinstall"] = True
                     print("INFO: Same version is already installed.")
                     prompt_reinstall = input("Would you like to reinstall the package? (Y/N): ").strip().lower()
                     if prompt_reinstall in ("yes", "y", "z", "j"):
-                        pack_data["is_update"] = True
                         checksum(pack_data)
                         return
                     else:
@@ -295,12 +299,12 @@ def update_check(pack_data):
                     prompt_upgrade = input(
                         "A newer version of this package is available. Would you like to upgrade? (Y/N): ").strip().lower()
                     if prompt_upgrade in ("yes", "y", "z", "j"):
+                        print(pack_data["is_update"])
                         checksum(pack_data)
                         return
                     else:
                         return True  # cancel_upgrade
 
-        # 🔥 If loop completes with no matches → treat as fresh install
         print("DEBUG: Package not registered, proceeding with install.")
         checksum(pack_data)
 
