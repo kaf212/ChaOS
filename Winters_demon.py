@@ -219,7 +219,7 @@ def chaospack_downloader(target_name):
     with open(cache_path, "r", encoding="utf-8") as f:
         chaos_data = json.load(f)
     for repo in chaos_data["repo_cache"]:
-        for package in repo["packages"]:
+        for package in repo["repo"]["packages"]:
             if package["name"] == target_name:
                 print("Found it!")
                 found= True
