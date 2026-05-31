@@ -9,11 +9,31 @@ import importlib
 import zipfile
 import io
 
+
+#wegotthemvariables
+
+#interactDDvariables
 p_count = 0
+
 reqdepsfailed = False
 easteregg_toggle = False
 running_standalone = False
 exit_now = False
+
+class winterspm:
+    def __init__(self):
+        self.depdendenciesloaded = False
+        self.init_dependencies()
+
+    def init_dependencies(self):
+        init_dependencies()
+        self.depdendenciesloaded = True
+
+    def install(self, target_name=None):
+        if not self.depdendenciesloaded:
+            self.init_dependencies()
+        install_chaospack(target_name)
+        return
 
 def chaos_extractor(pack_data):
     print("Extracting ChaosPack...")
@@ -28,11 +48,21 @@ def chaos_extractor(pack_data):
         print(f"ERR: Failed to extract ChaosPack: {e}")
         return
 
-def dependency_installer(pack_data):
-    deps = (pack_data or {}).get("dependencies") or {}
+def dependency_installer(pack_data=None, packages=None):
+    standalone = packages is not None
+
+    if standalone:
+        if isinstance(packages, list):
+            deps = {pkg: "" for pkg in packages}
+        else:
+            deps = packages
+    else:
+        deps = (pack_data or {}).get("dependencies") or {}
+
     if not deps:
         print("No dependencies to check.")
-        chaos_extractor(pack_data)
+        if not standalone:
+            chaos_extractor(pack_data)
         return
 
 
@@ -45,15 +75,12 @@ def dependency_installer(pack_data):
 
         show = subprocess.run([sys.executable, "-m", "pip", "show", name],capture_output=True,text=True)
         if show.returncode != 0:
-            # Not installed
             to_install.append(requirement)
             continue
 
         if not spec:
-            # Installed and no version requirement
             continue
 
-        # We have a version requirement; try to check it
         installed_version = None
         for line in show.stdout.splitlines():
             if line.lower().startswith("version:"):
@@ -63,18 +90,16 @@ def dependency_installer(pack_data):
         needs_update = False
         if installed_version:
             try:
-                # Abort immediately if version tools are unavailable
+
                 if "SpecifierSet" not in globals() or "Version" not in globals():
-                    print("ERROR: Required runtime dependency 'packaging' is missing. Aborting dependency installation.")
+                    print("ERROR: Required dependency 'packaging' is missing. Aborting dependency installation.")
                     fail_repdeps()
                     print("Dependency installation cancelled.")
                     return
 
-                # Normal path: compare installed version with spec
                 needs_update = (Version(installed_version) not in SpecifierSet(spec))
 
             except Exception as e:
-                # Any parsing/comparison error → abort and invoke repair
                 print(f"ERROR: Version check failed ({e}). Aborting dependency installation.")
                 fail_repdeps()
                 print("Dependency installation cancelled.")
@@ -87,7 +112,8 @@ def dependency_installer(pack_data):
 
     if not to_install:
         print("All dependencies are already satisfied.")
-        chaos_extractor(pack_data)
+        if not standalone:
+            chaos_extractor(pack_data)
         return
 
     print("The following dependencies will be installed/updated:")
@@ -111,7 +137,8 @@ def dependency_installer(pack_data):
         return
 
     print("Dependency installation complete.")
-    chaos_extractor(pack_data)
+    if not standalone:
+        chaos_extractor(pack_data)
     return
 
 def init_dependencies():
@@ -124,6 +151,7 @@ def init_dependencies():
             from packaging.specifiers import SpecifierSet
             from packaging.version import Version
         except:
+            print("ERR: Import fail! Init dependencies failed, attempting automatic dependency repair.")
             fail_repdeps()
         return
     try:
@@ -309,12 +337,14 @@ def update_check(pack_data):
         checksum(pack_data)
 
 
-def list_packs():
+def search_cache(search_term=None):
     cache_path = "A/System42/pm_winters/pm_cache/chaos_cache.json"
-
+    if not search_term:
+        print("Come on, I can't do anything with nothing.")
     if not os.path.exists(cache_path):
-        os.makedirs(os.path.dirname(cache_path), exist_ok=True)  # Make sure the directory exists
+        os.makedirs(os.path.dirname(cache_path), exist_ok=True)
         print("Warn:Creating folder")
+        #Is this needed? Not sure.
         with open(cache_path, "w", encoding="utf-8") as f:
             print("Warn:Creating file")
             json.dump({"repo_cache": []}, f, indent=2)
@@ -322,19 +352,24 @@ def list_packs():
     try:
         with open(cache_path, "r", encoding="utf-8") as file:
             data = json.load(file)  # Load the JSON file into a Python dictionary
-
         if not data["repo_cache"]:
             print("Err:No repository data found. Try running a cache update.")
         else:
-            #TODO:THIS SHIT IS OUTDATED, USED AN OLDER JSON FILE STRUCTURE. It's not what's shipping!!!!!
-            #Not sure yet if this shit reads from the cache or the source list. Haven't made up my mind.
-            for repo in data["repo_cache"]:  # Loop through the list of repos
-                print(f"Name: {repo['name']}")
-                print(f"Repo URL: {repo['repo_url']}")
-                print(f"SHA URL: {repo['repo_sha']}")
-                print()
-    except (json.JSONDecodeError, KeyError):
-        print("Err: Cache file is malformed or missing required data.")
+            for repo in data["repo_cache"]:
+                for package in repo["repo"]["packages"]:
+                    if package["name"] == search_term:
+                        print(f"Found '{search_term}' in repository cache:")
+                        print(f"Repository: {repo['repo']["repoinfo"]["reponame"]}")
+                        print(package["name"])
+                        print(package["version"])
+                        print(package["description"])
+                        return
+
+        print(f"No results found for '{search_term}' in repository cache.")
+        return
+    except (json.JSONDecodeError, KeyError) as e:
+        print("Err: Cache file is malformed or missing required data. Please reset with the reset command.")
+        print(f"Details: {type(e).__name__}: {str(e)}")
 
 def update_sources():
     source_path = "A/System42/pm_winters/repo_source.json"
@@ -401,7 +436,6 @@ def piplist_update():
     except:
         print("ERR: An unknown error occurred.")
         return
-#TODO:Maybe get an alternative, a second way of checking pip packages. That was my plan, but It's so janky that I decided not to add it.
 
 
 def reset_json(reset_arg=None):
@@ -442,7 +476,7 @@ def reset_json(reset_arg=None):
 
         if reset_is_a_go:
             if random.randint(1, 10) == 5 and easteregg_toggle:  # 1 in 10 chance
-                print("I'm not a big fan of this json thing...")
+                print("..I'm not a big fan of this json thing...")
             try:
                 print("INFO: Deleting Files")
                 os.remove(cache_path)
@@ -471,13 +505,6 @@ def enable_eastereggs():
         print(f"EasterEgg Toggle: {easteregg_toggle}")
         return
 
-def chatter():
-    global p_count
-    if p_count > 1:
-        print("Cut it out! Get your hands off of me!")
-    else:
-        print("Hey! Stop it! I'm a demon, not some weird cat.")
-        p_count += 1
 
 def remove_source(cpkg_name=None):
     source_path = "A/System42/pm_winters/repo_source.json"
@@ -618,13 +645,34 @@ def print_loaded_imports():
         print(name)
     return
 
+def clear_screen():
+    try:
+        if os.name in ("nt", "win32"):
+            os.system('cls')
+            return
+        elif os.name == "posix":
+            os.system('clear')
+            return
+    except:
+        print("Err: Terminal clear failed, please consider using something that is at least Windows or a Unix like.")
+
+        pass
+    # Literally the ChaOS clear function. Cut me some slack, okay?
+
+def dd_debugcheat():
+    global DD_respect
+    DD_respect = 40
+    print(f"Set DD respect to {DD_respect}")
+    return
+
+
 # A mapping of string commands to actual functions
 COMMANDS = {
     "update": update_sources,
-    "info": list_packs,
+    "search": search_cache,
     "add": add_source,
     "exit": exit_shell,
-    "pet": chatter,
+    "interact": chatter,
     "remove": remove_source,
     "reset": reset_json,
     "help": help,
@@ -632,7 +680,9 @@ COMMANDS = {
     "eggtoggle": enable_eastereggs,
     "debug_repdeps": fail_repdeps,
     "install": install_chaospack,
-    "imports": print_loaded_imports
+    "imports": print_loaded_imports,
+    "bombtest": funnypackbombfunction,
+    "dd_cheat": dd_debugcheat
 }
 
 def winters_shell_loop():
@@ -640,7 +690,7 @@ def winters_shell_loop():
     print("===================================")
     print("=Welcome to the ❄ Winters ❄ Shell=")
     print("===================================")
-    print("The Weather package helper")
+    print("The ChaOS package helper")
     print("Version 1.0")
     print("Running in debug mode")
     print("Use the help command to see a list of available commands.")
@@ -650,7 +700,7 @@ def winters_shell_loop():
             if exit_now:
                 exit_now = False
                 break
-            command = input("Winters> ").strip()
+            command = input("Winters> ").strip().lower()
             if not command:
                 continue
 

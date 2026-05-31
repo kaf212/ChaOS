@@ -13,7 +13,7 @@ import platform
 from dataclasses import dataclass, field
 from ChaOS_constants import CMD_SHORTS
 # from ChaOS_pm import pm_install
-from Winters_demon import winters_version, winters_shell_loop, reset_json
+from Winters_demon import winters_version, winters_shell_loop, reset_json, winterspm
 
 import logging
 from colors import *
@@ -482,11 +482,15 @@ def logoff():
     main()
 
 def winters(cmd):
+    pm = winterspm()
+
     if cmd.pri_arg == "debug":
         winters_shell_loop()
     elif cmd.pri_arg == "reset":
         reset_json()
         return
+    elif cmd.pri_arg == "install":
+        pm.install(cmd.sec_arg)
     else:
         winters_version()
         return
