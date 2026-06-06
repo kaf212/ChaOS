@@ -98,7 +98,7 @@ class File:
 
     def validate(self, modes: list = None, valid_filetypes=None):
         def print_warning_silent(output):
-            if 'silent' not in modes:
+            if not modes or 'silent' not in modes:
                 print_warning(output)
 
         for attr in [self.name, self.path, self.location, self.owner, self.access_perm]:
@@ -208,6 +208,17 @@ class File:
         self.owner = metadata['owner']
         self.access_perm = metadata['access_perm']
 
+        if isinstance(self.access_perm, str):
+            # If the string looks like a Python list, make it CSV style first
+            if self.access_perm.startswith("[") and self.access_perm.endswith("]"):
+                # Remove brackets and quotes, split by comma
+                perms = self.access_perm[1:-1].replace("'", "").replace('"', '').split(",")
+                self.access_perm = [p.strip() for p in perms if p.strip()]
+            else:
+                # Standard CSV-style, just split
+                self.access_perm = [p.strip() for p in self.access_perm.split(",") if p.strip()]
+        #Using copilot because I don't feel like it.
+
     def log_metadata(self):
         for perm in self.access_perm:
             if perm not in ['all_users', 'System42'] and perm not in return_user_names() \
@@ -294,8 +305,10 @@ class File:
 
             default_rec_bin_path = f'{self.location}/Recycling_bin'
             if os.path.exists(default_rec_bin_path):
+                print("Recycle is called")
                 self.move(default_rec_bin_path)
             else:  # if the file is located in a directory without recycling bin, it is moved to the owners rec bin.
+                print("Recycle is called")
                 self.move(f'A/ChaOS_Users/{self.owner}/Recycling_bin')
 
             if self.isdir():

@@ -12,7 +12,8 @@ from cmd_definitions import cmd_usage
 import platform
 from dataclasses import dataclass, field
 from ChaOS_constants import CMD_SHORTS
-from ChaOS_pm import pm_install
+# from ChaOS_pm import pm_install
+from Winters_demon import winters_version, winters_shell_loop, reset_json, winterspm
 
 import logging
 from colors import *
@@ -131,7 +132,7 @@ cmd_obj = Cmd()
 def main():
     initialize_A_drive()
     reset_syslog()
-    os.system('cls')
+    clear_screen()
     command_prompt()
 
 
@@ -148,6 +149,40 @@ def command_prompt():
             if cmd_obj.validate():
                 cmd_obj.execute()
 
+def all_help():
+    helpful_list = """
+Available Commands:
+
+create | cr <file|dir|user> <name>              - Create a file, directory, or user.
+read | rd <file> <filename>                     - Read the contents of a text file.
+delete | del <file|dir|user> <name>             - Delete a file, directory, or user.
+burn <file|dir> <name>                          - Permanently delete a file or directory.
+restore | res <file|dir> <name>                 - Restore a deleted file or directory from the recycling bin.
+edit | ed | alt <file|user> <name>              - Edit a file or user profile.
+dir                                             - List files and directories in the current directory.
+echo <message>                                  - Display a message on the screen.
+clear | cl                                      - Clear the terminal screen.
+help [command]                                  - Show help for a command.
+shutdown | sd [-t <seconds>]                    - Shut down the system (optionally use -t for a countdown).
+whoami                                          - Display user and system information.
+syslog | sl                                     - Show the system log.
+ipconfig                                        - Display network configuration.
+move | mv <file|dir> <name> <target directory>  - Move a file or directory to a new location.
+dev reset <user_csv|user_dirs> [-hard]          - Developer tools for resetting user data.
+cd <directory>                                  - Change the current directory.
+pm install <package>                            - Install packages using the package manager.
+run <program>                                   - Run a program.
+winters [install|add|debug|reset]				- Install a remote Chaospack, add a source, enter the Winters shell or reset pm files.
+
+Notes:
+- Commands may have short forms, shown after "|".
+- Arguments in <angle brackets> are required.
+- Arguments in [square brackets] are optional.
+- For commands with <file|dir|user>, choose one keyword as appropriate.
+- For more details, use 'help <command> -def'.
+"""
+    print(helpful_list)
+    return
 
 def help_cmd(cmd):
     """
@@ -157,11 +192,12 @@ def help_cmd(cmd):
     :param cmd:
     :return None:
     """
-    print(hex(id(cmd)))
     try:
         if cmd.pri_arg in cmd_usage.keys():
             print(f'-- Help for command {cmd.pri_arg} -- ')
             print(f'Syntax: {cmd_usage[cmd.pri_arg]}')
+        elif not cmd.pri_arg:
+            all_help()
         else:
             print_warning(f'The command "{cmd.pri_arg}" does not exist. ')
             return None
@@ -227,7 +263,11 @@ def delete_x(cmd):
     if cmd.pri_arg in ['file', 'dir']:
         file = File()
         file.init(cmd, user, cr_dir)
-        file.create_phys()
+        print("calling recycle")
+        print("DEBUG: self.path =", file.path)
+        print("DEBUG: self.name =", file.name)
+        print("DEBUG: self.location =", file.location)
+        file.recycle()
         del file
     if cmd.pri_arg == 'user':
         delete_user_safe(user, cmd.sec_arg)
@@ -245,7 +285,7 @@ def restore_x(cmd):
         file.restore(cr_dir)
 
 
-def move_x(cmd):
+def move_x(cr_dir, user, cmd):
     file = File()
     file.select(cmd.sec_arg, cr_dir)
     if file.validate_access(user):
@@ -285,53 +325,63 @@ def edit_x(cmd):
 
 def change_dir(cmd):
     global cr_dir
+    
+    if not cmd.pri_arg:
+        return None
+        
     path = cmd.pri_arg
     logging.basicConfig(level=logging.DEBUG, format=ChaOS_constants.LOGGING_FORMAT)
-    if path == '..':
-        print_warning(cr_dir)
-        pth_spl = split_path(cr_dir)  # split the current directory into a list
-        pth_spl.pop()  # remove the last directory
-        pth_spl.pop()  # remove the "/"
-        cr_dir = ''.join(pth_spl)  # reconvert it into a string
-        print_warning(f'cr_dir = {cr_dir}')
-        return None
-
-    path_valid = True
-    invalid_paths = ['...', '/', '.']
-    if path in invalid_paths:
-        path_valid = False
-
-    if path_valid:
-        if os.path.isdir(path):
-            cr_dir = path
-
-        if not cr_dir.endswith('/'):
-            full_path = cr_dir + '/' + path
-        else:
-            full_path = cr_dir + path
-
-        full_path = translate_ui_2_path(full_path)
-        path = translate_ui_2_path(path)
-
-        if os.path.exists(full_path):
-            dir_obj = File()
-            dir_obj.select(full_path, cr_dir)
-            if dir_obj.validate_access(user):
-                cr_dir = full_path
-                return None
-        elif os.path.exists(path):
-            dir_obj = File()
-            dir_obj.select(path, cr_dir)
-            if dir_obj.validate_access(user):
-                cr_dir = path
-                return None
-            cr_dir = full_path
+    try:
+        if path == '..':
+            pth_spl = split_path(cr_dir)
+            pth_spl.pop()
+            pth_spl.pop()
+            cr_dir = ''.join(pth_spl)
             return None
+
+        path_valid = True
+        invalid_paths = ['...', '/', '.']
+        if path in invalid_paths:
+            path_valid = False
+
+        if path_valid:
+            # First translate the input path if needed
+            path = translate_ui_2_path(path)
+            
+            if not cr_dir.endswith('/'):
+                full_path = cr_dir + '/' + path
+            else:
+                full_path = cr_dir + path
+            
+            # Make sure the full path is properly translated
+            full_path = translate_ui_2_path(full_path)
+            
+            if os.path.exists(full_path) and os.path.isdir(full_path):
+                dir_obj = File()
+                dir_obj.select(full_path, cr_dir)
+                if dir_obj.validate_access(user):
+                    cr_dir = full_path
+                    return None
+            else:
+                # Try the path as is (might be an absolute path)
+                if os.path.exists(path) and os.path.isdir(path):
+                    dir_obj = File()
+                    dir_obj.select(path, cr_dir)
+                    if dir_obj.validate_access(user):
+                        cr_dir = path
+                        return None
+                else:
+                    print_warning(f'The directory "{translate_path_2_ui(path)}" does not exist. ')
         else:
             print_warning(f'The directory "{translate_path_2_ui(path)}" does not exist. ')
+    except Exception as e:
+        if not cmd.pri_arg:
+            return None
+        print_warning(f'Error changing directory: {str(e)}')
+        return
 
-    else:
-        print_warning(f'The directory "{translate_path_2_ui(path)}" does not exist. ')
+
+#Not sure if it's very good not to just return without an error. But cd should just do nothing if you give it nothing to do.
 
 
 def list_dir():
@@ -381,12 +431,21 @@ def list_dir():
 
 
 def echo(cmd):
-    print_warning(cmd)
     print(cmd.pri_arg)
 
 
 def clear_screen():
-    os.system('cls')
+    try:
+        if os.name in ("nt", "win32"):
+            os.system('cls')
+            return
+        elif os.name == "posix":
+            os.system('clear')
+            return
+    except:
+        print("Your operating system doesn't seem to be supported.")
+        print("Please consider using something that is at least Windows or a Unix like.")
+        pass
 
 
 def shutdown(cmd):
@@ -421,10 +480,26 @@ def logoff():
     cr_dir = f'A/ChaOS_Users/{user.name}'
     main()
 
+def winters(cmd):
+    pm = winterspm()
+
+    if cmd.pri_arg == "debug":
+        winters_shell_loop()
+    elif cmd.pri_arg == "reset":
+        reset_json()
+        return
+    elif cmd.pri_arg == "install":
+        pm.install(cmd.sec_arg)
+    elif cmd.pri_arg == "add":
+        pm.add_source()
+        return
+    else:
+        winters_version()
+        return
 
 def access_pm(cmd):
-    if cmd.pri_arg == 'install':
-        pm_install(cmd)
+    print("Winters PM stub...")
+    return
 
 
 def run_program(cmd):
@@ -445,11 +520,8 @@ def run_program(cmd):
 def access_dev_tools(cmd):
     """
     The gateway to the land of dangerous and user-unfriendly operations.
-    :param cmd:
-    :return:
     """
-
-    def print_dev(output: str, color=None):  # every output related to the devtools should be recognized as one
+    def print_dev(output: str, color=None):
         if color is not None:
             if color == 'red':
                 print_warning(f'[DEVTOOL]: {output}')
@@ -480,6 +552,10 @@ def access_dev_tools(cmd):
             else:
                 reset_user_dirs()
                 print_dev('User directories were reset successfully. ', 'green')
+                
+        elif cmd.sec_arg == 'metadata':
+            initialize_user_dir_metadata()
+            print_dev('User directory metadata was initialized successfully. ', 'green')
     else:
         print_dev(f'"{cmd.pri_arg}" is not a valid dev command. ', 'red')
 
@@ -512,17 +588,17 @@ cmd_map = [
                {'cmd': 'edit', 'func': edit_x, 'args': [cmd_obj], 'vld_cmd_args': ['file', 'user']},
                {'cmd': 'dir', 'func': list_dir},
                {'cmd': 'echo', 'func': echo, 'args': [cmd_obj]},
-               {'cmd': 'clear', 'func': clear_screen(), 'args': []},
+               {'cmd': 'clear', 'func': clear_screen, 'args': []},
                {'cmd': 'help', 'func': help_cmd, 'args': [cmd_obj]},
                {'cmd': 'shutdown', 'func': shutdown, 'args': [cmd_obj]},
                {'cmd': 'whoami', 'func': display_usr, 'args': [cmd_obj]},
-               {'cmd': 'syslog', 'func': show_syslog, 'args': [cmd_obj]},
+               {'cmd': 'syslog', 'func': show_syslog, 'args': []},
                {'cmd': 'ipconfig', 'func': display_ipconfig, 'args': [cmd_obj]},
                {'cmd': 'move', 'func': move_x, 'args': [cr_dir, user, cmd_obj], 'vld_cmd_args': ['file', 'dir']},
                {'cmd': 'dev', 'func': access_dev_tools, 'args': [cmd_obj], 'vld_cmd_args': ['reset']},
                {'cmd': 'cd', 'func': change_dir, 'args': [cmd_obj]},
-               {'cmd': 'pm', 'func': access_pm, 'args': [cmd_obj]},
                {'cmd': 'run', 'func': run_program, 'args': [cmd_obj]},
+               {'cmd': 'winters', 'func': winters, 'args': [cmd_obj]},
                ]
 
 

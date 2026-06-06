@@ -27,6 +27,7 @@ CMD_SHORTS = {'cr': 'create',
               'sl': 'syslog',
               'res': 'restore',
               'mv': 'move',
+              'pm': 'winters',
 
               'f': 'file',
               'd': 'dir',
