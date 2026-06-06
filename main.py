@@ -491,6 +491,9 @@ def winters(cmd):
         return
     elif cmd.pri_arg == "install":
         pm.install(cmd.sec_arg)
+    elif cmd.pri_arg == "add":
+        pm.add_source()
+        return
     else:
         winters_version()
         return
@@ -595,7 +598,6 @@ cmd_map = [
                {'cmd': 'move', 'func': move_x, 'args': [cr_dir, user, cmd_obj], 'vld_cmd_args': ['file', 'dir']},
                {'cmd': 'dev', 'func': access_dev_tools, 'args': [cmd_obj], 'vld_cmd_args': ['reset']},
                {'cmd': 'cd', 'func': change_dir, 'args': [cmd_obj]},
-               {'cmd': 'weather', 'func': access_pm, 'args': [cmd_obj]},
                {'cmd': 'run', 'func': run_program, 'args': [cmd_obj]},
                {'cmd': 'winters', 'func': winters, 'args': [cmd_obj]},
                ]

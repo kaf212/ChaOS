@@ -35,7 +35,8 @@ DEF_SYSLOG = 'Is used to display all performed actions (executed commands, creat
 
 DEF_IPCONFIG = 'Is used to display information about the current network and client. '
 
-DEF_WINTERS = 'The ChaOS package manager. Can be used with the argument debug to enter the winters debug shell or with the argument reset to fix issues.'
+DEF_WINTERS = 'The ChaOS package manager. Can be used with the argument debug to enter the winters debug shell or with the argument reset to fix issues. Can also be used directly with Winters install (package name)' \
+
 
 cmd_def_map = {'create': CREATE_DEF,
                'read': READ_DEF,

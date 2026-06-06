@@ -12,13 +12,12 @@ import io
 
 #wegotthemvariables
 
-#interactDDvariables
-p_count = 0
-
+#PMvariables
 reqdepsfailed = False
 easteregg_toggle = False
 running_standalone = False
 exit_now = False
+#I know this is hella ugly.
 
 class winterspm:
     def __init__(self):
@@ -28,6 +27,10 @@ class winterspm:
     def init_dependencies(self):
         init_dependencies()
         self.depdendenciesloaded = True
+
+    def add_source(self):
+        add_source()
+        return
 
     def install(self, target_name=None):
         if not self.depdendenciesloaded:
@@ -406,15 +409,18 @@ def checksum(pack_data):
 def help():
     help_text = """
     Available commands:
-    update    - Update repo sources
-    info      - Lists repository info
-    add       - Add a new source
-    remove    - Remove a source (can take an argument)
-    reset     - Regenerates all Json files (or individual json files with the arguments pip/cache/source)
-    pet       - Pet the demon
-    exit      - Exit the shell
-    ver       - Prints Winters version
-    eggtoggle - Toggle Winters Eastereggs (Enables random chance for in character dialogue)
+    install         - Install a chaospack (can take an argument)
+    update          - Update repo sources (Doesn't work yet)
+    add             - Add a new source
+    help            - Display this help message
+    remove          - Remove a source (can take an argument)
+    reset           - Regenerates all Json files (or individual json files with the arguments pip/cache/source)
+    interact        - Interact with the delivery demon (Not implemented)
+    exit            - Exit the shell
+    ver             - Prints Winters version
+    eggtoggle       - Toggle Winters Eastereggs (Enables random chance for "in character" dialogue) (Not canon btw! and might not fit anymore.)
+    debug_repdeps   - Debug command, forces a required depdendency check.
+    imports         - Debug command, lists imported modules  
     """
     print(help_text)
     return
@@ -614,11 +620,71 @@ def add_source():
 
 def winters_version():
     print("Winters package manager demon")
-    print("Version 1.0.0 for ChaOS")
+    print("Version 1.0.0 for ChaOS EXPERIMENTAL")
     if running_standalone:
         print("Env: Running in standalone mode!")
     else:
         print("Env: Running from ChaOS!")
+
+def chatter():
+    print("Hey! This will come later once this project is done!")
+    print("Versions exist but they are not for sharing just yet.")
+    print(">:)")
+
+    print("If you don't agree with this change, well too bad. Look at this cool cat.")
+    input("Press enter to HAVE A LITTLE FEEL")
+    print(""" +=+++=*++**********++++***++******+********+*+**************+**+**************++***+++*++++******+ 
+ +++**+*++++++++++++*************************************************************************+**+*+ 
+ +*++++********+********************************************************************************+*+ 
+ +***********+****+******************************************************************************** 
+ ************+*************************************#*************##****************************+*++ 
+ *****************************************#@@@@@@@@@******#**************************************** 
+ ********+*+************************#****%@@      *@@@@%*+***####**#******************************+ 
+ ***********************#*#****###*#*#**#@   .::      @@@%##*##*####**#******#***#*******###***%%@@ 
+ *+************************###***#****##%@  *-=-:.      @@@%***#***#######*###*#**##*****#%@@@@@@@* 
+ *************************************#*%@  =@@@%#===.    @@@@%%%%%%%#%#%##****###%%%@@@@@@@        
+ *************#**#*#*******#*#####****##%@  :@%@@@@@==-=-   *@@@@@@@@@@@@@@@@@@@@@@@@@=      .-===  
+ *******************####**##############@@                        +===:.:%%**#**+       :**+-..  :- 
+ ********************##*########*###**#%@@ =     :=@@@@-.  :      -@=.:                 +=:+#%@%*   
+ ****************#*#****#*#############@@@    :+==.            ::=.:::           =# *@@=  :=+=:   @@
+ ******##********#*######*############%@:  .**:         =*%%%*+*+=:          . :   :-::+@@=      @@-
+ ******###***##**#*#*##*###**########%@@=*@@+=.=%@@@@@=   ==#:      --=.      :@@@@=:.    @%=   @@*:
+ *****##***##***##*#**#########%##*%%%@: -==:=::%     @@@*          --+:     :.  .+@%@@@*   *- @@#%:
+ *************#############****#*#****  .:=-=.    @@        @@     %@@%:       :=       =%@%%  @@%*:
+ *********%#############%#*##%%%%%%@@@@:    =++++: =@@@@@@@@@@.   := .      +.     -@@         *@#*:
+ ******####*##**#######%#*%@@@%%%%%%%%@@*  :. :=*#%=.  :-  :%   ++%*.-    -**#@@@@@@%*%##=     @%%*:
+ ******#**#*###*########*#@%%%%%%%%%%%%@@              =*#*%@:   #@@+@%   *@  :#+#=::       .@@@%#*:
+ *********#*############%*@%%%%%%%%%%%%@#:@@  :*==: :%@*:::=@@ @@@@@@@@  @=               =@@@%##%*:
+ *#**#****#*#####*##*####*@%%%%%%%%%%%%@% =@@@@     -  =*#= -@*   .=+   :  :*@%=       @@@@@%%%%#%*.
+ ******##*###***###%%%%%%*@%%%%%%%%%%%%@% :@@@@@@@@@.-                    .      -@@@@@@@@%%%%%%##*:
+ ******#**#*#*%#####*###%*@%%%%%%%%%%%%@@      =@@@@@@@@%                     @@@@#  @@@%%%%%%%%##*:
+ ******#**##**#######%##%*@%%%%%%%%%%%%@@   =@@--%@@@@@@@@@@@@@     *@@@@@@@@@@@.   #@%%%%%%%%%%##*:
+ *********#**+**********%*%@%%%%%%%%%%%@@ @@        @@@@@@@@@@@@@@@@@@@@@@@@+   -%  @@%@%%%%%%%%#%*:
+ ***********+#%%%%%%%@%%***%%%%%%%%%%%%@@     @ .%%    =@@@@@@%@@@%@@@@@+:  :=     @@@%%%%%%###%##*:
+ ***********%@@@%@%%%%%%@%%%%%%%%%%%%%%@@   =       *@-     =%%%%@@@        ==      @%#%######%%#%*.
+ ***+++****+%@%%%%%%%%%%%%%%%%%%%%%%%%%@@                    #%@@@@=       :   ::  =@%%%%%%%######% 
+ *===+*****+%@%%%%%%%%%%%%%%%%%%%%%%%%%@@@@@@@@@@@@@@@      %@@@%*   : ..:.        @@%%%%#%#######% 
+ -+@@@@@@**=%@%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%@@@ @@@@%=-     .        ::   @@%%####*****##*# 
+ %%@@%%@@*+=#@%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%@@@@@%@@@@@@@              @@@%#%####%%##%*### 
+ @%%%%%%@*==#@%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%@@@        :::@@@%##%********##***# 
+*@%%%%%%@*==*@%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%@@     :-=: :=%%%%%###**#********* 
+=%%%%%%%@*+=*@%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%@@   :=:=@@@@@@@@@@##***#*#******* 
++%%%%%%%@*==*@%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%@@  +             =**************# 
+*%%%%%%%@+-:*@%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%@@        .+%@@%%###************** 
+#@@%%%%%@#==*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%@@ +@@@@@@@@%%#****+*******+++**** 
+ =@@@%%%%@@@@@%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%@@=:#%@%%###*****#***************** 
+ - @@@@@%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%@@@=:#%#******************+*******++* 
+ +=: =@@@@%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%@@@@:=**+*****+*********+++++*+++**+++* 
+ +++=:  #@@@@@%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%@@@@@-.+++*+****+******+=+++++++*****+*++* 
+ =+++++-.  +@@@@%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%@@@@@@# .:=*****+*****++++++++*****+++++++++++ 
+ +=+=+=+++=:  =@@@@@@@@%%%%%%%%%%%%%%%%%%%%%%%@@@@@@@@@*:  :=****++++++==+=++++++*++++++++++===+=+* 
+ ======+=====-:   =@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%*=.   :-=++=++++*+*+++********+++=====+==+++++==== 
+ +==+++==+=======:.        :.::++*==-:  .         .-==++++++++++++=============++++++++++===+++++++ 
+ =============++=+===+====---::....:::-=+=====++*+++=+==++++=+==+=++++++++++++++++=++=++=++=====+++ 
+ =+=====================++++===+++++++****+++++++++++++===+===+==+=+++++++++++====++=++==++++===--= 
+ =====+=======++++===++=++===+=++****+*+*===+++====+=+=++++++=======++==+====++++========+=+==*#### 
+                        Sorry! I just don't feel like sharing this yet!                                                            
+                                                                                                    """)
 
 def fail_repdeps():
     global reqdepsfailed
@@ -657,13 +723,8 @@ def clear_screen():
         print("Err: Terminal clear failed, please consider using something that is at least Windows or a Unix like.")
 
         pass
-    # Literally the ChaOS clear function. Cut me some slack, okay?
+    # Literally the ChaOS clear function. Cut me some slack, okay? I know I could have just imported it. But I didn't want to.
 
-def dd_debugcheat():
-    global DD_respect
-    DD_respect = 40
-    print(f"Set DD respect to {DD_respect}")
-    return
 
 
 # A mapping of string commands to actual functions
@@ -681,8 +742,6 @@ COMMANDS = {
     "debug_repdeps": fail_repdeps,
     "install": install_chaospack,
     "imports": print_loaded_imports,
-    "bombtest": funnypackbombfunction,
-    "dd_cheat": dd_debugcheat
 }
 
 def winters_shell_loop():
@@ -691,7 +750,7 @@ def winters_shell_loop():
     print("=Welcome to the ❄ Winters ❄ Shell=")
     print("===================================")
     print("The ChaOS package helper")
-    print("Version 1.0")
+    print("Version 1.0 EXPERIMENTAL")
     print("Running in debug mode")
     print("Use the help command to see a list of available commands.")
     while True:
