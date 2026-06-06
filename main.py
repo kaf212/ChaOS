@@ -172,8 +172,7 @@ dev reset <user_csv|user_dirs> [-hard]          - Developer tools for resetting 
 cd <directory>                                  - Change the current directory.
 pm install <package>                            - Install packages using the package manager.
 run <program>                                   - Run a program.
-weather | pm <install|uninstall> <package> 		- Install packages using the package manager.
-winters [debug|reset]							- Enter the Winters shell or reset pm files.
+winters [install|add|debug|reset]				- Install a remote Chaospack, add a source, enter the Winters shell or reset pm files.
 
 Notes:
 - Commands may have short forms, shown after "|".

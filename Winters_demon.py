@@ -338,6 +338,7 @@ def update_check(pack_data):
 
         print("DEBUG: Package not registered, proceeding with install.")
         checksum(pack_data)
+        return
 
 
 def search_cache(search_term=None):
@@ -384,6 +385,7 @@ def update_sources():
     with open(source_path, "r", encoding="utf-8") as file:
         repo_sources = json.load(file)
         print(repo_sources)
+        print("DEBUG: This function is not yet implemented.")
         return
 
 def checksum(pack_data):
@@ -406,7 +408,7 @@ def checksum(pack_data):
     return
 
 
-def help():
+def help_cmd():
     help_text = """
     Available commands:
     install         - Install a chaospack (can take an argument)
@@ -439,8 +441,6 @@ def piplist_update():
         print(f"Error details: {e}")
         print(f"Return code: {e.returncode}")
         print(f"stderr: {e.stderr}")
-    except:
-        print("ERR: An unknown error occurred.")
         return
 
 
@@ -736,7 +736,7 @@ COMMANDS = {
     "interact": chatter,
     "remove": remove_source,
     "reset": reset_json,
-    "help": help,
+    "help": help_cmd,
     "ver": winters_version,
     "eggtoggle": enable_eastereggs,
     "debug_repdeps": fail_repdeps,
